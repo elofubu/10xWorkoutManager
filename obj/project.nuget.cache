@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "FaqEv8b/m0c=",
+  "dgSpecHash": "6yq4330Ikko=",
   "success": true,
   "projectFilePath": "C:\\Users\\elofu\\Documents\\10x-workout-manager\\10x-workout-manager.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\elofu\\.nuget\\packages\\blazor.bootstrap\\3.4.0\\blazor.bootstrap.3.4.0.nupkg.sha512",
     "C:\\Users\\elofu\\.nuget\\packages\\microsoft.aspnetcore.authorization\\9.0.9\\microsoft.aspnetcore.authorization.9.0.9.nupkg.sha512",
     "C:\\Users\\elofu\\.nuget\\packages\\microsoft.aspnetcore.components\\9.0.9\\microsoft.aspnetcore.components.9.0.9.nupkg.sha512",
     "C:\\Users\\elofu\\.nuget\\packages\\microsoft.aspnetcore.components.analyzers\\9.0.9\\microsoft.aspnetcore.components.analyzers.9.0.9.nupkg.sha512",

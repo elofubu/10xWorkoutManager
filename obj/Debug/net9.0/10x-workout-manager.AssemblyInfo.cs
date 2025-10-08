@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("10x-workout-manager")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b65bf63f837d0c115bf20f8aa4e05f3b8ad8cf37")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b03a93da541a1e5c01118b9cae2b4d72f0cdea3c")]
 [assembly: System.Reflection.AssemblyProductAttribute("10x-workout-manager")]
 [assembly: System.Reflection.AssemblyTitleAttribute("10x-workout-manager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

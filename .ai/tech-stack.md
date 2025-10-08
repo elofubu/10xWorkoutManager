@@ -3,7 +3,7 @@ Backend + Frontend
   - pozwala na tworzenie szybkich i wydajnych stron 
   - posiada statyczne typowanie
 CSS:
-- MudBlazor - biblioteka komponentów oraz narzędziami css
+- BlazorBootstrap - biblioteka komponentów oraz narzędziami css
 Baza danych: 
 - Supabase:
   - Zapewnia bazę danych PosgreSQL
