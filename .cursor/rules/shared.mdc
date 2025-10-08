@@ -1,5 +1,5 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
 # AI Rules form 10xWorkoutManager
 10xWorkoutManager is a web application that enables workout plans and excercises management. The aim of the project is to significantly seed up and simplyfy the process of recording 
