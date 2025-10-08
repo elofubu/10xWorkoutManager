@@ -3,8 +3,7 @@ Backend + Frontend
   - pozwala na tworzenie szybkich i wydajnych stron 
   - posiada statyczne typowanie
 CSS:
-- Tailwind 4 pozwala na wygodne sytlowanie aplikacji
-- Sysinfocus simple/ui zapewnia bibliotekę komponentów Blazor
+- MudBlazor - biblioteka komponentów oraz narzędziami css
 Baza danych: 
 - Supabase:
   - Zapewnia bazę danych PosgreSQL
