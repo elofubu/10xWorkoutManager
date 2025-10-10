@@ -1,0 +1,71 @@
+@page "/exercises"
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@inject IExerciseService ExerciseService
+@inject NavigationManager NavigationManager
+
+<h1>Exercises</h1>
+
+@if (_exercises == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button class="btn btn-primary mb-3" @onclick='() => NavigationManager.NavigateTo("/exercises/new")'>Create New Exercise</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Muscle Group</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exercise in _exercises)
+            {
+                <tr>
+                    <td><a href="#" @onclick="() => NavigateToExercise(exercise.Id)" @onclick:preventDefault>@exercise.Name</a></td>
+                    <td>@_muscleGroups?.FirstOrDefault(mg => mg.Id == exercise.MuscleGroupId)?.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => NavigateToExercise(exercise.Id)">History</button>
+                        <button class="btn btn-sm btn-secondary" @onclick="() => NavigateToEditExercise(exercise.Id)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="async () => await DeleteExercise(exercise.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<ExerciseDto> _exercises = new List<ExerciseDto>();
+    private IEnumerable<MuscleGroupDto> _muscleGroups = new List<MuscleGroupDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadExercises();
+        _muscleGroups = await ExerciseService.GetAllMuscleGroupsAsync();
+    }
+
+    private async Task LoadExercises()
+    {
+        _exercises = await ExerciseService.GetAllExercisesAsync();
+    }
+
+    private async Task DeleteExercise(long exerciseId)
+    {
+        await ExerciseService.DeleteExerciseAsync(exerciseId);
+        await LoadExercises();
+    }
+
+    private void NavigateToExercise(long id)
+    {
+        NavigationManager.NavigateTo($"/exercise/{id}");
+    }
+
+    private void NavigateToEditExercise(long id)
+    {
+        NavigationManager.NavigateTo($"/exercises/edit/{id}");
+    }
+}

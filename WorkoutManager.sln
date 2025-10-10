@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkoutManager.Web", "Worko
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkoutManager.Data", "WorkoutManager.Data\WorkoutManager.Data.csproj", "{17E1E0FB-F62C-4CE3-842E-F28BF6D95C3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkoutManager.Business", "WorkoutManager.Business\WorkoutManager.Business.csproj", "{DF985C96-77DA-461A-8929-9EA34A1F36D7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{17E1E0FB-F62C-4CE3-842E-F28BF6D95C3D}.Release|x64.Build.0 = Release|Any CPU
 		{17E1E0FB-F62C-4CE3-842E-F28BF6D95C3D}.Release|x86.ActiveCfg = Release|Any CPU
 		{17E1E0FB-F62C-4CE3-842E-F28BF6D95C3D}.Release|x86.Build.0 = Release|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Debug|x64.Build.0 = Debug|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Debug|x86.Build.0 = Debug|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Release|x64.ActiveCfg = Release|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Release|x64.Build.0 = Release|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Release|x86.ActiveCfg = Release|Any CPU
+		{DF985C96-77DA-461A-8929-9EA34A1F36D7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

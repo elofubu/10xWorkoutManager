@@ -27,4 +27,7 @@ public class ExerciseSet : BaseModel
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
+
+    [Reference(typeof(SessionExercise))]
+    public SessionExercise SessionExercise { get; set; }
 }

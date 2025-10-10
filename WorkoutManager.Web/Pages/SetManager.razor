@@ -1,0 +1,76 @@
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@inject ISessionService SessionService
+
+@if (SessionExercise != null)
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Weight</th>
+                <th>Reps</th>
+                <th>Failure</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var set in SessionExercise.Sets.OrderBy(s => s.Order))
+            {
+                <tr>
+                    <td>@set.Order</td>
+                    <td>@set.Weight</td>
+                    <td>@set.Reps</td>
+                    <td>@(set.IsFailure ? "Yes" : "No")</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteSet(set.Id)" disabled="SessionEnded">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!SessionEnded)
+    {
+        <div class="row g-3 align-items-center">
+            <div class="col-auto"><InputNumber @bind-Value="_newSet.Order" class="form-control" placeholder="Order" /></div>
+            <div class="col-auto"><InputNumber @bind-Value="_newSet.Weight" class="form-control" placeholder="Weight" /></div>
+            <div class="col-auto"><InputNumber @bind-Value="_newSet.Reps" class="form-control" placeholder="Reps" /></div>
+            <div class="col-auto">
+                <div class="form-check">
+                    <InputCheckbox @bind-Value="_newSet.IsFailure" class="form-check-input" id="isFailureCheck" />
+                    <label class="form-check-label" for="isFailureCheck">Failure</label>
+                </div>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-success" @onclick="AddSet">Add Set</button>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public SessionExerciseDto SessionExercise { get; set; } = null!;
+
+    [Parameter]
+    public bool SessionEnded { get; set; }
+
+    [Parameter]
+    public EventCallback OnSetChanged { get; set; }
+
+    private ExerciseSetDto _newSet = new() { Order = 1 };
+
+    private async Task AddSet()
+    {
+        await SessionService.AddSetToSessionExerciseAsync(SessionExercise.Id, _newSet);
+        _newSet = new() { Order = (short)(SessionExercise.Sets.Count() + 2) };
+        await OnSetChanged.InvokeAsync();
+    }
+
+    private async Task DeleteSet(long setId)
+    {
+        await SessionService.RemoveSetFromSessionExerciseAsync(SessionExercise.Id, setId);
+        await OnSetChanged.InvokeAsync();
+    }
+}

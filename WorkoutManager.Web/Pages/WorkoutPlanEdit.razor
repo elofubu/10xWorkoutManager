@@ -1,0 +1,95 @@
+@page "/workout-plans/new"
+@page "/workout-plans/edit/{Id:long}"
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@using WorkoutManager.Business.Exceptions
+@inject IWorkoutPlanService WorkoutPlanService
+@inject NavigationManager NavigationManager
+
+@if (Id.HasValue)
+{
+    <h1>Edit Workout Plan</h1>
+}
+else
+{
+    <h1>Create Workout Plan</h1>
+}
+
+
+<EditForm Model="@_workoutPlan" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger">
+            <p>@_errorMessage</p>
+            @if (_validationErrors != null)
+            {
+                <ul>
+                    @foreach (var error in _validationErrors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            }
+        </div>
+    }
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <InputText id="name" class="form-control" @bind-Value="_workoutPlan.Name"></InputText>
+    </div>
+
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <InputTextArea id="description" class="form-control" @bind-Value="_workoutPlan.Description"></InputTextArea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="button" class="btn btn-secondary" @onclick="@(() => NavigationManager.NavigateTo("/workout-plans"))">Cancel</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public long? Id { get; set; }
+
+    private WorkoutPlanDto _workoutPlan = new();
+    private string? _errorMessage;
+    private IEnumerable<string>? _validationErrors;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            _workoutPlan = await WorkoutPlanService.GetWorkoutPlanByIdAsync(Id.Value);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _errorMessage = null;
+        _validationErrors = null;
+        try
+        {
+            if (Id.HasValue)
+            {
+                await WorkoutPlanService.UpdateWorkoutPlanAsync(Id.Value, _workoutPlan);
+            }
+            else
+            {
+                await WorkoutPlanService.CreateWorkoutPlanAsync(_workoutPlan);
+            }
+            NavigationManager.NavigateTo("/workout-plans");
+        }
+        catch (ValidationException vex)
+        {
+            _errorMessage = vex.Message;
+            _validationErrors = vex.Errors.SelectMany(err => err.Value);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

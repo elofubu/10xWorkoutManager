@@ -1,0 +1,79 @@
+@page "/exercises/new"
+@page "/exercises/edit/{Id:long}"
+
+@using AutoMapper
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@inject IExerciseService ExerciseService
+@inject NavigationManager NavigationManager
+@inject IMapper Mapper
+
+@if (Id.HasValue)
+{
+    <h1>Edit Exercise</h1>
+}
+else
+{
+    <h1>Create Exercise</h1>
+}
+
+<EditForm Model="@_exercise" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <InputText id="name" class="form-control" @bind-Value="_exercise.Name"></InputText>
+    </div>
+
+    <div class="mb-3">
+        <label for="muscleGroup" class="form-label">Muscle Group</label>
+        <InputSelect id="muscleGroup" class="form-select" @bind-Value="_exercise.MuscleGroupId">
+            <option value="">Select a muscle group</option>
+            @if (_muscleGroups != null)
+            {
+                @foreach (var group in _muscleGroups)
+                {
+                    <option value="@group.Id">@group.Name</option>
+                }
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="button" class="btn btn-secondary" @onclick="@(() => NavigationManager.NavigateTo("/exercises"))">Cancel</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public long? Id { get; set; }
+
+    private ExerciseDto _exercise = new();
+    private IEnumerable<MuscleGroupDto> _muscleGroups = new List<MuscleGroupDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _muscleGroups = await ExerciseService.GetAllMuscleGroupsAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            _exercise = await ExerciseService.GetExerciseByIdAsync(Id.Value);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Id.HasValue)
+        {
+            await ExerciseService.UpdateExerciseAsync(Id.Value, _exercise);
+        }
+        else
+        {
+            await ExerciseService.CreateExerciseAsync(Mapper.Map<CreateExerciseDto>(_exercise));
+        }
+        NavigationManager.NavigateTo("/exercises");
+    }
+}

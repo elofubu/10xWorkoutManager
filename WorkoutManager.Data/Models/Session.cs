@@ -1,6 +1,7 @@
 namespace WorkoutManager.Data.Models;
 
 using System;
+using System.Collections.Generic;
 using Postgrest.Attributes;
 using Postgrest.Models;
 
@@ -24,4 +25,7 @@ public class Session : BaseModel
 
     [Column("end_time")]
     public DateTime? EndTime { get; set; }
+
+    [Reference(typeof(SessionExercise))]
+    public List<SessionExercise> Exercises { get; set; } = new List<SessionExercise>();
 }

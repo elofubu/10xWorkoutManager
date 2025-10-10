@@ -1,0 +1,51 @@
+@page "/exercise/{Id:long}"
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@inject IExerciseService ExerciseService
+@inject NavigationManager NavigationManager
+
+@if (_exercise == null || _history == null)
+{
+    <p><em>Loading exercise details...</em></p>
+}
+else
+{
+    <h1>@_exercise.Name</h1>
+    <h3>History</h3>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Weight</th>
+                <th>Reps</th>
+                <th>Failure</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in _history)
+            {
+                <tr>
+                    <td>@entry.SessionDate.ToLocalTime().ToString("yyyy-MM-dd")</td>
+                    <td>@entry.Weight</td>
+                    <td>@entry.Reps</td>
+                    <td>@(entry.IsFailure ? "Yes" : "No")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public long Id { get; set; }
+
+    private ExerciseDto _exercise = null!;
+    private IEnumerable<ExerciseHistoryDto> _history = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _exercise = await ExerciseService.GetExerciseByIdAsync(Id);
+        _history = await ExerciseService.GetExerciseHistoryAsync(Id);
+    }
+}

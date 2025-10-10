@@ -1,0 +1,76 @@
+@page "/sessions"
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@inject ISessionService SessionService
+@inject IWorkoutPlanService WorkoutPlanService
+@inject NavigationManager NavigationManager
+
+<h1>Session History</h1>
+
+@if (_sessions == null || _workoutPlans == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="() => StartNewSession(null)">Start Empty Session</button>
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                Start Session from Plan
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                @foreach (var plan in _workoutPlans)
+                {
+                    <li><a class="dropdown-item" href="#" @onclick="() => StartNewSession(plan.Id)" @onclick:preventDefault>@plan.Name</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Exercise Count</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var session in _sessions)
+            {
+                <tr @onclick="() => NavigateToSession(session.Id)" style="cursor: pointer;">
+                    <td>@session.StartTime.ToLocalTime()</td>
+                    <td>@session.EndTime?.ToLocalTime()</td>
+                    <td>@session.ExerciseCount</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick:stopPropagation="true" @onclick="() => NavigateToSession(session.Id)">View</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<SessionSummaryDto> _sessions = new List<SessionSummaryDto>();
+    private IEnumerable<WorkoutPlanSummaryDto> _workoutPlans = new List<WorkoutPlanSummaryDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sessions = await SessionService.GetSessionHistoryAsync();
+        _workoutPlans = await WorkoutPlanService.GetAllWorkoutPlanSummariesAsync();
+    }
+
+    private async Task StartNewSession(long? planId)
+    {
+        var newSession = await SessionService.StartSessionAsync(planId);
+        NavigationManager.NavigateTo($"/session/{newSession.Id}");
+    }
+
+    private void NavigateToSession(long sessionId)
+    {
+        NavigationManager.NavigateTo($"/session/{sessionId}");
+    }
+}

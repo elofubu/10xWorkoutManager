@@ -1,6 +1,7 @@
 namespace WorkoutManager.Data.Models;
 
 using System;
+using System.Collections.Generic;
 using Postgrest.Attributes;
 using Postgrest.Models;
 
@@ -21,4 +22,7 @@ public class TrainingDay : BaseModel
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
+
+    [Reference(typeof(PlanDayExercise))]
+    public List<PlanDayExercise> PlanDayExercises { get; set; } = new List<PlanDayExercise>();
 }

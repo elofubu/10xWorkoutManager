@@ -1,0 +1,123 @@
+@page "/workout-plan/{Id:long}"
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@inject IWorkoutPlanService WorkoutPlanService
+@inject ITrainingDayService TrainingDayService
+@inject IExerciseService ExerciseService
+@inject NavigationManager NavigationManager
+
+@if (_workoutPlan == null)
+{
+    <p><em>Loading workout plan...</em></p>
+}
+else
+{
+    <h1>@_workoutPlan.Name</h1>
+    <p>@_workoutPlan.Description</p>
+
+    <div class="mb-3">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="New Training Day Name" @bind="_newTrainingDayName" />
+            <button class="btn btn-primary" @onclick="AddTrainingDay" disabled="@string.IsNullOrWhiteSpace(_newTrainingDayName)">Add Training Day</button>
+        </div>
+    </div>
+
+    <hr />
+
+    <h2>Training Days</h2>
+
+    @foreach (var day in _workoutPlan.TrainingDays.OrderBy(d => d.Order))
+    {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>@day.Name</h5>
+                <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveTrainingDay(day.Id)">Remove Day</button>
+            </div>
+            <div class="card-body">
+                <ul class="list-group mb-3">
+                    @foreach (var pde in day.PlanDayExercises.OrderBy(e => e.Order))
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @pde.ExerciseName
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveExerciseFromDay(pde.Id)">Remove</button>
+                        </li>
+                    }
+                </ul>
+                <div class="input-group">
+                    <select class="form-select" @onchange="(e) => HandleExerciseSelection(day.Id, e.Value)">
+                        <option value="0">Choose exercise...</option>
+                        @if (_allExercises != null)
+                        {
+                            @foreach (var exercise in _allExercises)
+                            {
+                                <option value="@exercise.Id">@exercise.Name</option>
+                            }
+                        }
+                    </select>
+                    <button class="btn btn-primary" @onclick="() => AddExerciseToDay(day.Id)" disabled="@(!_selectedExerciseIds.ContainsKey(day.Id) || _selectedExerciseIds[day.Id] == 0)">Add Exercise</button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public long Id { get; set; }
+
+    private WorkoutPlanDto _workoutPlan = null!;
+    private IEnumerable<ExerciseDto> _allExercises = new List<ExerciseDto>();
+    private string _newTrainingDayName = string.Empty;
+    private Dictionary<long, long> _selectedExerciseIds = new Dictionary<long, long>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlan();
+        _allExercises = await ExerciseService.GetAllExercisesAsync();
+    }
+
+    private async Task LoadPlan()
+    {
+        _workoutPlan = await WorkoutPlanService.GetWorkoutPlanByIdAsync(Id);
+    }
+
+    private async Task AddTrainingDay()
+    {
+        if (!string.IsNullOrWhiteSpace(_newTrainingDayName))
+        {
+            await TrainingDayService.AddTrainingDayAsync(Id, _newTrainingDayName);
+            _newTrainingDayName = string.Empty;
+            await LoadPlan();
+        }
+    }
+
+    private async Task RemoveTrainingDay(long dayId)
+    {
+        await TrainingDayService.RemoveTrainingDayAsync(dayId);
+        await LoadPlan();
+    }
+
+    private async Task AddExerciseToDay(long dayId)
+    {
+        if (_selectedExerciseIds.TryGetValue(dayId, out var exerciseId) && exerciseId > 0)
+        {
+            await TrainingDayService.AddExerciseToTrainingDayAsync(dayId, exerciseId);
+            _selectedExerciseIds.Remove(dayId);
+            await LoadPlan();
+        }
+    }
+
+    private void HandleExerciseSelection(long dayId, object value)
+    {
+        if (long.TryParse(value?.ToString(), out long exerciseId))
+        {
+            _selectedExerciseIds[dayId] = exerciseId;
+        }
+    }
+
+    private async Task RemoveExerciseFromDay(long planDayExerciseId)
+    {
+        await TrainingDayService.RemoveExerciseFromTrainingDayAsync(planDayExerciseId);
+        await LoadPlan();
+    }
+}

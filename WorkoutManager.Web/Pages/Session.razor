@@ -1,0 +1,122 @@
+@page "/session/{Id:long}"
+@using WorkoutManager.Business.DTOs
+@using WorkoutManager.Business.Interfaces
+@inject ISessionService SessionService
+@inject IExerciseService ExerciseService
+@inject NavigationManager NavigationManager
+
+@if (_session == null)
+{
+    <p><em>Loading session...</em></p>
+}
+else
+{
+    <h1>Session started at @_session.StartTime.ToLocalTime()</h1>
+    @if (_session.EndTime.HasValue)
+    {
+        <p>Ended at @_session.EndTime.Value.ToLocalTime()</p>
+    }
+    else
+    {
+        <button class="btn btn-danger mb-3" @onclick="EndSession">End Session</button>
+    }
+
+    <hr />
+
+    <h2>Exercises</h2>
+    @foreach (var se in _session.Exercises.OrderBy(e => e.Order))
+    {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>@se.ExerciseName</h5>
+                <div>
+                    @if (!_session.EndTime.HasValue)
+                    {
+                        <button class="btn btn-sm btn-outline-warning" @onclick="() => SkipExercise(se.Id)" disabled="@se.Skipped">Skip</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveExercise(se.Id)">Remove</button>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                @if (se.Skipped)
+                {
+                    <p class="text-muted"><em>Skipped</em></p>
+                }
+                else
+                {
+                    <SetManager SessionExercise="se" SessionEnded="_session.EndTime.HasValue" OnSetChanged="LoadSession" />
+                }
+            </div>
+        </div>
+    }
+
+    @if (!_session.EndTime.HasValue)
+    {
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Add Exercise</h5>
+                <div class="input-group">
+                    <select class="form-select" @bind="_selectedExerciseId">
+                        <option value="0">Choose...</option>
+                        @if (_allExercises != null)
+                        {
+                            @foreach (var exercise in _allExercises)
+                            {
+                                <option value="@exercise.Id">@exercise.Name</option>
+                            }
+                        }
+                    </select>
+                    <button class="btn btn-primary" @onclick="AddExercise" disabled="@(_selectedExerciseId == 0)">Add</button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public long Id { get; set; }
+
+    private SessionDto _session = null!;
+    private IEnumerable<ExerciseDto> _allExercises = new List<ExerciseDto>();
+    private long _selectedExerciseId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSession();
+        _allExercises = await ExerciseService.GetAllExercisesAsync();
+    }
+
+    private async Task LoadSession()
+    {
+        _session = await SessionService.GetSessionByIdAsync(Id);
+    }
+
+    private async Task EndSession()
+    {
+        await SessionService.EndSessionAsync(Id);
+        await LoadSession();
+    }
+
+    private async Task SkipExercise(long sessionExerciseId)
+    {
+        await SessionService.SkipExerciseAsync(sessionExerciseId);
+        await LoadSession();
+    }
+
+    private async Task RemoveExercise(long sessionExerciseId)
+    {
+        await SessionService.RemoveExerciseFromSessionAsync(Id, sessionExerciseId);
+        await LoadSession();
+    }
+
+    private async Task AddExercise()
+    {
+        if (_selectedExerciseId > 0)
+        {
+            await SessionService.AddExerciseToSessionAsync(Id, _selectedExerciseId);
+            _selectedExerciseId = 0;
+            await LoadSession();
+        }
+    }
+}

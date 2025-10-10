@@ -21,4 +21,7 @@ public class PlanDayExercise : BaseModel
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
+
+    [Reference(typeof(Exercise))]
+    public Exercise Exercise { get; set; }
 }
