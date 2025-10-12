@@ -1,4 +1,18 @@
+using WorkoutManager.BusinessLogic.Commands;
+
 namespace WorkoutManager.BusinessLogic.DTOs;
+
+public record CreateTrainingDayDto
+{
+    public string Name { get; set; } = string.Empty;
+    public int Order { get; set; }
+}
+
+public record CreateWorkoutPlanDto
+{
+    public string Name { get; set; } = string.Empty;
+    public IEnumerable<CreateTrainingDayDto> TrainingDays { get; set; } = new List<CreateTrainingDayDto>();
+}
 
 public record WorkoutPlanDto(
     int Id,
@@ -44,4 +58,9 @@ public record WorkoutPlanDetailDto(
     string Name,
     bool IsLocked,
     IEnumerable<TrainingDayDto> TrainingDays
+);
+
+public record UpdateWorkoutPlanDto(
+    string Name,
+    List<UpdateTrainingDayOrderCommand> TrainingDays
 );

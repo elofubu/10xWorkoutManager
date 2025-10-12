@@ -4,6 +4,8 @@ public class SessionSummaryDto
 {
     public int Id { get; set; }
     public int PlanId { get; set; }
+    public string? PlanName { get; set; }
+    public string? TrainingDayName { get; set; }
     public string? Notes { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime? EndTime { get; set; }
@@ -25,6 +27,13 @@ public class SessionExerciseDetailsDto
     public string? Notes { get; set; }
     public bool Skipped { get; set; }
     public int Order { get; set; }
+    public List<ExerciseSetDto> Sets { get; set; } = new();
+}
+
+public class UpdateSessionExerciseDto
+{
+    public string? Notes { get; set; }
+    public bool? Skipped { get; set; }
     public List<ExerciseSetDto> Sets { get; set; } = new();
 }
 

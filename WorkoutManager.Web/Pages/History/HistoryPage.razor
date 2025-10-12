@@ -1,0 +1,42 @@
+@page "/history"
+@using WorkoutManager.BusinessLogic.DTOs
+
+<PageTitle>Workout History</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Workout History</MudText>
+
+@if (_sessions is null)
+{
+    <div class="d-flex justify-center">
+        <MudProgressCircular Indeterminate="true" />
+    </div>
+}
+else if (!_sessions.Any())
+{
+    <MudText>You haven't completed any workouts yet.</MudText>
+}
+else
+{
+    <MudList T="SessionSummaryDto">
+        @foreach (var session in _sessions)
+        {
+            <MudListItem T="SessionSummaryDto" @onclick="() => NavigateToSession(session.Id)">
+                <div>
+                    <MudText Typo="Typo.subtitle1">@session.PlanName - @session.TrainingDayName</MudText>
+                    <MudText Typo="Typo.body2">@session.StartTime.ToString("g")</MudText>
+                    @if (session.EndTime.HasValue)
+                    {
+                        <MudText Typo="Typo.caption">
+                            Duration: @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm"))
+                        </MudText>
+                    }
+                </div>
+            </MudListItem>
+        }
+    </MudList>
+    
+    @if (PageCount > 1)
+    {
+        <MudPagination Count="PageCount" />
+    }
+}

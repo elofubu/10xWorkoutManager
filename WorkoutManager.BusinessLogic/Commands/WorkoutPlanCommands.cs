@@ -20,3 +20,5 @@ public class AddExerciseToTrainingDayCommand
     public int ExerciseId { get; set; }
     public int Order { get; set; }
 }
+
+public record ReorderExerciseCommand(int Id, int Order);

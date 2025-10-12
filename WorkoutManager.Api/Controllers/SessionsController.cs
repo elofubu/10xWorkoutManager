@@ -16,7 +16,9 @@ public class SessionsController : ControllerBase
             PlanId = 1,
             Notes = "Felt strong today.",
             StartTime = DateTime.UtcNow.AddDays(-1),
-            EndTime = DateTime.UtcNow.AddDays(-1).AddHours(1)
+            EndTime = DateTime.UtcNow.AddDays(-1).AddHours(1),
+            PlanName = "My Strength Plan",
+            TrainingDayName = "Day A"
         },
         new()
         {
@@ -24,7 +26,9 @@ public class SessionsController : ControllerBase
             PlanId = 1,
             Notes = "A bit tired.",
             StartTime = DateTime.UtcNow.AddDays(-3),
-            EndTime = DateTime.UtcNow.AddDays(-3).AddHours(1)
+            EndTime = DateTime.UtcNow.AddDays(-3).AddHours(1),
+            PlanName = "My Strength Plan",
+            TrainingDayName = "Day B"
         }
     };
 

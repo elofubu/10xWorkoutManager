@@ -1,0 +1,82 @@
+@page "/history/{id:int}"
+
+<PageTitle>Workout Summary</PageTitle>
+
+@if (_session is null)
+{
+    <div class="d-flex justify-center">
+        <MudProgressCircular Indeterminate="true" />
+    </div>
+}
+else
+{
+    <MudText Typo="Typo.h4">Workout Summary</MudText>
+    <MudText><strong>Date:</strong> @(_session.StartTime.ToString("g"))</MudText>
+    @if (_session.EndTime.HasValue)
+    {
+        <MudText><strong>Duration:</strong> @((_session.EndTime.Value - _session.StartTime).ToString(@"hh\:mm\:ss"))</MudText>
+    }
+
+    @if (!string.IsNullOrEmpty(_session.Notes))
+    {
+        <MudText Class="mt-2"><strong>Session Notes:</strong> @_session.Notes</MudText>
+    }
+
+    <MudDivider Class="my-4" />
+
+    @foreach (var exercise in _session.Exercises.OrderBy(e => e.Order))
+    {
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        @GetExerciseName(exercise.ExerciseId)
+                        @if (exercise.Skipped)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">Skipped</MudChip>
+                        }
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (exercise.Skipped)
+                {
+                    <MudText Color="Color.Warning">This exercise was skipped</MudText>
+                }
+                else if (exercise.Sets.Any())
+                {
+                    <MudSimpleTable Dense="true">
+                        <thead>
+                            <tr>
+                                <th>Set</th>
+                                <th>Weight</th>
+                                <th>Reps</th>
+                                <th>Failure</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var set in exercise.Sets.OrderBy(s => s.Order))
+                            {
+                                <tr>
+                                    <td>@set.Order</td>
+                                    <td>@set.Weight</td>
+                                    <td>@set.Reps</td>
+                                    <td>@(set.IsFailure ? "Yes" : "No")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                }
+                else
+                {
+                    <MudText>No sets recorded for this exercise.</MudText>
+                }
+                
+                @if (!string.IsNullOrEmpty(exercise.Notes))
+                {
+                    <MudText Class="mt-2"><strong>Notes:</strong> @exercise.Notes</MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+}

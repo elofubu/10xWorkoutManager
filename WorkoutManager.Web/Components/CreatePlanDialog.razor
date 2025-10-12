@@ -1,0 +1,25 @@
+@using WorkoutManager.BusinessLogic.DTOs
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Create New Workout Plan</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_planName" Label="Plan Name" Required="true" />
+        <MudList T="CreateTrainingDayDto">
+            @foreach (var day in _trainingDays)
+            {
+                <MudListItem>
+                    @day.Name
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveTrainingDay(day)" />
+                </MudListItem>
+            }
+        </MudList>
+        <MudTextField @bind-Value="_newDayName" Label="New Day Name" OnKeyUp="HandleDayNameKeyup" />
+        <MudButton OnClick="AddTrainingDay">Add Day</MudButton>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+    </DialogActions>
+</MudDialog>

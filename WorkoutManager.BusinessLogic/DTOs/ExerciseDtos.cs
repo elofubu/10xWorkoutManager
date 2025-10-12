@@ -1,5 +1,11 @@
 namespace WorkoutManager.BusinessLogic.DTOs;
 
+public record CreateExerciseDto
+{
+    public string Name { get; set; } = string.Empty;
+    public int MuscleGroupId { get; set; }
+}
+
 public class ExerciseDto
 {
     public int Id { get; set; }

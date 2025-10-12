@@ -1,0 +1,43 @@
+@page "/welcome"
+
+<PageTitle>Welcome to 10xWorkoutManager</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-16">
+    <MudPaper Class="pa-8" Elevation="3">
+        <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">
+            Welcome to 10xWorkoutManager!
+        </MudText>
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-8">
+            Let's get started by creating your first workout plan.
+        </MudText>
+        
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.h6">What you can do:</MudText>
+            <MudList T="string">
+                <MudListItem Icon="@Icons.Material.Filled.FitnessCenter">
+                    Create custom workout plans with multiple training days
+                </MudListItem>
+                <MudListItem Icon="@Icons.Material.Filled.Assignment">
+                    Track your sets, reps, and weights during workouts
+                </MudListItem>
+                <MudListItem Icon="@Icons.Material.Filled.History">
+                    View your workout history and progress over time
+                </MudListItem>
+            </MudList>
+        </MudStack>
+
+        <MudDivider Class="my-6" />
+
+        <MudStack Row="true" Justify="Justify.Center" Spacing="4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" 
+                       OnClick="CreateFirstPlan" StartIcon="@Icons.Material.Filled.Add">
+                Create Your First Plan
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Large" 
+                       OnClick="SkipWelcome">
+                Skip for Now
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+

@@ -1,7 +1,38 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Workout Plans</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (_plans is null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true"></MudProgressCircular>
+}
+else
+{
+    if (_plans.Any())
+    {
+        <MudGrid Spacing="2">
+            @foreach (var plan in _plans)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard @onclick="() => NavigateToPlan(plan.Id)">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@plan.Name</MudText>
+                            <MudText Typo="Typo.caption">Created: @plan.CreatedAt.ToShortDateString()</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudText>No workout plans yet. Create one!</MudText>
+    }
+    
+    @if (PageCount > 1)
+    {
+        <MudPagination Count="PageCount" />
+    }
+}
 
-Welcome to your new app.
+<MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewPlan" Style="position: fixed; bottom: 20px; right: 20px;" />

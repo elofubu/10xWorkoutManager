@@ -1,0 +1,79 @@
+using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using WorkoutManager.BusinessLogic.DTOs;
+using WorkoutManager.Web.Services;
+
+namespace WorkoutManager.Web.Components
+{
+    public partial class ExercisePickerDialog
+    {
+        [CascadingParameter]
+        private IMudDialogInstance MudDialog { get; set; } = default!;
+
+        [Inject]
+        private IExerciseService ExerciseService { get; set; } = default!;
+
+        [Inject]
+        private IMuscleGroupService MuscleGroupService { get; set; } = default!;
+
+        [Inject]
+        private IDialogService DialogService { get; set; } = default!;
+
+        private string? _search;
+        private int? _selectedMuscleGroupId;
+        private IEnumerable<ExerciseDto> _exercises = new List<ExerciseDto>();
+        private List<MuscleGroupDto> _muscleGroups = new();
+        private PaginationInfo _pagination = new();
+
+        private int PageCount => _pagination.PageSize > 0 ? (int)Math.Ceiling((double)_pagination.TotalCount / _pagination.PageSize) : 0;
+
+        protected override async Task OnInitializedAsync()
+        {
+            var muscleGroupsResult = await MuscleGroupService.GetMuscleGroupsAsync();
+            _muscleGroups = muscleGroupsResult.Data.ToList();
+            await LoadExercises();
+        }
+
+        private async Task LoadExercises(int page = 1)
+        {
+            var result = await ExerciseService.GetExercisesAsync(_search, _selectedMuscleGroupId);
+            _exercises = result.Data;
+            _pagination = result.Pagination;
+            StateHasChanged();
+        }
+
+        private async Task SearchExercises()
+        {
+            await LoadExercises();
+        }
+
+        private async Task ClearFilter()
+        {
+            _selectedMuscleGroupId = null;
+            await LoadExercises();
+        }
+
+        private async Task PageChanged(int page)
+        {
+            await LoadExercises(page);
+        }
+
+        private void SelectExercise(ExerciseDto exercise)
+        {
+            MudDialog.Close(DialogResult.Ok(exercise));
+        }
+
+        private async Task OpenCreateExerciseDialog()
+        {
+            var dialog = await DialogService.ShowAsync<CreateExerciseDialog>("Create Exercise");
+            var result = await dialog.Result;
+
+            if (result is not null && !result.Canceled)
+            {
+                await LoadExercises();
+            }
+        }
+
+        private void Cancel() => MudDialog.Cancel();
+    }
+}

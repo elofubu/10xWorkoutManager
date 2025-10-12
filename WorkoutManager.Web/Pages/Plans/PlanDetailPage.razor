@@ -1,0 +1,65 @@
+@page "/plans/{id:int}"
+@using WorkoutManager.BusinessLogic.DTOs
+
+<PageTitle>@($"Plan: {_plan?.Name ?? "..."}")</PageTitle>
+
+@if (_plan is null)
+{
+    <div class="d-flex justify-center">
+        <MudProgressCircular Indeterminate="true" />
+    </div>
+}
+else
+{
+    <MudGrid Justify="Justify.SpaceBetween">
+        <MudItem>
+            @if (_isEditingName)
+            {
+                <MudTextField @bind-Value="_editedPlanName" Label="Plan Name" Variant="Variant.Outlined" />
+                <MudButton OnClick="SavePlanName" Size="Size.Small" Color="Color.Primary">Save</MudButton>
+                <MudButton OnClick="CancelEditName" Size="Size.Small">Cancel</MudButton>
+            }
+            else
+            {
+                <MudText Typo="Typo.h4">
+                    @_plan.Name
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="StartEditingName" />
+                </MudText>
+            }
+        </MudItem>
+        <MudItem Class="d-flex gap-2 align-center">
+            @if (_plan.TrainingDays.Any())
+            {
+                <MudSwitch T="bool" @bind-Value="_isEditMode" Label="Edit Mode" Color="Color.Primary" />
+            }
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeletePlan" />
+        </MudItem>
+    </MudGrid>
+
+    <MudExpansionPanels MultiExpansion="true" Class="mt-4">
+        @foreach (var day in _plan.TrainingDays.OrderBy(d => d.Order))
+        {
+            <MudExpansionPanel Text="@day.Name">
+                <div class="d-flex justify-end mb-2">
+                    @if (_isEditMode)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
+                    }
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
+                </div>
+                <MudList T="PlanDayExerciseDto">
+                    @foreach (var exercise in day.Exercises.OrderBy(e => e.Order))
+                    {
+                        <MudListItem T="PlanDayExerciseDto">
+                            @exercise.Name
+                            @if (_isEditMode)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" />
+                            }
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
