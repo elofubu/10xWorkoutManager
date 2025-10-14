@@ -1,63 +1,76 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.DTOs;
-using System.Linq;
+using WorkoutManager.BusinessLogic.Exceptions;
+using WorkoutManager.BusinessLogic.Services.Interfaces;
 
-namespace WorkoutManager.Api.Controllers
+namespace WorkoutManager.Api.Controllers;
+
+[ApiController]
+[Route("api/workout-plans/{planId}/training-days/{dayId}/exercises")]
+public class PlanDayExercisesController : ControllerBase
 {
-    [ApiController]
-    [Route("api/workout-plans/{planId}/training-days/{dayId}/exercises")]
-    public class PlanDayExercisesController : ControllerBase
+    private readonly IPlanExerciseService _planExerciseService;
+    private readonly IUserContextService _userContext;
+
+    public PlanDayExercisesController(IPlanExerciseService planExerciseService, IUserContextService userContext)
     {
-        [HttpPost]
-        public ActionResult<CreatedPlanDayExerciseDto> AddExerciseToTrainingDay(int planId, int dayId, [FromBody] AddExerciseToTrainingDayCommand command)
+        _planExerciseService = planExerciseService;
+        _userContext = userContext;
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<CreatedPlanDayExerciseDto>> AddExerciseToTrainingDay(
+        int planId, 
+        int dayId, 
+        [FromBody] AddExerciseToTrainingDayCommand command)
+    {
+        try
         {
-            var plan = WorkoutPlansController._workoutPlanDetails.FirstOrDefault(p => p.Id == planId);
-            if (plan == null || plan.IsLocked)
-            {
-                return Forbid();
-            }
-
-            var trainingDay = plan.TrainingDays.FirstOrDefault(td => td.Id == dayId);
-            if (trainingDay == null)
-            {
-                return NotFound();
-            }
-
-            var newExerciseId = new Random().Next(100, 200);
-
-            var responseDto = new CreatedPlanDayExerciseDto(
-                Id: newExerciseId,
-                TrainingDayId: dayId,
-                ExerciseId: command.ExerciseId,
-                Order: command.Order
-            );
-            
-            // In a real application, we would add this to the trainingDay.Exercises list.
-            // For the mock, we just return the created object.
-
-            return CreatedAtAction(null, new { id = newExerciseId }, responseDto);
+            var userId = _userContext.GetCurrentUserId();
+            var result = await _planExerciseService.AddExerciseToDayAsync(planId, dayId, command, userId);
+            return CreatedAtAction(null, new { id = result.Id }, result);
         }
-
-        [HttpDelete("{planDayExerciseId}")]
-        public IActionResult RemoveExerciseFromTrainingDay(int planId, int dayId, int planDayExerciseId)
+        catch (NotFoundException)
         {
-            var plan = WorkoutPlansController._workoutPlanDetails.FirstOrDefault(p => p.Id == planId);
-            if (plan == null || plan.IsLocked)
-            {
-                return Forbid();
-            }
+            return NotFound();
+        }
+        catch (BusinessRuleViolationException ex)
+        {
+            return StatusCode(403, new { error = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
 
-            var trainingDay = plan.TrainingDays.FirstOrDefault(td => td.Id == dayId);
-            if (trainingDay == null)
-            {
-                return NotFound();
-            }
-
-            // In a real application, we would check if the exercise exists in the list and remove it.
-            // Here we just return success.
-
+    [HttpDelete("{planDayExerciseId}")]
+    public async Task<IActionResult> RemoveExerciseFromTrainingDay(int planId, int dayId, int planDayExerciseId)
+    {
+        try
+        {
+            var userId = _userContext.GetCurrentUserId();
+            await _planExerciseService.RemoveExerciseFromDayAsync(planId, dayId, planDayExerciseId, userId);
             return NoContent();
+        }
+        catch (NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (BusinessRuleViolationException ex)
+        {
+            return StatusCode(403, new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
         }
     }
 }

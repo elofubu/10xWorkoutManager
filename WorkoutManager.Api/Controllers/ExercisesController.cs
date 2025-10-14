@@ -1,6 +1,9 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using WorkoutManager.BusinessLogic.Commands;
+using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.DTOs;
+using WorkoutManager.BusinessLogic.Exceptions;
+using WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Api.Controllers;
 
@@ -8,103 +11,87 @@ namespace WorkoutManager.Api.Controllers;
 [Route("api/[controller]")]
 public class ExercisesController : ControllerBase
 {
-    private static readonly List<ExerciseDto> _exercises = new()
+    private readonly IExerciseService _exerciseService;
+    private readonly IUserContextService _userContext;
+
+    public ExercisesController(IExerciseService exerciseService, IUserContextService userContext)
     {
-        new() { Id = 101, UserId = null, MuscleGroupId = 1, Name = "Bench Press" },
-        new() { Id = 102, UserId = null, MuscleGroupId = 1, Name = "Incline Dumbbell Press" },
-        new() { Id = 103, UserId = null, MuscleGroupId = 2, Name = "Pull Up" },
-        new() { Id = 104, UserId = null, MuscleGroupId = 2, Name = "Bent Over Row" },
-        new() { Id = 105, UserId = Guid.NewGuid(), MuscleGroupId = 5, Name = "Custom Bicep Curl" }
-    };
+        _exerciseService = exerciseService;
+        _userContext = userContext;
+    }
 
     [HttpGet]
-    public ActionResult<PaginatedList<ExerciseDto>> GetExercises(
+    public async Task<ActionResult<PaginatedList<ExerciseDto>>> GetExercises(
         [FromQuery] string? search,
         [FromQuery] int? muscleGroupId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        var query = _exercises.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
+        try
         {
-            query = query.Where(e => e.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+            var userId = _userContext.GetCurrentUserId();
+            var result = await _exerciseService.GetExercisesAsync(userId, search, muscleGroupId, page, pageSize);
+            return Ok(result);
         }
-
-        if (muscleGroupId.HasValue)
+        catch (Exception ex)
         {
-            query = query.Where(e => e.MuscleGroupId == muscleGroupId.Value);
+            return StatusCode(500, new { error = ex.Message });
         }
+    }
 
-        var totalCount = query.Count();
-        var paginatedData = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-        var result = new PaginatedList<ExerciseDto>
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ExerciseDto>> GetExerciseById(int id)
+    {
+        try
         {
-            Data = paginatedData,
-            Pagination = new PaginationInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = totalCount
-            }
-        };
-
-        return Ok(result);
+            var exercise = await _exerciseService.GetExerciseByIdAsync(id);
+            if (exercise == null) return NotFound();
+            return Ok(exercise);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 
     [HttpPost]
-    public ActionResult<ExerciseDto> CreateExercise([FromBody] CreateExerciseCommand command)
+    public async Task<ActionResult<ExerciseDto>> CreateExercise([FromBody] CreateExerciseDto dto)
     {
-        // Basic validation
-        if (string.IsNullOrWhiteSpace(command.Name))
+        try
         {
-            return BadRequest("Exercise name cannot be empty.");
+            var userId = _userContext.GetCurrentUserId();
+            var exercise = await _exerciseService.CreateExerciseAsync(dto, userId);
+            return CreatedAtAction(nameof(GetExerciseById), new { id = exercise.Id }, exercise);
         }
-
-        // Mocking a conflict check
-        if (_exercises.Any(e => e.Name.Equals(command.Name, StringComparison.OrdinalIgnoreCase)))
+        catch (BusinessRuleViolationException ex)
         {
-            return Conflict("An exercise with this name already exists.");
+            return Conflict(new { error = ex.Message });
         }
-
-        var newExercise = new ExerciseDto
+        catch (ValidationException ex)
         {
-            Id = _exercises.Max(e => e.Id) + 1,
-            UserId = Guid.NewGuid(), // Mocking the authenticated user's ID
-            MuscleGroupId = command.MuscleGroupId,
-            Name = command.Name
-        };
-
-        _exercises.Add(newExercise);
-
-        // In a real application, we would return a 201 Created with a URL to the new resource.
-        // For this mock, we'll return the created object with a 201 status.
-        return CreatedAtAction(nameof(GetExercises), new { id = newExercise.Id }, newExercise);
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 
     [HttpGet("{exerciseId}/previous-session")]
-    public ActionResult<PreviousExercisePerformanceDto> GetPreviousExercisePerformance(int exerciseId)
+    public async Task<ActionResult<PreviousExercisePerformanceDto>> GetPreviousPerformance(int exerciseId)
     {
-        // Mocking a check to see if the exercise exists
-        if (!_exercises.Any(e => e.Id == exerciseId))
+        try
         {
-            return NotFound("Exercise not found.");
+            var userId = _userContext.GetCurrentUserId();
+            var performance = await _exerciseService.GetLastPerformanceAsync(exerciseId, userId);
+            
+            if (performance == null) return NotFound(new { error = "No previous performance found" });
+            
+            return Ok(performance);
         }
-
-        // In a real implementation, you would query the database for the last performance.
-        // For this mock, we'll return a hardcoded response.
-        var previousPerformance = new PreviousExercisePerformanceDto
+        catch (Exception ex)
         {
-            SessionDate = DateTime.UtcNow.AddDays(-7),
-            Notes = "Previous notes on this exercise.",
-            Sets = new List<PreviousExerciseSetDto>
-            {
-                new() { Weight = 95, Reps = 8, IsFailure = false },
-                new() { Weight = 95, Reps = 8, IsFailure = false }
-            }
-        };
-
-        return Ok(previousPerformance);
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 }

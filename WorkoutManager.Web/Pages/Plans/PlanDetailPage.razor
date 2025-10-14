@@ -45,7 +45,17 @@ else
                     {
                         <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
                     }
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
+                    else
+                    {
+                        @if (day.Exercises.Any())
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
+                        }
+                        else
+                        {
+                            <MudText Class="red-text">There are no defined excerises. Enable edit mode and add some!</MudText>
+                        }
+                    }
                 </div>
                 <MudList T="PlanDayExerciseDto">
                     @foreach (var exercise in day.Exercises.OrderBy(e => e.Order))

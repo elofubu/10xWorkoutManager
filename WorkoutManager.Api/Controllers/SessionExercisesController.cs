@@ -1,6 +1,10 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.DTOs;
+using WorkoutManager.BusinessLogic.Exceptions;
+using WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Api.Controllers;
 
@@ -8,29 +12,38 @@ namespace WorkoutManager.Api.Controllers;
 [Route("api/sessions/{sessionId}/exercises")]
 public class SessionExercisesController : ControllerBase
 {
-    [HttpPut("{sessionExerciseId}")]
-    public ActionResult<SessionExerciseDetailsDto> UpdateSessionExercise(int sessionId, int sessionExerciseId, [FromBody] UpdateSessionExerciseCommand command)
+    private readonly ISessionExerciseService _sessionExerciseService;
+    private readonly IUserContextService _userContext;
+
+    public SessionExercisesController(ISessionExerciseService sessionExerciseService, IUserContextService userContext)
     {
-        // In a real application, you would find the session and the specific exercise.
-        // For this mock, we'll assume the session and exercise exist and just return a mocked response.
+        _sessionExerciseService = sessionExerciseService;
+        _userContext = userContext;
+    }
 
-        var updatedExercise = new SessionExerciseDetailsDto
+    [HttpPut("{sessionExerciseId}")]
+    public async Task<ActionResult<SessionExerciseDetailsDto>> UpdateSessionExercise(
+        int sessionId, 
+        int sessionExerciseId, 
+        [FromBody] UpdateSessionExerciseCommand command)
+    {
+        try
         {
-            Id = sessionExerciseId,
-            ExerciseId = 0, // Mocked
-            Notes = command.Notes,
-            Skipped = command.Skipped,
-            Order = 0, // Mocked
-            Sets = command.Sets.Select(s => new ExerciseSetDto
-            {
-                Id = new Random().Next(100, 200), // Mocked set ID
-                Weight = s.Weight,
-                Reps = s.Reps,
-                IsFailure = s.IsFailure,
-                Order = s.Order
-            }).ToList()
-        };
-
-        return Ok(updatedExercise);
+            var userId = _userContext.GetCurrentUserId();
+            var result = await _sessionExerciseService.UpdateSessionExerciseAsync(sessionId, sessionExerciseId, command, userId);
+            return Ok(result);
+        }
+        catch (NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 }

@@ -1,7 +1,7 @@
 namespace WorkoutManager.Data.Models;
 
-using Postgrest.Attributes;
-using Postgrest.Models;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 [Table("muscle_groups")]
 public class MuscleGroup : BaseModel

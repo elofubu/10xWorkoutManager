@@ -1,3 +1,10 @@
+using FluentValidation;
+using Supabase;
+using WorkoutManager.Api.Services;
+using WorkoutManager.BusinessLogic.Services.Implementations;
+using WorkoutManager.BusinessLogic.Services.Interfaces;
+using WorkoutManager.Api.HostedServices;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +12,33 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+// Configure Supabase
+var supabaseUrl = builder.Configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase URL not configured");
+var supabaseKey = builder.Configuration["Supabase:Key"] ?? throw new InvalidOperationException("Supabase Key not configured");
+
+builder.Services.AddScoped(_ => 
+{
+    var options = new SupabaseOptions
+    {
+        AutoConnectRealtime = false
+    };
+    return new Client(supabaseUrl, supabaseKey, options);
+});
+
+// Register Business Logic Services
+builder.Services.AddScoped<IMuscleGroupService, MuscleGroupService>();
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
+builder.Services.AddScoped<IPlanExerciseService, PlanExerciseService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<ISessionExerciseService, SessionExerciseService>();
+
+// Register API Services
+builder.Services.AddScoped<IUserContextService, UserContextService>();
+
+// Register FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<WorkoutManager.BusinessLogic.Validators.CreateExerciseCommandValidator>();
 
 builder.Services.AddCors(options =>
 {
@@ -15,6 +49,10 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddHostedService<DatabaseSeeder>();
 
 var app = builder.Build();
 

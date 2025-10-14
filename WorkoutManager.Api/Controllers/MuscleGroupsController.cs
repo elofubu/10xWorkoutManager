@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WorkoutManager.BusinessLogic.DTOs;
+using WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Api.Controllers;
 
@@ -7,35 +8,39 @@ namespace WorkoutManager.Api.Controllers;
 [Route("api/[controller]")]
 public class MuscleGroupsController : ControllerBase
 {
-    [HttpGet]
-    public ActionResult<PaginatedList<MuscleGroupDto>> GetMuscleGroups([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    private readonly IMuscleGroupService _muscleGroupService;
+
+    public MuscleGroupsController(IMuscleGroupService muscleGroupService)
     {
-        // This is a mock implementation. In the future, this will be replaced with a call to the database.
-        var muscleGroups = new List<MuscleGroupDto>
+        _muscleGroupService = muscleGroupService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<PaginatedList<MuscleGroupDto>>> GetMuscleGroups([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        try
         {
-            new() { Id = 1, Name = "Chest" },
-            new() { Id = 2, Name = "Back" },
-            new() { Id = 3, Name = "Shoulders" },
-            new() { Id = 4, Name = "Biceps" },
-            new() { Id = 5, Name = "Triceps" },
-            new() { Id = 6, Name = "Legs" },
-            new() { Id = 7, Name = "Abs" }
-        };
-
-        var totalCount = muscleGroups.Count;
-        var paginatedData = muscleGroups.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-        var result = new PaginatedList<MuscleGroupDto>
+            var result = await _muscleGroupService.GetAllMuscleGroupsAsync(page, pageSize);
+            return Ok(result);
+        }
+        catch (Exception ex)
         {
-            Data = paginatedData,
-            Pagination = new PaginationInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = totalCount
-            }
-        };
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
 
-        return Ok(result);
+    [HttpGet("{id}")]
+    public async Task<ActionResult<MuscleGroupDto>> GetMuscleGroupById(int id)
+    {
+        try
+        {
+            var muscleGroup = await _muscleGroupService.GetMuscleGroupByIdAsync(id);
+            if (muscleGroup == null) return NotFound();
+            return Ok(muscleGroup);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 }

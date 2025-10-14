@@ -1,8 +1,8 @@
 namespace WorkoutManager.Data.Models;
 
 using System;
-using Postgrest.Attributes;
-using Postgrest.Models;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 [Table("training_days")]
 public class TrainingDay : BaseModel
