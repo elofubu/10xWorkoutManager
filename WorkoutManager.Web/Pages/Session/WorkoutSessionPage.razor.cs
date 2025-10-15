@@ -40,6 +40,12 @@ namespace WorkoutManager.Web.Pages.Session
 
             foreach (var exercise in _session.Exercises)
             {
+                //Add 3 empty sets objects
+                while (exercise.Sets.Count < 3)
+                {
+                    exercise.Sets.Add(new ExerciseSetDto());
+                }
+
                 var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId);
                 if (previous is not null)
                 {
@@ -89,6 +95,12 @@ namespace WorkoutManager.Web.Pages.Session
             //{
             //    await _stepper.NextStepAsync();
             //}
+        }
+
+        private async Task CancelWorkout()
+        {
+            await SessionService.FinishSessionAsync(_session.Id, _session.Notes);
+            NavigationManager.NavigateTo("/");
         }
 
         //private async Task PreviousStep()

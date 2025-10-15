@@ -72,5 +72,6 @@ else
     <div class="d-flex justify-end mt-4">
         @* <MudButton OnClick="PreviousStep" Disabled="@(_index == 0)">Back</MudButton> *@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="ml-2">@(_index == _session.Exercises.Count - 1 ? "Finish Workout" : "Save and Next")</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelWorkout" Class="ml-2">Cancel workout</MudButton>
     </div>
 }
