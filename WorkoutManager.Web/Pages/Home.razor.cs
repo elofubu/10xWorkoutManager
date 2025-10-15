@@ -52,7 +52,14 @@ public partial class Home
 
     private async Task CreateNewPlan()
     {
-        var dialog = await DialogService.ShowAsync<CreatePlanDialog>("Create New Plan");
+        var dialogOptions = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true,
+        };
+
+        var dialog = await DialogService.ShowAsync<CreatePlanDialog>("Create New Plan", dialogOptions);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled && result.Data is CreateWorkoutPlanDto newPlan)

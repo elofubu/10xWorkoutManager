@@ -27,7 +27,15 @@ public class SessionExerciseDetailsDto
     public string? Notes { get; set; }
     public bool Skipped { get; set; }
     public int Order { get; set; }
-    public List<ExerciseSetDto> Sets { get; set; } = new();
+    public List<ExerciseSetDto> Sets { get; set; }
+
+    public SessionExerciseDetailsDto()
+    {
+        Sets = new List<ExerciseSetDto>
+        {
+            new ExerciseSetDto(), new ExerciseSetDto(), new ExerciseSetDto()
+        };
+    }
 }
 
 public class UpdateSessionExerciseDto

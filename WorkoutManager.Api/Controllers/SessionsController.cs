@@ -54,6 +54,25 @@ public class SessionsController : ControllerBase
             return StatusCode(500, new { error = ex.Message });
         }
     }
+    
+    [HttpGet("active")]
+    public async Task<ActionResult<SessionDetailsDto>> GetActiveSession()
+    {
+        try
+        {
+            var userId = _userContext.GetCurrentUserId();
+            var session = await _sessionService.GetActiveSessionAsync(userId);
+            if (session == null)
+            {
+                return NoContent();
+            }
+            return Ok(session);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
 
     [HttpPost]
     public async Task<ActionResult<SessionDetailsDto>> StartSession([FromBody] StartSessionCommand command)

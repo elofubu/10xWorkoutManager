@@ -1,39 +1,52 @@
+using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using WorkoutManager.Web.Services;
 
-namespace WorkoutManager.Web.Pages.Authentication;
-
-public partial class ResetPasswordPage
+namespace WorkoutManager.Web.Pages.Authentication
 {
-    [Inject]
-    private IAuthService AuthService { get; set; } = default!;
-
-    [Inject]
-    private ISnackbar Snackbar { get; set; } = default!;
-
-    private MudForm _form = default!;
-    private bool _success;
-    private ResetPasswordModel _model = new();
-
-    private async Task Submit()
+    public partial class ResetPasswordPage
     {
-        await _form.Validate();
-        if (!_success) return;
-
-        var result = await AuthService.ResetPasswordRequestAsync(_model.Email);
-        if (result)
+        private class ResetPasswordModel
         {
-            Snackbar.Add("Password reset email sent! Please check your inbox.", Severity.Success);
+            public string Email { get; set; }
         }
-        else
-        {
-            Snackbar.Add("Failed to send reset email. Please try again.", Severity.Error);
-        }
-    }
 
-    private class ResetPasswordModel
-    {
-        public string Email { get; set; } = string.Empty;
+        private readonly ResetPasswordModel _model = new();
+        private MudForm _form;
+        private bool _success;
+        private bool _isSubmitting;
+        private string _message;
+        private Severity _messageSeverity = Severity.Info;
+
+        [Inject]
+        private IAuthService AuthService { get; set; }
+
+        private async Task Submit()
+        {
+            await _form.Validate();
+            if (!_success) return;
+
+            _isSubmitting = true;
+            _message = null;
+
+            try
+            {
+                await AuthService.ResetPasswordAsync(_model.Email);
+                _message = "If an account with this email exists, a password reset link has been sent. Please check your inbox.";
+                _messageSeverity = Severity.Success;
+            }
+            catch (Exception)
+            {
+                _message = "If an account with this email exists, a password reset link has been sent. Please check your inbox.";
+                _messageSeverity = Severity.Success;
+            }
+            finally
+            {
+                _isSubmitting = false;
+                StateHasChanged();
+            }
+        }
     }
 }

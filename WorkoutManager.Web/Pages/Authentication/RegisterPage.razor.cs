@@ -18,27 +18,40 @@ public partial class RegisterPage
     private MudForm _form = default!;
     private bool _success;
     private RegisterModel _model = new();
+    private string? _errorMessage;
+    private bool _isSubmitting;
+    private bool _registrationSuccess = false;
 
     private async Task Submit()
     {
         await _form.Validate();
-        if (!_success) return;
-
-        if (_model.Password != _model.ConfirmPassword)
+        if (!_success)
         {
-            Snackbar.Add("Passwords do not match.", Severity.Error);
             return;
         }
 
-        var result = await AuthService.RegisterAsync(_model.Email, _model.Password);
-        if (result)
+        if (_model.Password != _model.ConfirmPassword)
         {
-            Snackbar.Add("Registration successful! Please check your email to verify your account.", Severity.Success);
-            NavigationManager.NavigateTo("/");
+            _errorMessage = "Passwords do not match.";
+            return;
         }
-        else
+
+        _isSubmitting = true;
+        _errorMessage = null;
+
+        try
         {
-            Snackbar.Add("Registration failed. Email may already be in use.", Severity.Error);
+            await AuthService.RegisterAsync(_model.Email, _model.Password);
+            _registrationSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSubmitting = false;
+            StateHasChanged();
         }
     }
 

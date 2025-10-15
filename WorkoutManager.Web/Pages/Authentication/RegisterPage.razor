@@ -1,27 +1,109 @@
-@page "/register"
+@page "/authentication/register"
+@layout EmptyLayout
 @using System.ComponentModel.DataAnnotations
 
 <MudGrid Justify="Justify.Center" Class="mt-16">
     <MudItem xs="12" sm="8" md="4">
-        <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h5">Register</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudForm @ref="_form" @bind-IsValid="@_success">
-                    <MudTextField T="string" Label="Email" @bind-Value="_model.Email" Required="true" RequiredError="Email is required!" Validation="@(new EmailAddressAttribute() { ErrorMessage = "The email address is not valid." })" />
-                    <MudTextField T="string" Label="Password" @bind-Value="_model.Password" InputType="InputType.Password" Required="true" RequiredError="Password is required!" />
-                    <MudTextField T="string" Label="Confirm Password" @bind-Value="_model.ConfirmPassword" InputType="InputType.Password" Required="true" RequiredError="Password confirmation is required!" />
-                </MudForm>
-            </MudCardContent>
-            <MudCardActions>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="Submit" Class="ml-auto">Register</MudButton>
-            </MudCardActions>
-        </MudCard>
-        <MudText Align="Align.Center" Class="mt-4">
-            Already have an account? <MudLink Href="/login">Login</MudLink>
-        </MudText>
+        @if (_registrationSuccess)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <div class="text-center mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.MarkEmailRead" Color="Color.Success" Class="my-4" Style="font-size: 4rem;" />
+                            <MudText Typo="Typo.h4" Class="my-2" Color="Color.Primary">Registration Successful</MudText>
+                        </div>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Align="Align.Center">
+                        A confirmation link has been sent to your email address. Please check your inbox to complete the registration.
+                    </MudText>
+                </MudCardContent>
+                <MudCardActions Class="justify-center pa-4">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Href="/authentication/login"
+                               Size="Size.Large"
+                               Style="border-radius: 8px; text-transform: none; font-weight: 600;">
+                        Go to Login
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        }
+        else
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <div class="text-center mb-2">
+                            <MudText Typo="Typo.h4" Class="my-2" Color="Color.Primary">Create an Account</MudText>
+                        </div>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
+                    }
+                    <MudForm @ref="_form" @bind-IsValid="@_success">
+                        <MudTextField T="string"
+                                      Label="Email"
+                                      @bind-Value="_model.Email"
+                                      Required="true"
+                                      RequiredError="Email is required!"
+                                      Variant="Variant.Outlined"
+                                      InputType="InputType.Email"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Email"
+                                      Class="mb-4"
+                                      Validation="@(new EmailAddressAttribute() { ErrorMessage = "The email address is not valid." })" />
+
+                        <MudTextField Label="Password"
+                                      @bind-Value="_model.Password"
+                                      RequiredError="Password is required!"
+                                      Variant="Variant.Outlined"
+                                      InputType="InputType.Password"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Visibility"
+                                      AdornmentAriaLabel="Show/Hide Password"
+                                      Class="mb-4"
+                                      Required="true" />
+
+                        <MudTextField Label="Confirm Password"
+                                      @bind-Value="_model.ConfirmPassword"
+                                      RequiredError="Password confirmation is required!"
+                                      Variant="Variant.Outlined"
+                                      InputType="InputType.Password"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Visibility"
+                                      AdornmentAriaLabel="Show/Hide Password"
+                                      Class="mb-4"
+                                      Required="true" />
+                    </MudForm>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               FullWidth="true"
+                               Size="Size.Large"
+                               Class="mb-4"
+                               Style="border-radius: 8px; text-transform: none; font-weight: 600;"
+                               OnClick="Submit">
+                        @if (_isSubmitting)
+                        {
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            <span>Register</span>
+                        }
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+            <MudText Align="Align.Center" Class="mt-4">
+                Already have an account? <MudLink Href="/authentication/login">Login</MudLink>
+            </MudText>
+        }
     </MudItem>
 </MudGrid>

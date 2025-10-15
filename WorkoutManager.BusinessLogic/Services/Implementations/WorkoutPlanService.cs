@@ -124,7 +124,8 @@ public class WorkoutPlanService : IWorkoutPlanService
         var plan = new WorkoutPlan
         {
             UserId = userId,
-            Name = command.Name
+            Name = command.Name,
+            CreatedAt = DateTime.Now
         };
 
         var planResponse = await _supabaseClient

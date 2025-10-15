@@ -1,24 +1,38 @@
 ﻿@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.Authorization
+@using WorkoutManager.Web.Services
 
-<MudThemeProvider/>
-<MudDialogProvider/>
-<MudSnackbarProvider/>
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 <MudPopoverProvider />
 
-<MudLayout>
-    <MudAppBar>
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        Workout Manager
-    </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen">
-        <NavMenu />
-    </MudDrawer>
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
-            @Body
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+<AuthorizeView>
+    <Authorized>
+        <MudLayout>
+            <MudAppBar>
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                Workout Manager
+                <MudSpacer />
+                <MudText>@context.User.Identity.Name</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
+            </MudAppBar>
+            <MudDrawer @bind-Open="_drawerOpen">
+                <NavMenu />
+            </MudDrawer>
+            <MudMainContent>
+                <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </MudLayout>
+    </Authorized>
+    <NotAuthorized>
+        <WorkoutManager.Web.Components.RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     bool _drawerOpen = true;
@@ -27,4 +41,14 @@
     {
         _drawerOpen = !_drawerOpen;
     }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        ((SupabaseAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserAuthenticationStateChanged();
+        NavigationManager.NavigateTo("/authentication/login");
+    }
+
+    [Inject]
+    private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 }

@@ -39,37 +39,48 @@ else
     <MudExpansionPanels MultiExpansion="true" Class="mt-4">
         @foreach (var day in _plan.TrainingDays.OrderBy(d => d.Order))
         {
-            <MudExpansionPanel Text="@day.Name">
-                <div class="d-flex justify-end mb-2">
-                    @if (_isEditMode)
-                    {
-                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
-                    }
-                    else
-                    {
-                        @if (day.Exercises.Any())
-                        {
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
-                        }
-                        else
-                        {
-                            <MudText Class="red-text">There are no defined excerises. Enable edit mode and add some!</MudText>
-                        }
-                    }
-                </div>
-                <MudList T="PlanDayExerciseDto">
-                    @foreach (var exercise in day.Exercises.OrderBy(e => e.Order))
-                    {
-                        <MudListItem T="PlanDayExerciseDto">
-                            @exercise.Name
-                            @if (_isEditMode)
+            <MudExpansionPanel>
+                <TitleContent>
+                    <div class="d-flex">
+                        <div class="d-flex flex-column flex-grow-1">
+                            <MudText>@day.Name</MudText>
+                            <MudText Class="font-size-small mt-2">Exerices count: @(day.Exercises?.Count() ?? 0)</MudText>
+                        </div>
+                        <div class="d-flex gap-2 align-self-center mr-4">
+                            @if (day.Exercises.Any())
                             {
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" />
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
                             }
-                        </MudListItem>
-                    }
-                </MudList>
+                            
+                            @if (_isEditMode || day.Exercises.Count() == 0)
+                            {
+                                <MudButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
+                            }
+                        </div>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudList T="PlanDayExerciseDto">
+                        @foreach (var exercise in day.Exercises.OrderBy(e => e.Order))
+                        {
+                            <MudListItem T="PlanDayExerciseDto">
+                                @exercise.Name
+                                @if (_isEditMode)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" />
+                                }
+                            </MudListItem>
+                        }
+                    </MudList>
+                </ChildContent>
+
             </MudExpansionPanel>
         }
     </MudExpansionPanels>
 }
+
+<style>
+    .mud-panel-expanded .mud-expand-panel-header {
+        background-color: #FAFAFA;
+    }
+</style>

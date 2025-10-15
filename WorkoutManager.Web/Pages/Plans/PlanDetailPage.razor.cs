@@ -24,6 +24,9 @@ public partial class PlanDetailPage
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
+    [Inject]
+    private ISessionService SessionService { get; set; } = default!;
+
     private WorkoutPlanDetailDto? _plan;
     private bool _isEditMode;
     private bool _isEditingName;
@@ -100,7 +103,14 @@ public partial class PlanDetailPage
 
     private async Task AddExercise(int trainingDayId)
     {
-        var dialog = await DialogService.ShowAsync<ExercisePickerDialog>("Add Exercise");
+        var dialogOptions = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true,
+        };
+
+        var dialog = await DialogService.ShowAsync<ExercisePickerDialog>("Add Exercise", dialogOptions);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled && result.Data is ExerciseDto selectedExercise)
@@ -125,9 +135,33 @@ public partial class PlanDetailPage
         }
     }
 
-    private void StartWorkout(int trainingDayId)
+    private async Task StartWorkout(int trainingDayId)
     {
-        NavigationManager.NavigateTo($"/session/{trainingDayId}");
+        var activeSession = await SessionService.GetActiveSessionAsync();
+        if (activeSession != null)
+        {
+            var dialog = await DialogService.ShowAsync<ActiveSessionDialog>("Active Session Found");
+            var result = await dialog.Result;
+
+            if (result is not null && !result.Canceled && result.Data is string choice)
+            {
+                if (choice == "continue")
+                {
+                    NavigationManager.NavigateTo($"/session/workout/{activeSession.Id}");
+                }
+                else if (choice == "finish_and_start_new")
+                {
+                    await SessionService.FinishSessionAsync(activeSession.Id, activeSession.Notes);
+                    var newSession = await SessionService.StartSessionAsync(trainingDayId);
+                    NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+                }
+            }
+        }
+        else
+        {
+            var newSession = await SessionService.StartSessionAsync(trainingDayId);
+            NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+        }
     }
 
     private async Task DeleteExercise(int trainingDayId, int planDayExerciseId)

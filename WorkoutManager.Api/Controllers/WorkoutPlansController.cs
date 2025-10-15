@@ -5,11 +5,13 @@ using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Exceptions;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WorkoutManager.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class WorkoutPlansController : ControllerBase
 {
     private readonly IWorkoutPlanService _workoutPlanService;

@@ -4,6 +4,9 @@ using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.Services.Implementations;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
 using WorkoutManager.Api.HostedServices;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +17,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
 // Configure Supabase
-var supabaseUrl = builder.Configuration["Supabase:Url"] ?? throw new InvalidOperationException("Supabase URL not configured");
-var supabaseKey = builder.Configuration["Supabase:Key"] ?? throw new InvalidOperationException("Supabase Key not configured");
-
 builder.Services.AddScoped(_ => 
 {
+    var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
+    var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY");
+
     var options = new SupabaseOptions
     {
         AutoConnectRealtime = false
@@ -52,6 +55,28 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Supabase:Url"];
+        options.Audience = "authenticated";
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = false,
+            ValidIssuer = "http://127.0.0.1:54321/auth/v1",
+            //ValidIssuer = builder.Configuration["Supabase:Url"],
+            ValidAudience = "authenticated",
+            //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Supabase:JwtSecret"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super-secret-jwt-token-with-at-least-32-characters-long"))
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddHostedService<DatabaseSeeder>();
 
 var app = builder.Build();
@@ -62,6 +87,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.UseCors();

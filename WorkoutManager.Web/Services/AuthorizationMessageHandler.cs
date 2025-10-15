@@ -1,32 +1,34 @@
 using Blazored.LocalStorage;
+using Supabase.Gotrue;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
-namespace WorkoutManager.Web.Services;
-
-public class AuthorizationMessageHandler : DelegatingHandler
+namespace WorkoutManager.Web.Services
 {
-    private readonly ILocalStorageService _localStorage;
-
-    public AuthorizationMessageHandler(ILocalStorageService localStorage)
+    public class AuthorizationMessageHandler : DelegatingHandler
     {
-        _localStorage = localStorage;
-        InnerHandler = new HttpClientHandler();
-    }
+        private readonly ILocalStorageService _localStorage;
 
-    protected override async Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        var token = await _localStorage.GetItemAsync<string>("accessToken", cancellationToken);
-        if (!string.IsNullOrEmpty(token))
+        public AuthorizationMessageHandler(ILocalStorageService localStorage)
         {
-            request.Headers.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            _localStorage = localStorage;
         }
-        return await base.SendAsync(request, cancellationToken);
-    }
 
-    public void ConfigureHandler(string[] authorizedUrls)
-    {
-        // Configuration placeholder
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var sessionJson = await _localStorage.GetItemAsStringAsync("supabase_session");
+
+            if (!string.IsNullOrEmpty(sessionJson))
+            {
+                var session = JsonSerializer.Deserialize<Session>(sessionJson);
+                if (session?.AccessToken != null && session.ExpiresAt() > DateTime.UtcNow)
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
+                }
+            }
+
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 }
 

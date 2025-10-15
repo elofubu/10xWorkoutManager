@@ -147,6 +147,7 @@ public class ExerciseService : IExerciseService
                 .From<Session>()
                 .Where(s => s.Id == se.SessionId)
                 .Where(s => s.UserId == userId)
+                .Where(s => s.EndTime != null) // Only completed sessions
                 .Single();
 
             if (session != null)

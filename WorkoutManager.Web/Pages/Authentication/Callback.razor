@@ -1,0 +1,26 @@
+@page "/authentication/callback"
+@layout EmptyLayout
+@inject Supabase.Client SupabaseClient
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        
+        // Use GetSessionFromUri which correctly parses the fragment and determines the AuthState.
+        await SupabaseClient.Auth.GetSessionFromUrl(uri, true);
+
+        // The state change listener in SupabaseAuthenticationStateProvider will now receive
+        // the correct 'PasswordRecovery' state and navigate to the update password page.
+        // For other auth flows, it will navigate to the home page or another appropriate destination.
+        
+        // Fallback navigation in case the auth state listener doesn't redirect for some reason
+        // (e.g., for non-recovery flows that land here).
+        if (!uri.Fragment.Contains("type=recovery"))
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}
+

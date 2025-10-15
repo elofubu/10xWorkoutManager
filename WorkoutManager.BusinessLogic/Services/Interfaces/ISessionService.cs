@@ -11,5 +11,6 @@ public interface ISessionService
     Task UpdateSessionNotesAsync(int sessionId, string? notes, Guid userId);
     Task FinishSessionAsync(int sessionId, string? notes, Guid userId);
     Task<bool> HasActiveSessionAsync(Guid userId);
+    Task<SessionDetailsDto?> GetActiveSessionAsync(Guid userId);
 }
 

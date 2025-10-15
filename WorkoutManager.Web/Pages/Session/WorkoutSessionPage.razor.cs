@@ -8,40 +8,50 @@ namespace WorkoutManager.Web.Pages.Session
     public partial class WorkoutSessionPage
     {
         [Parameter]
-        public int TrainingDayId { get; set; }
+        public int SessionId { get; set; }
 
         [Inject]
         private ISessionService SessionService { get; set; } = default!;
 
         [Inject]
         private IExerciseService ExerciseService { get; set; } = default!;
-        
+
         [Inject]
         private NavigationManager NavigationManager { get; set; } = default!;
 
-    private SessionDetailsDto? _session;
-    private MudStepper _stepper = new()!;
-    private Dictionary<int, PreviousExercisePerformanceDto> _previousSessionData = new();
-    private Dictionary<int, string> _exerciseNames = new();
-    private string? _sessionNotes;
+        private SessionDetailsDto? _session;
+        //private MudStepper _stepper = new()!;
+        private Dictionary<int, PreviousExercisePerformanceDto> _previousSessionData = new();
+        private Dictionary<int, string> _exerciseNames = new();
+        private string? _sessionNotes;
+        private int _index;
 
-    protected override async Task OnInitializedAsync()
-    {
-        _session = await SessionService.StartSessionAsync(TrainingDayId);
-        foreach (var exercise in _session.Exercises)
+        protected override async Task OnInitializedAsync()
         {
-            var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId);
-            if (previous is not null)
+            _session = await SessionService.GetSessionDetailsAsync(SessionId);
+
+            if (_session is null)
             {
-                _previousSessionData[exercise.ExerciseId] = previous;
+                // TODO: Handle case where session is not found, maybe navigate away
+                return;
             }
-            var exerciseDetails = await ExerciseService.GetExerciseByIdAsync(exercise.ExerciseId);
-            if (exerciseDetails is not null)
+            
+            _sessionNotes = _session.Notes;
+
+            foreach (var exercise in _session.Exercises)
             {
-                _exerciseNames[exercise.ExerciseId] = exerciseDetails.Name;
+                var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId);
+                if (previous is not null)
+                {
+                    _previousSessionData[exercise.ExerciseId] = previous;
+                }
+                var exerciseDetails = await ExerciseService.GetExerciseByIdAsync(exercise.ExerciseId);
+                if (exerciseDetails is not null)
+                {
+                    _exerciseNames[exercise.ExerciseId] = exerciseDetails.Name;
+                }
             }
         }
-    }
 
         private string GetExerciseName(int exerciseId) => _exerciseNames.GetValueOrDefault(exerciseId, $"Exercise {exerciseId}");
 
@@ -58,33 +68,32 @@ namespace WorkoutManager.Web.Pages.Session
             }
         }
 
-    private async Task NextStep()
-    {
-        var activeStepIndex = _stepper.ActiveIndex;
-        var currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(activeStepIndex);
-        
-        var payload = new UpdateSessionExerciseDto
+        private async Task NextStep()
         {
-            Notes = currentExercise.Notes,
-            Skipped = currentExercise.Skipped,
-            Sets = currentExercise.Skipped ? new List<ExerciseSetDto>() : currentExercise.Sets
-        };
-        await SessionService.UpdateSessionExerciseAsync(_session.Id, currentExercise.Id, payload);
+            var currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
 
-        if (activeStepIndex == _session.Exercises.Count - 1)
-        {
-            await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
-            NavigationManager.NavigateTo("/history");
-        }
-        else
-        {
-            await _stepper.NextStepAsync();
-        }
-    }
+            var payload = new UpdateSessionExerciseDto
+            {
+                Notes = currentExercise.Notes,
+                Skipped = currentExercise.Skipped,
+                Sets = currentExercise.Skipped ? new List<ExerciseSetDto>() : currentExercise.Sets
+            };
+            await SessionService.UpdateSessionExerciseAsync(_session.Id, currentExercise.Id, payload);
 
-        private async Task PreviousStep()
-        {
-            await _stepper.PreviousStepAsync();
+            if (_index == _session.Exercises.Count - 1)
+            {
+                await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
+                NavigationManager.NavigateTo("/history");
+            }
+            //else
+            //{
+            //    await _stepper.NextStepAsync();
+            //}
         }
+
+        //private async Task PreviousStep()
+        //{
+        //    await _stepper.PreviousStepAsync();
+        //}
     }
 }

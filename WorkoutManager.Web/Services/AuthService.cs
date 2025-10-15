@@ -1,112 +1,103 @@
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components;
+using Supabase;
 using WorkoutManager.BusinessLogic.DTOs;
 
-namespace WorkoutManager.Web.Services;
-
-public class AuthService : IAuthService
+namespace WorkoutManager.Web.Services
 {
-    private readonly ILocalStorageService _localStorage;
-    private readonly NavigationManager _navigationManager;
-
-    public AuthService(
-        ILocalStorageService localStorage,
-        NavigationManager navigationManager)
+    public class AuthService : IAuthService
     {
-        _localStorage = localStorage;
-        _navigationManager = navigationManager;
-    }
+        private readonly Client _supabaseClient;
+        private readonly ILocalStorageService _localStorage;
 
-    public async Task<bool> RegisterAsync(string email, string password)
-    {
-        try
+        public AuthService(Client supabaseClient, ILocalStorageService localStorage)
         {
-            // TODO: Implement Supabase registration
-            // Placeholder for now - will be implemented with Supabase SDK
-            return await Task.FromResult(false);
+            _supabaseClient = supabaseClient;
+            _localStorage = localStorage;
         }
-        catch
+
+        public async Task<bool> RegisterAsync(string email, string password)
         {
+            try
+            {
+                // TODO: Implement Supabase registration
+                // Placeholder for now - will be implemented with Supabase SDK
+                return await Task.FromResult(false);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> LoginAsync(string email, string password)
+        {
+            var session = await _supabaseClient.Auth.SignIn(email, password);
+            if (session != null)
+            {
+                await _localStorage.SetItemAsync("supabase_session", session);
+                return true;
+            }
             return false;
         }
-    }
 
-    public async Task<bool> LoginAsync(string email, string password)
-    {
-        try
+        public async Task LogoutAsync()
         {
-            // TODO: Implement Supabase login
-            // Placeholder for now - will be implemented with Supabase SDK
-            return await Task.FromResult(false);
+            await _localStorage.RemoveItemAsync("supabase_session");
         }
-        catch
-        {
-            return false;
-        }
-    }
 
-    public async Task LogoutAsync()
-    {
-        await _localStorage.RemoveItemAsync("accessToken");
-        await _localStorage.RemoveItemAsync("refreshToken");
-        _navigationManager.NavigateTo("/login");
-    }
+        public async Task ResetPasswordAsync(string email)
+        {
+            await _supabaseClient.Auth.ResetPasswordForEmail(email);
+        }
 
-    public async Task<bool> ResetPasswordRequestAsync(string email)
-    {
-        try
+        public async Task UpdatePasswordAsync(string newPassword)
         {
-            // TODO: Implement Supabase password reset
-            return await Task.FromResult(false);
-        }
-        catch
-        {
-            return false;
-        }
-    }
+            if (_supabaseClient.Auth.CurrentUser == null)
+            {
+                throw new InvalidOperationException("User must be logged in to update password.");
+            }
 
-    public async Task<bool> ResetPasswordAsync(string token, string newPassword)
-    {
-        try
-        {
-            // TODO: Implement Supabase password reset confirmation
-            return await Task.FromResult(false);
+            await _supabaseClient.Auth.Update(new Supabase.Gotrue.UserAttributes
+            {
+                Password = newPassword
+            });
         }
-        catch
+        
+        public async Task<bool> DeleteAccountAsync(string password)
         {
-            return false;
+            try
+            {
+                // TODO: Implement account deletion
+                await _localStorage.RemoveItemAsync("accessToken");
+                await _localStorage.RemoveItemAsync("refreshToken");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-    }
 
-    public async Task<bool> DeleteAccountAsync(string password)
-    {
-        try
+        public async Task<UserDto?> GetCurrentUserAsync()
         {
-            // TODO: Implement account deletion
-            await _localStorage.RemoveItemAsync("accessToken");
-            await _localStorage.RemoveItemAsync("refreshToken");
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+            var token = await _localStorage.GetItemAsync<string>("accessToken");
+            if (string.IsNullOrEmpty(token))
+                return null;
 
-    public async Task<UserDto?> GetCurrentUserAsync()
-    {
-        var token = await _localStorage.GetItemAsync<string>("accessToken");
-        if (string.IsNullOrEmpty(token))
+            // TODO: Decode token and extract user info
             return null;
+        }
 
-        // TODO: Decode token and extract user info
-        return null;
-    }
+        public async Task<bool> IsAuthenticatedAsync()
+        {
+            var token = await _localStorage.GetItemAsync<string>("accessToken");
+            return !string.IsNullOrEmpty(token);
+        }
 
-    public async Task<bool> IsAuthenticatedAsync()
-    {
-        var token = await _localStorage.GetItemAsync<string>("accessToken");
-        return !string.IsNullOrEmpty(token);
+        //public async Task<UserDto?> IAuthService.GetCurrentUserAsync()
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }
 

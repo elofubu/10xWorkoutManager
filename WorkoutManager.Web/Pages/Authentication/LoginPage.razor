@@ -1,29 +1,75 @@
-@page "/login"
+@page "/authentication/login"
+@layout EmptyLayout
+
 @using System.ComponentModel.DataAnnotations
+@using WorkoutManager.Web.Services
 
 <MudGrid Justify="Justify.Center" Class="mt-16">
     <MudItem xs="12" sm="8" md="4">
         <MudCard>
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h5">Login</MudText>
+                    <div class="text-center mb-2">
+                        <MudText Typo="Typo.h4" Class="my-2" Color="Color.Primary">Welcome Back</MudText>
+                    </div>
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
+                }
                 <MudForm @ref="_form" @bind-IsValid="@_success">
-                    <MudTextField T="string" Label="Email" @bind-Value="_model.Email" Required="true" RequiredError="Email is required!" Validation="@(new EmailAddressAttribute() { ErrorMessage = "The email address is not valid." })" />
-                    <MudTextField T="string" Label="Password" @bind-Value="_model.Password" InputType="InputType.Password" Required="true" RequiredError="Password is required!" />
+                    <MudTextField T="string"
+                                  Label="Email"
+                                  @bind-Value="_model.Email"
+                                  Required="true"
+                                  RequiredError="Email is required!"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Email"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Email"
+                                  Class="mb-4"
+                                  Validation="@(new EmailAddressAttribute() { ErrorMessage = "The email address is not valid." })" />
+
+                    <MudTextField Label="Password"
+                                  @bind-Value="_model.Password"
+                                  RequiredError="Password is required!"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Password"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Visibility"
+                                  AdornmentAriaLabel="Show/Hide Password"
+                                  Class="mb-4"
+                                  Required="true" />
+
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   FullWidth="true"
+                                   Size="Size.Large"
+                                   Class="mb-4"
+                                   Style="border-radius: 8px; text-transform: none; font-weight: 600;"
+                                   OnClick="Submit">
+                            @if (_isSubmitting)
+                            {
+                                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                            }
+                            else
+                            {
+                                <span>Sing In</span>
+                            }
+                        </MudButton>
+                    </MudCardActions>
                 </MudForm>
+
+                <MudText Align="Align.Center" Class="mt-4">
+                    Don't have an account? <MudLink Href="/authentication/register">Register</MudLink>
+                </MudText>
+                <MudText Align="Align.Center" Class="mt-2">
+                    <MudLink Href="/authentication/reset-password">Forgot password?</MudLink>
+                </MudText>
             </MudCardContent>
-            <MudCardActions>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" OnClick="Submit" Class="ml-auto">Login</MudButton>
-            </MudCardActions>
         </MudCard>
-        <MudText Align="Align.Center" Class="mt-4">
-            Don't have an account? <MudLink Href="/register">Register</MudLink>
-        </MudText>
-        <MudText Align="Align.Center" Class="mt-2">
-            <MudLink Href="/reset-password">Forgot password?</MudLink>
-        </MudText>
     </MudItem>
 </MudGrid>

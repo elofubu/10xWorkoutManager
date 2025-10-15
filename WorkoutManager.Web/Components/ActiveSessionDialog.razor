@@ -1,0 +1,13 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Active Session Found</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>You have an active workout session. Would you like to continue it, or finish it and start a new one?</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Continue">Continue Session</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="FinishAndStartNew">Finish and Start New</MudButton>
+    </DialogActions>
+</MudDialog>

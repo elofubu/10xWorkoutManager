@@ -1,0 +1,11 @@
+﻿.mud-expand-panel.mud-panel-expanded {
+    background-color: red;
+}
+
+.test {
+    background-color: red;
+}
+
+::deep .mud-expand-panel-header {
+    background-color: red;
+}

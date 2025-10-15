@@ -9,3 +9,15 @@ h1:focus {
 a {
     color: #0071c1;
 }
+
+.text-center{
+    text-align: center;
+}
+
+.font-size-small{
+    font-size: .8rem;
+}
+
+.align-self-center{
+
+}

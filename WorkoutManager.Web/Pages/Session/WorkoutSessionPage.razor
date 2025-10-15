@@ -1,4 +1,4 @@
-@page "/session/{trainingDayId:int}"
+@page "/session/workout/{SessionId:int}"
 @using WorkoutManager.BusinessLogic.DTOs
 
 <PageTitle>Workout Session</PageTitle>
@@ -11,7 +11,7 @@
 }
 else
 {
-    <MudStepper @ref="_stepper" Outlined="true" Linear="false">
+    <MudStepper @bind-ActiveIndex="_index"  Outlined="true" Linear="false">
         @foreach (var exercise in _session.Exercises.OrderBy(e => e.Order))
         {
             <MudStep Title="@GetExerciseName(exercise.ExerciseId)" StepContentStyle="overflow-y: auto; max-height: 60vh;">
@@ -70,7 +70,7 @@ else
                   Variant="Variant.Outlined" Class="mt-4" />
 
     <div class="d-flex justify-end mt-4">
-        <MudButton OnClick="PreviousStep" Disabled="@(_stepper.ActiveIndex == 0)">Back</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="ml-2">@(_stepper.ActiveIndex == _session.Exercises.Count - 1 ? "Finish Workout" : "Save and Next")</MudButton>
+        @* <MudButton OnClick="PreviousStep" Disabled="@(_index == 0)">Back</MudButton> *@
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="ml-2">@(_index == _session.Exercises.Count - 1 ? "Finish Workout" : "Save and Next")</MudButton>
     </div>
 }

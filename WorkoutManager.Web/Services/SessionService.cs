@@ -7,10 +7,12 @@ namespace WorkoutManager.Web.Services
     public class SessionService : ISessionService
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<SessionService> _logger;
 
-        public SessionService(HttpClient httpClient)
+        public SessionService(HttpClient httpClient, ILogger<SessionService> logger)
         {
             _httpClient = httpClient;
+            this._logger = logger;
         }
 
         public async Task<PaginatedList<SessionSummaryDto>> GetSessionHistoryAsync()
@@ -25,9 +27,18 @@ namespace WorkoutManager.Web.Services
 
         public async Task<SessionDetailsDto> StartSessionAsync(int trainingDayId)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/sessions", new { trainingDayId });
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<SessionDetailsDto>() ?? new SessionDetailsDto();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/sessions", new { trainingDayId });
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<SessionDetailsDto>() ?? new SessionDetailsDto();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+
+            return new SessionDetailsDto();
         }
 
         public async Task UpdateSessionExerciseAsync(int sessionId, int sessionExerciseId, UpdateSessionExerciseDto payload)
@@ -47,6 +58,25 @@ namespace WorkoutManager.Web.Services
                 Notes = notes,
                 EndTime = DateTime.UtcNow
             });
+        }
+
+        public async Task<SessionDetailsDto?> GetActiveSessionAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("api/sessions/active");
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    return null;
+                }
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<SessionDetailsDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting active session.");
+                return null;
+            }
         }
     }
 }

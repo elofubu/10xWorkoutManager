@@ -1,19 +1,19 @@
 @using WorkoutManager.BusinessLogic.DTOs
-<MudDialog>
+<MudDialog Class="overflow-hidden">
     <TitleContent>
         <MudText Typo="Typo.h6">Add Exercise</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField T="string" Label="Search" @bind-Value="_search" 
+        <MudTextField Margin="Margin.Dense" Variant="Variant.Outlined" T="string" Label="Search" @bind-Value="_search"
                       DebounceInterval="300" OnDebounceIntervalElapsed="SearchExercises" />
-        <MudSelect T="int?" Label="Muscle Group" @bind-Value="_selectedMuscleGroupId" SelectedValuesChanged="SearchExercises"
+        <MudSelect T="int?" Margin="Margin.Dense" Variant="Variant.Outlined" Label="Muscle Group" @bind-Value="_selectedMuscleGroupId" SelectedValuesChanged="SearchExercises"
                    Clearable="true" OnClearButtonClick="ClearFilter">
             @foreach (var group in _muscleGroups)
             {
                 <MudSelectItem Value="@((int?)group.Id)">@group.Name</MudSelectItem>
             }
         </MudSelect>
-        <MudList T="ExerciseDto">
+        <MudList T="ExerciseDto" Style="height: 300px" Class="overflow-scroll">
             @foreach (var exercise in _exercises)
             {
                 <MudListItem T="ExerciseDto" @onclick="() => SelectExercise(exercise)">

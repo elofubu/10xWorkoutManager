@@ -308,3 +308,21 @@ Głównym celem MVP jest zbudowanie bazy zaangażowanych użytkowników, którzy
     -   Współczynnik retencji użytkowników (procent użytkowników wracających do aplikacji tydzień po tygodniu).
     -   Liczba stworzonych planów treningowych na użytkownika.
     -   Współczynnik ukończenia sesji (procent rozpoczętych sesji, które zostały pomyślnie zakończone i zapisane).
+
+## 7. Bezpieczny dostęp i uwierzytelnianie
+---
+-   ID: US-025
+-   Tytuł: Informację o zalogowanym użytkowniku
+-   Opis: Jako użytkownik chcę widzieć że jestem zalogowany
+-   Kryteria akceptacji:
+    - Użytkownik widzi informajcę o zalogowaniu się aplikacji w prawym górnym rogu w głównym @MainLayout.razor
+    - Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @MainLayout.razor
+---
+-   ID: US-026
+-   Tytuł: Bezpieczny dostęp
+-   Opis: Jako użytkownik chcę móc logować się do aplikacji, aby moje dane treningowe były bezpieczne
+-   Kryteria akceptacji:
+    - Użytkownik NIE MOŻE korzystać z funkcjonalności aplikacji bez logowania się do systemu
+    - Niezalogowany użytkownik lądując w aplikacji musi zostać przekierowany na stronę logowania
+    - Zalogowany użytkownik widzi status zalogowania w prawym górnym roku w głównym @MainLayout.razor
+    - Nie korzystamy z zewnętrznych serwisów logowania(np. Google, GitHub) 

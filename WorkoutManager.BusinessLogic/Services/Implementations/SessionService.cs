@@ -282,5 +282,24 @@ public class SessionService : ISessionService
 
         return activeSessionsResponse.Models.Any();
     }
+
+    public async Task<SessionDetailsDto?> GetActiveSessionAsync(Guid userId)
+    {
+        var activeSessionResponse = await _supabaseClient
+            .From<Session>()
+            .Where(s => s.UserId == userId)
+            .Where(s => s.EndTime == null)
+            .Limit(1)
+            .Get();
+
+        var activeSession = activeSessionResponse.Models.FirstOrDefault();
+
+        if (activeSession == null)
+        {
+            return null;
+        }
+
+        return await GetSessionByIdAsync((int)activeSession.Id, userId);
+    }
 }
 
