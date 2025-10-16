@@ -15,3 +15,4 @@ public interface ISessionExerciseRepository
     Task<IEnumerable<ExerciseSet>> AddSetsToSessionExerciseAsync(int sessionExerciseId, IEnumerable<ExerciseSet> sets);
 }
 
+

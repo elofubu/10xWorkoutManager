@@ -61,3 +61,4 @@ Upon completion, the solution will have a cleaner, more maintainable architectur
 - **`WorkoutManager.Data`**: Contains the concrete implementation of data access logic, completely isolated from the business rules.
 - **`WorkoutManager.BusinessLogic`**: Contains pure business logic, free from any direct dependency on data access technology.
 
+
