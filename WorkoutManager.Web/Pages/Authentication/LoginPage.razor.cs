@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 using WorkoutManager.Web.Services;
 
@@ -56,6 +57,15 @@ public partial class LoginPage
         {
             _isSubmitting = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            // Trigger the filter or search logic here
+            await Submit();
         }
     }
 }

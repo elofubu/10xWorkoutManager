@@ -19,7 +19,7 @@ public class SessionService : ISessionService
         _sessionRepository = sessionRepository;
     }
 
-    public async Task<SessionDetailsDto> StartSessionAsync(int trainingDayId, Guid userId)
+    public async Task<SessionDetailsDto> StartSessionAsync(long trainingDayId, Guid userId)
     {
         if (await _sessionRepository.HasActiveSessionAsync(userId))
         {
@@ -96,7 +96,7 @@ public class SessionService : ISessionService
         };
     }
 
-    public async Task<SessionDetailsDto> GetSessionByIdAsync(int sessionId, Guid userId)
+    public async Task<SessionDetailsDto> GetSessionByIdAsync(long sessionId, Guid userId)
     {
         var session = await _sessionRepository.GetSessionByIdAsync(sessionId, userId);
         if (session == null)
@@ -132,7 +132,7 @@ public class SessionService : ISessionService
         };
     }
 
-    public async Task UpdateSessionNotesAsync(int sessionId, string? notes, Guid userId)
+    public async Task UpdateSessionNotesAsync(long sessionId, string? notes, Guid userId)
     {
         var session = await _sessionRepository.GetSessionByIdAsync(sessionId, userId);
         if (session == null)
@@ -144,7 +144,7 @@ public class SessionService : ISessionService
         await _sessionRepository.UpdateSessionAsync(session);
     }
 
-    public async Task FinishSessionAsync(int sessionId, string? notes, Guid userId)
+    public async Task FinishSessionAsync(long sessionId, string? notes, Guid userId)
     {
         var session = await _sessionRepository.GetSessionByIdAsync(sessionId, userId);
         if (session == null)

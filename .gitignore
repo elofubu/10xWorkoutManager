@@ -54,6 +54,7 @@ packages/
 *.user
 *.userosscache
 *.sln.docstates
+**/Properties/launchSettings.json
 
 # Publish
 *.publish.xml

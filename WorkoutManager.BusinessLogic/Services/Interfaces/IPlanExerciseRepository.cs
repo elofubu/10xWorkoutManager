@@ -8,13 +8,13 @@ namespace WorkoutManager.BusinessLogic.Services.Interfaces;
 
 public interface IPlanExerciseRepository
 {
-    Task<WorkoutPlan?> GetPlanByIdAndUserIdAsync(int planId, Guid userId);
-    Task<TrainingDay?> GetTrainingDayByIdAndPlanIdAsync(int dayId, int planId);
-    Task<Exercise?> GetExerciseByIdAsync(int exerciseId);
+    Task<WorkoutPlan?> GetPlanByIdAndUserIdAsync(long planId, Guid userId);
+    Task<TrainingDay?> GetTrainingDayByIdAndPlanIdAsync(long dayId, long planId);
+    Task<Exercise?> GetExerciseByIdAsync(long exerciseId);
     Task<PlanDayExercise> AddExerciseToDayAsync(PlanDayExercise planDayExercise);
-    Task<PlanDayExercise?> GetPlanDayExerciseAsync(int planDayExerciseId, int dayId);
-    Task RemoveExerciseFromDayAsync(int planDayExerciseId);
-    Task ReorderExercisesAsync(int dayId, List<ReorderExerciseCommand> exercises);
+    Task<PlanDayExercise?> GetPlanDayExerciseAsync(long planDayExerciseId, long dayId);
+    Task RemoveExerciseFromDayAsync(long planDayExerciseId);
+    Task ReorderExercisesAsync(long dayId, List<ReorderExerciseCommand> exercises);
 }
 
 

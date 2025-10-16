@@ -6,5 +6,5 @@ namespace WorkoutManager.BusinessLogic.Services.Interfaces;
 public interface IMuscleGroupRepository
 {
     Task<IEnumerable<MuscleGroup>> GetAllAsync();
-    Task<MuscleGroup?> GetByIdAsync(int id);
+    Task<MuscleGroup?> GetByIdAsync(long id);
 }

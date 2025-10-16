@@ -22,7 +22,7 @@ public class MuscleGroupRepository : IMuscleGroupRepository
         return response.Models;
     }
 
-    public async Task<MuscleGroup?> GetByIdAsync(int id)
+    public async Task<MuscleGroup?> GetByIdAsync(long id)
     {
         var response = await _supabaseClient
             .From<MuscleGroup>()

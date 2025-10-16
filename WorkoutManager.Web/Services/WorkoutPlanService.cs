@@ -18,7 +18,7 @@ namespace WorkoutManager.Web.Services
             return await _httpClient.GetFromJsonAsync<PaginatedList<WorkoutPlanDto>>("api/workoutplans") ?? new PaginatedList<WorkoutPlanDto>();
         }
 
-        public async Task<WorkoutPlanDetailDto?> GetWorkoutPlanByIdAsync(int id)
+        public async Task<WorkoutPlanDetailDto?> GetWorkoutPlanByIdAsync(long id)
         {
             return await _httpClient.GetFromJsonAsync<WorkoutPlanDetailDto>($"api/workoutplans/{id}");
         }
@@ -28,38 +28,38 @@ namespace WorkoutManager.Web.Services
             await _httpClient.PostAsJsonAsync("api/workoutplans", newPlan);
         }
 
-        public async Task UpdateWorkoutPlanAsync(int id, UpdateWorkoutPlanDto plan)
+        public async Task UpdateWorkoutPlanAsync(long id, UpdateWorkoutPlanDto plan)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/workoutplans/{id}", plan);
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task DeleteWorkoutPlanAsync(int id)
+        public async Task DeleteWorkoutPlanAsync(long id)
         {
             var response = await _httpClient.DeleteAsync($"api/workoutplans/{id}");
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task AddExerciseToTrainingDayAsync(int planId, int dayId, AddExerciseToTrainingDayCommand exercise)
+        public async Task AddExerciseToTrainingDayAsync(long planId, long dayId, AddExerciseToTrainingDayCommand exercise)
         {
             var response = await _httpClient.PostAsJsonAsync(
                 $"api/workout-plans/{planId}/training-days/{dayId}/exercises", exercise);
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task RemoveExerciseFromTrainingDayAsync(int planId, int trainingDayId, int planDayExerciseId)
+        public async Task RemoveExerciseFromTrainingDayAsync(long planId, long trainingDayId, long planDayExerciseId)
         {
             await _httpClient.DeleteAsync($"api/workout-plans/{planId}/training-days/{trainingDayId}/exercises/{planDayExerciseId}");
         }
 
-        public async Task ReorderExercisesAsync(int planId, int dayId, List<ReorderExerciseCommand> exercises)
+        public async Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises)
         {
             var response = await _httpClient.PutAsJsonAsync(
                 $"api/workout-plans/{planId}/training-days/{dayId}/exercises/reorder", exercises);
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task ReorderTrainingDaysAsync(int planId, List<UpdateTrainingDayOrderCommand> days)
+        public async Task ReorderTrainingDaysAsync(long planId, List<UpdateTrainingDayOrderCommand> days)
         {
             var response = await _httpClient.PutAsJsonAsync(
                 $"api/workout-plans/{planId}/training-days/reorder", days);

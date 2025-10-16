@@ -6,13 +6,13 @@ namespace WorkoutManager.Web.Services
     public interface IWorkoutPlanService
     {
         Task<PaginatedList<WorkoutPlanDto>> GetWorkoutPlansAsync();
-        Task<WorkoutPlanDetailDto?> GetWorkoutPlanByIdAsync(int id);
+        Task<WorkoutPlanDetailDto?> GetWorkoutPlanByIdAsync(long id);
         Task CreateWorkoutPlanAsync(CreateWorkoutPlanDto newPlan);
-        Task UpdateWorkoutPlanAsync(int id, UpdateWorkoutPlanDto plan);
-        Task DeleteWorkoutPlanAsync(int id);
-        Task AddExerciseToTrainingDayAsync(int planId, int dayId, AddExerciseToTrainingDayCommand exercise);
-        Task RemoveExerciseFromTrainingDayAsync(int planId, int trainingDayId, int planDayExerciseId);
-        Task ReorderExercisesAsync(int planId, int dayId, List<ReorderExerciseCommand> exercises);
-        Task ReorderTrainingDaysAsync(int planId, List<UpdateTrainingDayOrderCommand> days);
+        Task UpdateWorkoutPlanAsync(long id, UpdateWorkoutPlanDto plan);
+        Task DeleteWorkoutPlanAsync(long id);
+        Task AddExerciseToTrainingDayAsync(long planId, long dayId, AddExerciseToTrainingDayCommand exercise);
+        Task RemoveExerciseFromTrainingDayAsync(long planId, long trainingDayId, long planDayExerciseId);
+        Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises);
+        Task ReorderTrainingDaysAsync(long planId, List<UpdateTrainingDayOrderCommand> days);
     }
 }

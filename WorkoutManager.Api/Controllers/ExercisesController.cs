@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.DTOs;
@@ -8,6 +9,7 @@ using WorkoutManager.BusinessLogic.Services.Interfaces;
 namespace WorkoutManager.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class ExercisesController : ControllerBase
 {
@@ -23,7 +25,7 @@ public class ExercisesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PaginatedList<ExerciseDto>>> GetExercises(
         [FromQuery] string? search,
-        [FromQuery] int? muscleGroupId,
+        [FromQuery] long? muscleGroupId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
@@ -39,8 +41,8 @@ public class ExercisesController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ExerciseDto>> GetExerciseById(int id)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<ExerciseDto>> GetExerciseById(long id)
     {
         try
         {
@@ -77,8 +79,8 @@ public class ExercisesController : ControllerBase
         }
     }
 
-    [HttpGet("{exerciseId}/previous-session")]
-    public async Task<ActionResult<PreviousExercisePerformanceDto>> GetPreviousPerformance(int exerciseId)
+    [HttpGet("{exerciseId:long}/previous-session")]
+    public async Task<ActionResult<PreviousExercisePerformanceDto>> GetPreviousPerformance(long exerciseId)
     {
         try
         {

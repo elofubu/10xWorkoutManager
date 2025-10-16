@@ -9,69 +9,94 @@ using Npgsql;
 using Respawn;
 using Respawn.Graph;
 using WorkoutManager.Api.Services;
+using WorkoutManager.Api.Tests.Settings;
+using Microsoft.AspNetCore.Http;
 
 namespace WorkoutManager.Api.Tests;
 
 public class TestUserContextService : IUserContextService
 {
-    private Guid? _userId;
-    private string? _userEmail;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private Guid? _overrideUserId;
+    private string? _overrideUserEmail;
+
+    public TestUserContextService(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     public void SetUserId(Guid userId)
     {
-        _userId = userId;
+        _overrideUserId = userId;
     }
 
     public void SetUserEmail(string email)
     {
-        _userEmail = email;
+        _overrideUserEmail = email;
     }
 
     public Guid GetCurrentUserId()
     {
-        return _userId ?? throw new InvalidOperationException("User ID not set for test");
+        // Use override if set (for backwards compatibility)
+        if (_overrideUserId.HasValue)
+        {
+            return _overrideUserId.Value;
+        }
+
+        // Read from JWT claims in HttpContext
+        var userId = _httpContextAccessor.HttpContext?.User?
+            .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new InvalidOperationException("User ID not found in token claims or test override.");
+        }
+
+        return Guid.Parse(userId);
     }
 
     public string? GetCurrentUserEmail()
     {
-        return _userEmail;
+        // Use override if set
+        if (_overrideUserEmail != null)
+        {
+            return _overrideUserEmail;
+        }
+
+        // Read from JWT claims in HttpContext
+        return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
     }
 }
 
-public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>, IAsyncLifetime
+public abstract class BaseIntegrationTest : IAsyncLifetime
 {
     private readonly IntegrationTestWebAppFactory _factory;
     private readonly IConfiguration _configuration;
-    private Respawner _respawner = null!;
+    private readonly IntegrationTestDatabaseFixture _databaseFixture;
+    private readonly SupabaseSettings _supabaseSettings;
 
     protected HttpClient HttpClient { get; }
 
-    public static class TestUsers
-    {
-        public static readonly Guid UserAId = Guid.NewGuid();
-        public static readonly Guid UserBId = Guid.NewGuid();
-    }
-    
-    protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
+    protected BaseIntegrationTest(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture)
     {
         _factory = factory;
+        _databaseFixture = databaseFixture;
         _configuration = factory.Services.GetRequiredService<IConfiguration>();
+        _supabaseSettings = _configuration.GetSection(SupabaseSettings.SectionName).Get<SupabaseSettings>()
+            ?? throw new InvalidOperationException("Failed to load Supabase settings from configuration.");
+
         HttpClient = _factory.CreateClient();
     }
 
-    protected void AuthenticateAs(Guid userId)
-    {
-        var token = GenerateJwtToken(userId);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    protected Guid UserId => _supabaseSettings.TestUserId;
 
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var userContext = scope.ServiceProvider.GetRequiredService<IUserContextService>() as TestUserContextService;
-            userContext.SetUserId(userId);
-        }
+    protected void Authenticate()
+    {
+        var token = GenerateJwtToken();
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
-    private string GenerateJwtToken(Guid userId)
+    private string GenerateJwtToken()
     {
         var jwtKey = _configuration["Jwt:Key"];
         if (string.IsNullOrEmpty(jwtKey))
@@ -83,8 +108,8 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim("user_id", userId.ToString()), 
+            new Claim(ClaimTypes.NameIdentifier, _supabaseSettings.TestUserId.ToString()),
+            new Claim("user_id", _supabaseSettings.TestUserId.ToString()),
         };
 
         var token = new JwtSecurityToken(
@@ -99,27 +124,35 @@ public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppF
 
     public async Task InitializeAsync()
     {
+        // Initialize the database fixture with connection string on first run
         var connectionString = _configuration.GetConnectionString("DefaultConnection");
-        if (string.IsNullOrEmpty(connectionString))
+        if (!string.IsNullOrEmpty(connectionString))
         {
-            throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            _databaseFixture.Initialize(connectionString);
+            // Ensure the connection is created if this is the first test
+            await _databaseFixture.EnsureInitializedAsync();
         }
 
-        await using var conn = new NpgsqlConnection(connectionString);
-        await conn.OpenAsync();
-
-        _respawner = await Respawner.CreateAsync(conn, new RespawnerOptions
+        // Reset database before each test to ensure clean state
+        try
         {
-            DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = new[] { "public" },
-            TablesToIgnore = new Table[] { new Table("muscle_groups") }
-        });
+            if (_databaseFixture.Connection != null && _databaseFixture.Connection.State == System.Data.ConnectionState.Open)
+            {
+                await _databaseFixture.Respawner.ResetAsync(_databaseFixture.Connection);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error resetting database before test: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task DisposeAsync()
     {
-        var connectionString = _configuration.GetConnectionString("DefaultConnection");
-        await _respawner.ResetAsync(connectionString!);
+        // Database cleanup is handled by IntegrationTestDatabaseFixture after all tests complete
+        // This method is kept for IAsyncLifetime contract compliance
+        await Task.CompletedTask;
     }
 }
 

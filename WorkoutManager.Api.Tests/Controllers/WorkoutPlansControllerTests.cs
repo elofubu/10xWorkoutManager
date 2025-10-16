@@ -1,18 +1,19 @@
-using System.Net;
-using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Supabase;
+using System.Net;
+using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.Data.Models;
 
 namespace WorkoutManager.Api.Tests.Controllers;
 
+[Collection("Integration Tests")]
 public class WorkoutPlansControllerTests : BaseIntegrationTest
 {
     private readonly Client _supabaseClient;
-    public WorkoutPlansControllerTests(IntegrationTestWebAppFactory factory) : base(factory)
+    public WorkoutPlansControllerTests(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture) : base(factory, databaseFixture)
     {
         _supabaseClient = factory.Services.GetRequiredService<Client>();
     }
@@ -21,7 +22,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     public async Task Create_WorkoutPlan_Should_Return_Created_When_Payload_Is_Valid()
     {
         // Arrange
-        AuthenticateAs(TestUsers.UserAId);
+        Authenticate();
         var command = TestDataGenerator.CreateWorkoutPlanCommandFaker().Generate();
 
         // Act
@@ -40,7 +41,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     public async Task Create_WorkoutPlan_Should_Return_BadRequest_When_Payload_Is_Invalid()
     {
         // Arrange
-        AuthenticateAs(TestUsers.UserAId);
+        Authenticate();
         var command = new CreateWorkoutPlanCommand("", new List<CreateTrainingDayCommand>());
 
         // Act
@@ -54,7 +55,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     public async Task Get_WorkoutPlan_Should_Return_NotFound_When_Plan_Does_Not_Exist()
     {
         // Arrange
-        AuthenticateAs(TestUsers.UserAId);
+        Authenticate();
 
         // Act
         var response = await HttpClient.GetAsync("/api/workoutplans/999");
@@ -67,8 +68,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     public async Task Get_WorkoutPlan_Should_Return_Plan_When_It_Exists()
     {
         // Arrange
-        AuthenticateAs(TestUsers.UserAId);
-        var plan = TestDataGenerator.WorkoutPlanFaker(TestUsers.UserAId).Generate();
+        Authenticate();
+        var plan = TestDataGenerator.WorkoutPlanFaker(UserId).Generate();
         var inserted = await _supabaseClient.From<WorkoutPlan>().Insert(plan);
         var planId = inserted.Models.First().Id;
 
@@ -87,8 +88,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     public async Task Get_WorkoutPlans_Should_Return_Paginated_List_Of_Plans()
     {
         // Arrange
-        AuthenticateAs(TestUsers.UserAId);
-        var plans = TestDataGenerator.WorkoutPlanFaker(TestUsers.UserAId).Generate(5);
+        Authenticate(   );
+        var plans = TestDataGenerator.WorkoutPlanFaker(UserId).Generate(5);
         await _supabaseClient.From<WorkoutPlan>().Insert(plans);
 
         // Act
@@ -108,8 +109,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     public async Task Delete_WorkoutPlan_Should_Return_NoContent_When_Successful()
     {
         // Arrange
-        AuthenticateAs(TestUsers.UserAId);
-        var plan = TestDataGenerator.WorkoutPlanFaker(TestUsers.UserAId).Generate();
+        Authenticate();
+        var plan = TestDataGenerator.WorkoutPlanFaker(UserId).Generate();
         var inserted = await _supabaseClient.From<WorkoutPlan>().Insert(plan);
         var planId = inserted.Models.First().Id;
         
@@ -127,8 +128,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     public async Task Update_WorkoutPlan_Should_Return_NoContent_When_Successful()
     {
         // Arrange
-        AuthenticateAs(TestUsers.UserAId);
-        var plan = TestDataGenerator.WorkoutPlanFaker(TestUsers.UserAId).Generate();
+        Authenticate();
+        var plan = TestDataGenerator.WorkoutPlanFaker(UserId).Generate();
         var inserted = await _supabaseClient.From<WorkoutPlan>().Insert(plan);
         var planId = inserted.Models.First().Id;
 

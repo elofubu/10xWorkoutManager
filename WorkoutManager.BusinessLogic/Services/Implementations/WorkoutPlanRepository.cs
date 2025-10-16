@@ -114,7 +114,7 @@ public class WorkoutPlanRepository : IWorkoutPlanRepository
 
         var planDayExercisesResponse = await _supabaseClient
             .From<PlanDayExercise>()
-            .Where(pde => trainingDayIds.Contains(pde.TrainingDayId))
+            .Filter(pde => pde.TrainingDayId, Supabase.Postgrest.Constants.Operator.In, trainingDayIds)
             .Get();
         
         var planDayExercises = planDayExercisesResponse.Models;
@@ -127,7 +127,7 @@ public class WorkoutPlanRepository : IWorkoutPlanRepository
 
         var exercisesResponse = await _supabaseClient
             .From<Exercise>()
-            .Where(e => exerciseIds.Contains(e.Id))
+            .Filter(e => e.Id, Supabase.Postgrest.Constants.Operator.In, exerciseIds)
             .Get();
         
         var exercises = exercisesResponse.Models.ToDictionary(e => e.Id, e => e);

@@ -22,7 +22,7 @@ public class MuscleGroupService : IMuscleGroupService
         }).ToList();
     }
 
-    public async Task<MuscleGroupDto?> GetMuscleGroupByIdAsync(int id)
+    public async Task<MuscleGroupDto?> GetMuscleGroupByIdAsync(long id)
     {
         var muscleGroup = await _muscleGroupRepository.GetByIdAsync(id);
         if (muscleGroup == null) return null;

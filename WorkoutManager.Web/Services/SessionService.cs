@@ -20,12 +20,12 @@ namespace WorkoutManager.Web.Services
             return await _httpClient.GetFromJsonAsync<PaginatedList<SessionSummaryDto>>("api/sessions") ?? new PaginatedList<SessionSummaryDto>();
         }
 
-        public async Task<SessionDetailsDto> GetSessionDetailsAsync(int id)
+        public async Task<SessionDetailsDto> GetSessionDetailsAsync(long id)
         {
             return await _httpClient.GetFromJsonAsync<SessionDetailsDto>($"api/sessions/{id}") ?? new SessionDetailsDto { Id = id };
         }
 
-        public async Task<SessionDetailsDto> StartSessionAsync(int trainingDayId)
+        public async Task<SessionDetailsDto> StartSessionAsync(long trainingDayId)
         {
             try
             {
@@ -41,17 +41,17 @@ namespace WorkoutManager.Web.Services
             return new SessionDetailsDto();
         }
 
-        public async Task UpdateSessionExerciseAsync(int sessionId, int sessionExerciseId, UpdateSessionExerciseDto payload)
+        public async Task UpdateSessionExerciseAsync(long sessionId, long sessionExerciseId, UpdateSessionExerciseDto payload)
         {
             await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}/exercises/{sessionExerciseId}", payload);
         }
 
-        public async Task UpdateSessionAsync(int sessionId, UpdateSessionCommand command)
+        public async Task UpdateSessionAsync(long sessionId, UpdateSessionCommand command)
         {
             await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}", command);
         }
 
-        public async Task FinishSessionAsync(int sessionId, string? notes)
+        public async Task FinishSessionAsync(long sessionId, string? notes)
         {
             await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}", new UpdateSessionCommand
             {

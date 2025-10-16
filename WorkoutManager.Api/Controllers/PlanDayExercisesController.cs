@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.Commands;
@@ -9,7 +10,8 @@ using WorkoutManager.BusinessLogic.Services.Interfaces;
 namespace WorkoutManager.Api.Controllers;
 
 [ApiController]
-[Route("api/workout-plans/{planId}/training-days/{dayId}/exercises")]
+[Authorize]
+[Route("api/workout-plans/{planId:long}/training-days/{dayId:long}/exercises")]
 public class PlanDayExercisesController : ControllerBase
 {
     private readonly IPlanExerciseService _planExerciseService;
@@ -23,8 +25,8 @@ public class PlanDayExercisesController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<CreatedPlanDayExerciseDto>> AddExerciseToTrainingDay(
-        int planId, 
-        int dayId, 
+        long planId,
+        long dayId,
         [FromBody] AddExerciseToTrainingDayCommand command)
     {
         try
@@ -51,8 +53,8 @@ public class PlanDayExercisesController : ControllerBase
         }
     }
 
-    [HttpDelete("{planDayExerciseId}")]
-    public async Task<IActionResult> RemoveExerciseFromTrainingDay(int planId, int dayId, int planDayExerciseId)
+    [HttpDelete("{planDayExerciseId:long}")]
+    public async Task<IActionResult> RemoveExerciseFromTrainingDay(long planId, long dayId, long planDayExerciseId)
     {
         try
         {

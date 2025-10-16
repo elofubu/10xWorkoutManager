@@ -21,8 +21,8 @@ public class PlanExerciseService : IPlanExerciseService
     }
 
     public async Task<CreatedPlanDayExerciseDto> AddExerciseToDayAsync(
-        int planId,
-        int dayId,
+        long planId,
+        long dayId,
         AddExerciseToTrainingDayCommand command,
         Guid userId)
     {
@@ -61,7 +61,7 @@ public class PlanExerciseService : IPlanExerciseService
         );
     }
 
-    public async Task RemoveExerciseFromDayAsync(int planId, int dayId, int planDayExerciseId, Guid userId)
+    public async Task RemoveExerciseFromDayAsync(long planId, long dayId, long planDayExerciseId, Guid userId)
     {
         await VerifyPlanOwnershipAsync(planId, userId);
         if (await _workoutPlanService.IsPlanLockedAsync(planId, userId))
@@ -84,7 +84,7 @@ public class PlanExerciseService : IPlanExerciseService
         await _planExerciseRepository.RemoveExerciseFromDayAsync(planDayExerciseId);
     }
 
-    public async Task ReorderExercisesAsync(int planId, int dayId, List<ReorderExerciseCommand> exercises, Guid userId)
+    public async Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises, Guid userId)
     {
         await VerifyPlanOwnershipAsync(planId, userId);
         if (await _workoutPlanService.IsPlanLockedAsync(planId, userId))
@@ -101,7 +101,7 @@ public class PlanExerciseService : IPlanExerciseService
         await _planExerciseRepository.ReorderExercisesAsync(dayId, exercises);
     }
 
-    private async Task VerifyPlanOwnershipAsync(int planId, Guid userId)
+    private async Task VerifyPlanOwnershipAsync(long planId, Guid userId)
     {
         var plan = await _planExerciseRepository.GetPlanByIdAndUserIdAsync(planId, userId);
         if (plan == null)

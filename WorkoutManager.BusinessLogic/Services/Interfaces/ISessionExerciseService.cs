@@ -6,11 +6,11 @@ namespace WorkoutManager.BusinessLogic.Services.Interfaces;
 public interface ISessionExerciseService
 {
     Task<SessionExerciseDetailsDto> UpdateSessionExerciseAsync(
-        int sessionId,
-        int sessionExerciseId,
+        long sessionId,
+        long sessionExerciseId,
         UpdateSessionExerciseCommand command,
         Guid userId);
-    
-    Task MarkAsSkippedAsync(int sessionExerciseId, Guid userId);
+
+    Task MarkAsSkippedAsync(long sessionExerciseId, Guid userId);
 }
 

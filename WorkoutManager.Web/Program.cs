@@ -13,7 +13,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped<AuthorizationMessageHandler>();
 
-builder.Services.AddHttpClient("ApiHttpClient", client => client.BaseAddress = new Uri("https://localhost:5048"))
+builder.Services.AddHttpClient("ApiHttpClient", client => client.BaseAddress = new Uri(builder.Configuration["ApiUrl"]))
     .AddHttpMessageHandler<AuthorizationMessageHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiHttpClient"));
@@ -36,7 +36,7 @@ builder.Services.AddSingleton(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
     var supabaseUrl = configuration["Supabase:Url"];
-    var supabaseKey = configuration["Supabase:PublicKey"];
+    var supabaseKey = configuration["Supabase:AnonKey"];
     return new Client(supabaseUrl, supabaseKey);
 });
 

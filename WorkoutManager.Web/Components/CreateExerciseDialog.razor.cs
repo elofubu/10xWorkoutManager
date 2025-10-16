@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using System.ComponentModel.DataAnnotations;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.Web.Services;
 
@@ -18,14 +18,13 @@ namespace WorkoutManager.Web.Components
         private IMuscleGroupService MuscleGroupService { get; set; } = default!;
 
         private bool _success;
-        private MudForm _form = default!;
-        private readonly CreateExerciseModel _model = new();
+        private CreateExerciseModel _model = new();
         private List<MuscleGroupDto> _muscleGroups = new();
 
         protected override async Task OnInitializedAsync()
         {
             var result = await MuscleGroupService.GetMuscleGroupsAsync();
-            _muscleGroups = result.Data.ToList();
+            _muscleGroups = result.ToList();
         }
 
         private async Task Submit()
@@ -46,9 +45,9 @@ namespace WorkoutManager.Web.Components
         {
             [Required]
             public string Name { get; set; } = default!;
-            
+
             [Required]
-            public int MuscleGroupId { get; set; }
+            public long MuscleGroupId { get; set; }
         }
     }
 }

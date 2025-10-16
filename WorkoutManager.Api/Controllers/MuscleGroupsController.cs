@@ -29,8 +29,8 @@ public class MuscleGroupsController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<MuscleGroupDto>> GetMuscleGroupById(int id)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<MuscleGroupDto>> GetMuscleGroupById(long id)
     {
         try
         {

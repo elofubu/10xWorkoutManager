@@ -27,7 +27,7 @@ public class ExerciseRepository : IExerciseRepository
         return response.Models.Where(e => e.UserId == null || e.UserId == userId);
     }
 
-    public async Task<Exercise?> GetExerciseByIdAsync(int exerciseId)
+    public async Task<Exercise?> GetExerciseByIdAsync(long exerciseId)
     {
         return await _supabaseClient
             .From<Exercise>()
@@ -39,7 +39,8 @@ public class ExerciseRepository : IExerciseRepository
     {
         var response = await _supabaseClient
             .From<Exercise>()
-            .Where(e => e.UserId == userId && e.Name.ToLower() == name.ToLower())
+            .Where(e => e.UserId == userId)
+            .Filter(e => e.Name.ToLower(), Supabase.Postgrest.Constants.Operator.Equals, name.ToLower())
             .Get();
         
         return response.Models.FirstOrDefault();
@@ -54,7 +55,7 @@ public class ExerciseRepository : IExerciseRepository
         return response.Models.First();
     }
 
-    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(int exerciseId, Guid userId)
+    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId)
     {
         var sessionExercisesResponse = await _supabaseClient
             .From<SessionExercise>()
@@ -67,8 +68,9 @@ public class ExerciseRepository : IExerciseRepository
         
         var sessionsResponse = await _supabaseClient
             .From<Session>()
-            .Where(s => sessionIds.Contains(s.Id))
-            .Where(s => s.UserId == userId && s.EndTime != null)
+            .Where(s => s.UserId == userId)
+            .Filter(s => s.Id, Supabase.Postgrest.Constants.Operator.In, sessionIds)
+            .Filter<DateTime?>(s => s.EndTime, Supabase.Postgrest.Constants.Operator.NotEqual, null)
             .Get();
             
         if (!sessionsResponse.Models.Any()) return null;

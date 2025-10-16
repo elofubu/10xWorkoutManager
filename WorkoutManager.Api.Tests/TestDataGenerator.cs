@@ -37,8 +37,12 @@ public static class TestDataGenerator
             .CustomInstantiator(f =>
             {
                 var trainingDays = new Faker<CreateTrainingDayCommand>()
-                    .RuleFor(t => t.Name, f => f.Lorem.Word())
-                    .RuleFor(t => t.Order, (f, t) => f.IndexFaker)
+                    .CustomInstantiator(faker =>
+                        new CreateTrainingDayCommand(
+                            faker.Lorem.Word(),
+                            faker.IndexFaker
+                        )
+                    )
                     .Generate(f.Random.Int(1, 5));
 
                 return new CreateWorkoutPlanCommand(f.Lorem.Word(), trainingDays);

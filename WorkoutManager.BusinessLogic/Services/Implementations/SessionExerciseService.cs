@@ -20,8 +20,8 @@ public class SessionExerciseService : ISessionExerciseService
     }
 
     public async Task<SessionExerciseDetailsDto> UpdateSessionExerciseAsync(
-        int sessionId,
-        int sessionExerciseId,
+        long sessionId,
+        long sessionExerciseId,
         UpdateSessionExerciseCommand command,
         Guid userId)
     {
@@ -74,7 +74,7 @@ public class SessionExerciseService : ISessionExerciseService
         };
     }
 
-    public async Task MarkAsSkippedAsync(int sessionExerciseId, Guid userId)
+    public async Task MarkAsSkippedAsync(long sessionExerciseId, Guid userId)
     {
         var sessionExercise = await _sessionExerciseRepository.GetSessionExerciseWithSessionAsync(sessionExerciseId, userId);
         if (sessionExercise == null)

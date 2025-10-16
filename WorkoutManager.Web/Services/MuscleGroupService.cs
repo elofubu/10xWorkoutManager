@@ -12,10 +12,10 @@ public class MuscleGroupService : IMuscleGroupService
         _httpClient = httpClient;
     }
 
-    public async Task<PaginatedList<MuscleGroupDto>> GetMuscleGroupsAsync()
+    public async Task<IEnumerable<MuscleGroupDto>> GetMuscleGroupsAsync()
     {
-        return await _httpClient.GetFromJsonAsync<PaginatedList<MuscleGroupDto>>("api/musclegroups") 
-            ?? new PaginatedList<MuscleGroupDto>();
+        return await _httpClient.GetFromJsonAsync<IEnumerable<MuscleGroupDto>>("api/musclegroups") 
+            ?? Enumerable.Empty<MuscleGroupDto>();
     }
 }
 

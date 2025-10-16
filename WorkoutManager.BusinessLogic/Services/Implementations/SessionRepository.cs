@@ -1,10 +1,6 @@
 using Supabase;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
 using WorkoutManager.Data.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
@@ -21,12 +17,14 @@ public class SessionRepository : ISessionRepository
     {
         var response = await _supabaseClient
             .From<Session>()
-            .Where(s => s.UserId == userId && s.EndTime == null)
+            .Where(s => s.UserId == userId)
+            .Filter<DateTime?>(s => s.EndTime, Supabase.Postgrest.Constants.Operator.Equals, null)
             .Get();
+
         return response.Models.Any();
     }
 
-    public async Task<TrainingDay?> GetTrainingDayByIdAsync(int trainingDayId)
+    public async Task<TrainingDay?> GetTrainingDayByIdAsync(long trainingDayId)
     {
         return await _supabaseClient
             .From<TrainingDay>()
@@ -48,7 +46,7 @@ public class SessionRepository : ISessionRepository
         return response.Models.First();
     }
 
-    public async Task<IEnumerable<PlanDayExercise>> GetPlanDayExercisesAsync(int trainingDayId)
+    public async Task<IEnumerable<PlanDayExercise>> GetPlanDayExercisesAsync(long trainingDayId)
     {
         var response = await _supabaseClient
             .From<PlanDayExercise>()
@@ -77,14 +75,16 @@ public class SessionRepository : ISessionRepository
             .Get();
         
         var sessions = response.Models;
+
         var planIds = sessions.Where(s => s.PlanId.HasValue).Select(s => s.PlanId.Value).Distinct().ToList();
 
         if (planIds.Any())
         {
             var plansResponse = await _supabaseClient
                 .From<WorkoutPlan>()
-                .Where(wp => planIds.Contains(wp.Id))
+                .Filter(wp => wp.Id, Supabase.Postgrest.Constants.Operator.In, planIds)
                 .Get();
+
             var plans = plansResponse.Models.ToDictionary(p => p.Id);
 
             foreach (var session in sessions)
@@ -98,7 +98,7 @@ public class SessionRepository : ISessionRepository
         return sessions;
     }
 
-    public async Task<Session?> GetSessionByIdAsync(int sessionId, Guid userId)
+    public async Task<Session?> GetSessionByIdAsync(long sessionId, Guid userId)
     {
         return await _supabaseClient
             .From<Session>()
@@ -106,14 +106,14 @@ public class SessionRepository : ISessionRepository
             .Single();
     }
 
-    public async Task<IEnumerable<SessionExercise>> GetSessionExercisesWithSetsAsync(int sessionId)
+    public async Task<IEnumerable<SessionExercise>> GetSessionExercisesWithSetsAsync(long sessionId)
     {
         var response = await _supabaseClient
             .From<SessionExercise>()
             .Where(se => se.SessionId == sessionId)
             .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
             .Get();
-        
+
         var sessionExercises = response.Models;
         var sessionExerciseIds = sessionExercises.Select(se => se.Id).ToList();
 
@@ -121,8 +121,9 @@ public class SessionRepository : ISessionRepository
         {
             var setsResponse = await _supabaseClient
                 .From<ExerciseSet>()
-                .Where(es => sessionExerciseIds.Contains(es.SessionExerciseId))
+                .Filter(es => es.SessionExerciseId, Supabase.Postgrest.Constants.Operator.In, sessionExerciseIds)
                 .Get();
+
             var sets = setsResponse.Models.GroupBy(es => es.SessionExerciseId).ToDictionary(g => g.Key, g => g.ToList());
 
             foreach (var se in sessionExercises)
@@ -145,9 +146,11 @@ public class SessionRepository : ISessionRepository
     {
         var response = await _supabaseClient
             .From<Session>()
-            .Where(s => s.UserId == userId && s.EndTime == null)
+            .Where(s => s.UserId == userId)
+            .Filter<DateTime?>(s => s.EndTime, Supabase.Postgrest.Constants.Operator.Equals, null)
             .Limit(1)
             .Get();
+
         return response.Models.FirstOrDefault();
     }
 }

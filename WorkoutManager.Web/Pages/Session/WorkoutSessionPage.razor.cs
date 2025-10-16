@@ -8,7 +8,7 @@ namespace WorkoutManager.Web.Pages.Session
     public partial class WorkoutSessionPage
     {
         [Parameter]
-        public int SessionId { get; set; }
+        public long SessionId { get; set; }
 
         [Inject]
         private ISessionService SessionService { get; set; } = default!;
@@ -21,8 +21,8 @@ namespace WorkoutManager.Web.Pages.Session
 
         private SessionDetailsDto? _session;
         //private MudStepper _stepper = new()!;
-        private Dictionary<int, PreviousExercisePerformanceDto> _previousSessionData = new();
-        private Dictionary<int, string> _exerciseNames = new();
+        private Dictionary<long, PreviousExercisePerformanceDto> _previousSessionData = new();
+        private Dictionary<long, string> _exerciseNames = new();
         private string? _sessionNotes;
         private int _index;
 
@@ -59,7 +59,7 @@ namespace WorkoutManager.Web.Pages.Session
             }
         }
 
-        private string GetExerciseName(int exerciseId) => _exerciseNames.GetValueOrDefault(exerciseId, $"Exercise {exerciseId}");
+        private string GetExerciseName(long exerciseId) => _exerciseNames.GetValueOrDefault(exerciseId, $"Exercise {exerciseId}");
 
         private void AddSet(SessionExerciseDetailsDto exercise)
         {

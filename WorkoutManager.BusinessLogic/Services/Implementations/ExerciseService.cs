@@ -17,7 +17,7 @@ public class ExerciseService : IExerciseService
     public async Task<PaginatedList<ExerciseDto>> GetExercisesAsync(
         Guid userId,
         string? search = null,
-        int? muscleGroupId = null,
+        long? muscleGroupId = null,
         int page = 1,
         int pageSize = 20)
     {
@@ -56,7 +56,7 @@ public class ExerciseService : IExerciseService
         };
     }
     
-    public async Task<ExerciseDto?> GetExerciseByIdAsync(int exerciseId)
+    public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId)
     {
         var exercise = await _exerciseRepository.GetExerciseByIdAsync(exerciseId);
         if (exercise == null) return null;
@@ -96,7 +96,7 @@ public class ExerciseService : IExerciseService
         };
     }
 
-    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(int exerciseId, Guid userId)
+    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId)
     {
         return await _exerciseRepository.GetLastPerformanceAsync(exerciseId, userId);
     }

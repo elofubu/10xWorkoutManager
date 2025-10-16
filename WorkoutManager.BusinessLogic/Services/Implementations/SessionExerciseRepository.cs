@@ -17,7 +17,7 @@ public class SessionExerciseRepository : ISessionExerciseRepository
         _supabaseClient = supabaseClient;
     }
 
-    public async Task<Session?> GetSessionByIdAndUserIdAsync(int sessionId, Guid userId)
+    public async Task<Session?> GetSessionByIdAndUserIdAsync(long sessionId, Guid userId)
     {
         return await _supabaseClient
             .From<Session>()
@@ -25,7 +25,7 @@ public class SessionExerciseRepository : ISessionExerciseRepository
             .Single();
     }
 
-    public async Task<SessionExercise?> GetSessionExerciseByIdAndSessionIdAsync(int sessionExerciseId, int sessionId)
+    public async Task<SessionExercise?> GetSessionExerciseByIdAndSessionIdAsync(long sessionExerciseId, long sessionId)
     {
         return await _supabaseClient
             .From<SessionExercise>()
@@ -33,16 +33,16 @@ public class SessionExerciseRepository : ISessionExerciseRepository
             .Single();
     }
 
-    public async Task<SessionExercise?> GetSessionExerciseWithSessionAsync(int sessionExerciseId, Guid userId)
+    public async Task<SessionExercise?> GetSessionExerciseWithSessionAsync(long sessionExerciseId, Guid userId)
     {
         var sessionExercise = await _supabaseClient
             .From<SessionExercise>()
             .Where(se => se.Id == sessionExerciseId)
             .Single();
-        
+
         if(sessionExercise == null) return null;
 
-        var session = await GetSessionByIdAndUserIdAsync((int)sessionExercise.SessionId, userId);
+        var session = await GetSessionByIdAndUserIdAsync(sessionExercise.SessionId, userId);
         if(session == null) return null;
 
         sessionExercise.Session = session;
@@ -56,7 +56,7 @@ public class SessionExerciseRepository : ISessionExerciseRepository
             .Update(sessionExercise);
     }
 
-    public async Task DeleteSetsForSessionExerciseAsync(int sessionExerciseId)
+    public async Task DeleteSetsForSessionExerciseAsync(long sessionExerciseId)
     {
         await _supabaseClient
             .From<ExerciseSet>()
@@ -64,7 +64,7 @@ public class SessionExerciseRepository : ISessionExerciseRepository
             .Delete();
     }
 
-    public async Task<IEnumerable<ExerciseSet>> AddSetsToSessionExerciseAsync(int sessionExerciseId, IEnumerable<ExerciseSet> sets)
+    public async Task<IEnumerable<ExerciseSet>> AddSetsToSessionExerciseAsync(long sessionExerciseId, IEnumerable<ExerciseSet> sets)
     {
         var createdSets = new List<ExerciseSet>();
         foreach (var exerciseSet in sets)

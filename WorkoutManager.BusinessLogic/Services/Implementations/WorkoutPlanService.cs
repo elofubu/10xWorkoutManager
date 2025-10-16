@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
@@ -74,6 +75,8 @@ public class WorkoutPlanService : IWorkoutPlanService
 
     public async Task<CreatedWorkoutPlanDto> CreateWorkoutPlanAsync(CreateWorkoutPlanCommand command, Guid userId)
     {
+        if (string.IsNullOrEmpty(command.Name)) throw new FluentValidation.ValidationException("Name cannot be empty");
+
         var plan = new WorkoutPlan
         {
             UserId = userId,

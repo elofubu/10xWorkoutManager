@@ -24,7 +24,7 @@ namespace WorkoutManager.Web.Pages.History
             _pagination = result.Pagination;
         }
 
-        private void NavigateToSession(int sessionId)
+        private void NavigateToSession(long sessionId)
         {
             NavigationManager.NavigateTo($"/history/{sessionId}");
         }

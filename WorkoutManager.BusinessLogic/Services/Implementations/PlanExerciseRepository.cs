@@ -17,7 +17,7 @@ public class PlanExerciseRepository : IPlanExerciseRepository
         _supabaseClient = supabaseClient;
     }
 
-    public async Task<WorkoutPlan?> GetPlanByIdAndUserIdAsync(int planId, Guid userId)
+    public async Task<WorkoutPlan?> GetPlanByIdAndUserIdAsync(long planId, Guid userId)
     {
         return await _supabaseClient
             .From<WorkoutPlan>()
@@ -25,7 +25,7 @@ public class PlanExerciseRepository : IPlanExerciseRepository
             .Single();
     }
 
-    public async Task<TrainingDay?> GetTrainingDayByIdAndPlanIdAsync(int dayId, int planId)
+    public async Task<TrainingDay?> GetTrainingDayByIdAndPlanIdAsync(long dayId, long planId)
     {
         return await _supabaseClient
             .From<TrainingDay>()
@@ -33,7 +33,7 @@ public class PlanExerciseRepository : IPlanExerciseRepository
             .Single();
     }
 
-    public async Task<Exercise?> GetExerciseByIdAsync(int exerciseId)
+    public async Task<Exercise?> GetExerciseByIdAsync(long exerciseId)
     {
         return await _supabaseClient
             .From<Exercise>()
@@ -49,7 +49,7 @@ public class PlanExerciseRepository : IPlanExerciseRepository
         return response.Models[0];
     }
 
-    public async Task<PlanDayExercise?> GetPlanDayExerciseAsync(int planDayExerciseId, int dayId)
+    public async Task<PlanDayExercise?> GetPlanDayExerciseAsync(long planDayExerciseId, long dayId)
     {
         return await _supabaseClient
             .From<PlanDayExercise>()
@@ -57,7 +57,7 @@ public class PlanExerciseRepository : IPlanExerciseRepository
             .Single();
     }
 
-    public async Task RemoveExerciseFromDayAsync(int planDayExerciseId)
+    public async Task RemoveExerciseFromDayAsync(long planDayExerciseId)
     {
         await _supabaseClient
             .From<PlanDayExercise>()
@@ -65,7 +65,7 @@ public class PlanExerciseRepository : IPlanExerciseRepository
             .Delete();
     }
 
-    public async Task ReorderExercisesAsync(int dayId, List<ReorderExerciseCommand> exercises)
+    public async Task ReorderExercisesAsync(long dayId, List<ReorderExerciseCommand> exercises)
     {
         foreach (var exerciseUpdate in exercises)
         {

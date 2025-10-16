@@ -13,7 +13,7 @@ namespace WorkoutManager.Web.Services
             _httpClient = httpClient;
         }
 
-        public async Task<PaginatedList<ExerciseDto>> GetExercisesAsync(string? search = null, int? muscleGroupId = null)
+        public async Task<PaginatedList<ExerciseDto>> GetExercisesAsync(string? search = null, long? muscleGroupId = null, int page = 1)
         {
             if (_httpClient.BaseAddress is null)
             {
@@ -33,6 +33,10 @@ namespace WorkoutManager.Web.Services
             {
                 query["muscleGroupId"] = muscleGroupId.Value.ToString();
             }
+            if(page > 1)
+            {
+                query["page"] = page.ToString();
+            }
             uriBuilder.Query = query.ToString();
 
             return await _httpClient.GetFromJsonAsync<PaginatedList<ExerciseDto>>(uriBuilder.ToString()) ?? new PaginatedList<ExerciseDto>();
@@ -45,7 +49,7 @@ namespace WorkoutManager.Web.Services
             return await response.Content.ReadFromJsonAsync<ExerciseDto>() ?? throw new Exception("Failed to create exercise.");
         }
 
-        public async Task<PreviousExercisePerformanceDto?> GetPreviousSessionExerciseAsync(int exerciseId)
+        public async Task<PreviousExercisePerformanceDto?> GetPreviousSessionExerciseAsync(long exerciseId)
         {
             try
             {
@@ -57,7 +61,7 @@ namespace WorkoutManager.Web.Services
             }
         }
 
-        public async Task<ExerciseDto?> GetExerciseByIdAsync(int exerciseId)
+        public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId)
         {
             try
             {

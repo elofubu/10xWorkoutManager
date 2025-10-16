@@ -51,7 +51,7 @@ else
                             {
                                 <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
                             }
-                            
+
                             @if (_isEditMode || day.Exercises.Count() == 0)
                             {
                                 <MudButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
@@ -63,13 +63,15 @@ else
                     <MudList T="PlanDayExerciseDto">
                         @foreach (var exercise in day.Exercises.OrderBy(e => e.Order))
                         {
-                            <MudListItem T="PlanDayExerciseDto">
-                                @exercise.Name
-                                @if (_isEditMode)
-                                {
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" />
-                                }
-                            </MudListItem>
+                            <div class="mt-2">
+                                <MudListItem T="PlanDayExerciseDto">
+                                    @exercise.Name
+                                    @if (_isEditMode)
+                                    {
+                                        <MudIconButton Class="float-right" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" />
+                                    }
+                                </MudListItem>
+                            </div>
                         }
                     </MudList>
                 </ChildContent>
@@ -82,5 +84,9 @@ else
 <style>
     .mud-panel-expanded .mud-expand-panel-header {
         background-color: #FAFAFA;
+    }
+
+    .float-right {
+        float: right;
     }
 </style>

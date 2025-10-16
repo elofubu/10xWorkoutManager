@@ -11,7 +11,7 @@ namespace WorkoutManager.Web.Pages.History
     public partial class SessionSummaryPage
     {
         [Parameter]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Inject]
         private ISessionService SessionService { get; set; } = default!;
@@ -23,7 +23,7 @@ namespace WorkoutManager.Web.Pages.History
             _session = await SessionService.GetSessionDetailsAsync(Id);
         }
 
-        private string GetExerciseName(int exerciseId)
+        private string GetExerciseName(long exerciseId)
         {
             // TODO: Replace with a call to a service that can resolve exercise names
             return $"Exercise {exerciseId}";

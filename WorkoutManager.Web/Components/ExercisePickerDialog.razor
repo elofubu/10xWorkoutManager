@@ -6,11 +6,11 @@
     <DialogContent>
         <MudTextField Margin="Margin.Dense" Variant="Variant.Outlined" T="string" Label="Search" @bind-Value="_search"
                       DebounceInterval="300" OnDebounceIntervalElapsed="SearchExercises" />
-        <MudSelect T="int?" Margin="Margin.Dense" Variant="Variant.Outlined" Label="Muscle Group" @bind-Value="_selectedMuscleGroupId" SelectedValuesChanged="SearchExercises"
+        <MudSelect T="long?" Margin="Margin.Dense" Variant="Variant.Outlined" Label="Muscle Group" @bind-Value="_selectedMuscleGroupId" SelectedValuesChanged="SearchExercises"
                    Clearable="true" OnClearButtonClick="ClearFilter">
             @foreach (var group in _muscleGroups)
             {
-                <MudSelectItem Value="@((int?)group.Id)">@group.Name</MudSelectItem>
+                <MudSelectItem Value="@((long?)group.Id)">@group.Name</MudSelectItem>
             }
         </MudSelect>
         <MudList T="ExerciseDto" Style="height: 300px" Class="overflow-scroll">

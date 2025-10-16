@@ -3,14 +3,14 @@ namespace WorkoutManager.BusinessLogic.DTOs;
 public record CreateExerciseDto
 {
     public string Name { get; set; } = string.Empty;
-    public int MuscleGroupId { get; set; }
+    public long MuscleGroupId { get; set; }
 }
 
 public class ExerciseDto
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public Guid? UserId { get; set; }
-    public int MuscleGroupId { get; set; }
+    public long MuscleGroupId { get; set; }
     public string Name { get; set; } = string.Empty;
 }
 

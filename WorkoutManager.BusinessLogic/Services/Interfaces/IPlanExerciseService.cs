@@ -6,13 +6,13 @@ namespace WorkoutManager.BusinessLogic.Services.Interfaces;
 public interface IPlanExerciseService
 {
     Task<CreatedPlanDayExerciseDto> AddExerciseToDayAsync(
-        int planId,
-        int dayId,
+        long planId,
+        long dayId,
         AddExerciseToTrainingDayCommand command,
         Guid userId);
-    
-    Task RemoveExerciseFromDayAsync(int planId, int dayId, int planDayExerciseId, Guid userId);
-    
-    Task ReorderExercisesAsync(int planId, int dayId, List<ReorderExerciseCommand> exercises, Guid userId);
+
+    Task RemoveExerciseFromDayAsync(long planId, long dayId, long planDayExerciseId, Guid userId);
+
+    Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises, Guid userId);
 }
 

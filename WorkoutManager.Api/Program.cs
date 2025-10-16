@@ -74,16 +74,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = false,
             ValidIssuer = "http://127.0.0.1:54321/auth/v1",
-            //ValidIssuer = builder.Configuration["Supabase:Url"],
             ValidAudience = "authenticated",
-            //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Supabase:JwtSecret"]))
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super-secret-jwt-token-with-at-least-32-characters-long"))
         };
     });
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddHostedService<DatabaseSeeder>();
+//builder.Services.AddHostedService<DatabaseSeeder>();
 
 var app = builder.Build();
 

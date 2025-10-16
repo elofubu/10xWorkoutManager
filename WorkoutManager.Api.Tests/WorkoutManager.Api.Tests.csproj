@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <UserSecretsId>47f8bcf6-82ed-4386-b60d-56e238b1848f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,8 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="8.7.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Npgsql" Version="9.0.4" />
     <PackageReference Include="Respawn" Version="6.2.1" />
@@ -33,6 +36,12 @@
     <ProjectReference Include="..\WorkoutManager.Api\WorkoutManager.Api.csproj" />
     <ProjectReference Include="..\WorkoutManager.BusinessLogic\WorkoutManager.BusinessLogic.csproj" />
     <ProjectReference Include="..\WorkoutManager.Data\WorkoutManager.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.Testing.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

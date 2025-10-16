@@ -20,23 +20,23 @@ namespace WorkoutManager.Web.Components
         private IDialogService DialogService { get; set; } = default!;
 
         private string? _search;
-        private int? _selectedMuscleGroupId;
+        private long? _selectedMuscleGroupId;
         private IEnumerable<ExerciseDto> _exercises = new List<ExerciseDto>();
         private List<MuscleGroupDto> _muscleGroups = new();
         private PaginationInfo _pagination = new();
-
+        
         private int PageCount => _pagination.PageSize > 0 ? (int)Math.Ceiling((double)_pagination.TotalCount / _pagination.PageSize) : 0;
 
         protected override async Task OnInitializedAsync()
         {
             var muscleGroupsResult = await MuscleGroupService.GetMuscleGroupsAsync();
-            _muscleGroups = muscleGroupsResult.Data.ToList();
+            _muscleGroups = muscleGroupsResult.ToList();
             await LoadExercises();
         }
 
         private async Task LoadExercises(int page = 1)
         {
-            var result = await ExerciseService.GetExercisesAsync(_search, _selectedMuscleGroupId);
+            var result = await ExerciseService.GetExercisesAsync(_search, _selectedMuscleGroupId, page);
             _exercises = result.Data;
             _pagination = result.Pagination;
             StateHasChanged();

@@ -56,7 +56,7 @@ public partial class PlanDetailPage
         {
             await WorkoutPlanService.UpdateWorkoutPlanAsync(Id, new UpdateWorkoutPlanDto(
                 _editedPlanName,
-                _plan.TrainingDays.Select(td => new UpdateTrainingDayOrderCommand(td.Id, td.Order)).ToList()
+                _plan.TrainingDays.Select(td => new UpdateTrainingDayOrderCommand((int)td.Id, td.Order)).ToList()
             ));
             _isEditingName = false;
             await LoadPlan();
@@ -122,7 +122,7 @@ public partial class PlanDetailPage
             {
                 await WorkoutPlanService.AddExerciseToTrainingDayAsync(Id, trainingDayId, new AddExerciseToTrainingDayCommand
                 {
-                    ExerciseId = selectedExercise.Id,
+                    ExerciseId = (int)selectedExercise.Id,
                     Order = nextOrder
                 });
                 await LoadPlan();

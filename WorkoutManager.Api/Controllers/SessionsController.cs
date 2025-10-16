@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.Commands;
@@ -9,6 +10,7 @@ using WorkoutManager.BusinessLogic.Services.Interfaces;
 namespace WorkoutManager.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class SessionsController : ControllerBase
 {
@@ -36,8 +38,8 @@ public class SessionsController : ControllerBase
         }
     }
     
-    [HttpGet("{id}")]
-    public async Task<ActionResult<SessionDetailsDto>> GetSessionById(int id)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<SessionDetailsDto>> GetSessionById(long id)
     {
         try
         {
@@ -101,8 +103,8 @@ public class SessionsController : ControllerBase
         }
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateSession(int id, [FromBody] UpdateSessionCommand command)
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> UpdateSession(long id, [FromBody] UpdateSessionCommand command)
     {
         try
         {
