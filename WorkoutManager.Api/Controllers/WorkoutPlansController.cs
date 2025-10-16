@@ -39,7 +39,7 @@ public class WorkoutPlansController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<WorkoutPlanDetailDto>> GetWorkoutPlanById(int id)
+    public async Task<ActionResult<WorkoutPlanDetailDto>> GetWorkoutPlanById(long id)
     {
         try
         {
@@ -77,7 +77,7 @@ public class WorkoutPlansController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateWorkoutPlan(int id, [FromBody] UpdateWorkoutPlanPayload payload)
+    public async Task<IActionResult> UpdateWorkoutPlan(long id, [FromBody] UpdateWorkoutPlanPayload payload)
     {
         try
         {
@@ -104,7 +104,7 @@ public class WorkoutPlansController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteWorkoutPlan(int id)
+    public async Task<IActionResult> DeleteWorkoutPlan(long id)
     {
         try
         {

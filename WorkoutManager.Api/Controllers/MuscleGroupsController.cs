@@ -16,11 +16,11 @@ public class MuscleGroupsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PaginatedList<MuscleGroupDto>>> GetMuscleGroups([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<ActionResult<IEnumerable<MuscleGroupDto>>> GetMuscleGroups()
     {
         try
         {
-            var result = await _muscleGroupService.GetAllMuscleGroupsAsync(page, pageSize);
+            var result = await _muscleGroupService.GetAllMuscleGroupsAsync();
             return Ok(result);
         }
         catch (Exception ex)

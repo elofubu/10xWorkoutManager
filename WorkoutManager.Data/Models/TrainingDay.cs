@@ -3,6 +3,8 @@ namespace WorkoutManager.Data.Models;
 using System;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 [Table("training_days")]
 public class TrainingDay : BaseModel
@@ -21,4 +23,7 @@ public class TrainingDay : BaseModel
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
+
+    [JsonIgnore]
+    public ICollection<PlanDayExercise> PlanDayExercises { get; set; } = new List<PlanDayExercise>();
 }

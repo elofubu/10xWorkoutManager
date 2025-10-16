@@ -1,0 +1,25 @@
+{
+  "timeout": 30000,
+  "retries": 1,
+  "headless": true,
+  "baseURL": "https://localhost:7093",
+  "use": {
+    "browserName": "chromium",
+    "channel": "chrome",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "ignoreHTTPSErrors": true,
+    "screenshot": "only-on-failure",
+    "video": "retain-on-failure"
+  },
+  "webServer": {
+    "command": "dotnet run --project ../WorkoutManager.Web",
+    "port": 5000,
+    "timeout": 120000,
+    "reuseExistingServer": true
+  }
+}
+
+

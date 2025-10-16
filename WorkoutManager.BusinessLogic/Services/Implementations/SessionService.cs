@@ -1,99 +1,68 @@
-using Supabase;
 using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Exceptions;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
 using WorkoutManager.Data.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
 public class SessionService : ISessionService
 {
-    private readonly Client _supabaseClient;
+    private readonly ISessionRepository _sessionRepository;
 
-    public SessionService(Client supabaseClient)
+    public SessionService(ISessionRepository sessionRepository)
     {
-        _supabaseClient = supabaseClient;
+        _sessionRepository = sessionRepository;
     }
 
     public async Task<SessionDetailsDto> StartSessionAsync(int trainingDayId, Guid userId)
     {
-        // Check if user already has an active session
-        if (await HasActiveSessionAsync(userId))
+        if (await _sessionRepository.HasActiveSessionAsync(userId))
         {
             throw new BusinessRuleViolationException("You already have an active session. Please finish it before starting a new one.");
         }
 
-        // Get the training day and verify it exists
-        var trainingDay = await _supabaseClient
-            .From<TrainingDay>()
-            .Where(td => td.Id == trainingDayId)
-            .Single();
-
+        var trainingDay = await _sessionRepository.GetTrainingDayByIdAsync(trainingDayId);
         if (trainingDay == null)
         {
             throw new NotFoundException("TrainingDay", trainingDayId);
         }
 
-        // Verify the plan belongs to the user
-        var plan = await _supabaseClient
-            .From<WorkoutPlan>()
-            .Where(wp => wp.Id == trainingDay.PlanId)
-            .Where(wp => wp.UserId == userId)
-            .Single();
-
+        var plan = await _sessionRepository.GetWorkoutPlanByIdAsync(trainingDay.PlanId, userId);
         if (plan == null)
         {
             throw new NotFoundException("WorkoutPlan", trainingDay.PlanId);
         }
 
-        // Create the session
         var session = new Session
         {
             UserId = userId,
             PlanId = trainingDay.PlanId,
-            StartTime = DateTime.UtcNow,
-            EndTime = null
+            StartTime = DateTime.UtcNow
         };
+        var createdSession = await _sessionRepository.CreateSessionAsync(session);
 
-        var sessionResponse = await _supabaseClient
-            .From<Session>()
-            .Insert(session);
-
-        var createdSession = sessionResponse.Models.First();
-
-        // Get exercises for this training day
-        var planDayExercisesResponse = await _supabaseClient
-            .From<PlanDayExercise>()
-            .Where(pde => pde.TrainingDayId == trainingDayId)
-            .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
-            .Get();
-
-        // Create session exercises from plan day exercises
+        var planDayExercises = await _sessionRepository.GetPlanDayExercisesAsync(trainingDayId);
         var sessionExercises = new List<SessionExerciseDetailsDto>();
 
-        foreach (var pde in planDayExercisesResponse.Models)
+        foreach (var pde in planDayExercises)
         {
             var sessionExercise = new SessionExercise
             {
                 SessionId = createdSession.Id,
                 ExerciseId = pde.ExerciseId,
-                Order = pde.Order,
-                Skipped = false
+                Order = pde.Order
             };
-
-            var seResponse = await _supabaseClient
-                .From<SessionExercise>()
-                .Insert(sessionExercise);
-
-            var createdSE = seResponse.Models.First();
+            var createdSE = await _sessionRepository.CreateSessionExerciseAsync(sessionExercise);
 
             sessionExercises.Add(new SessionExerciseDetailsDto
             {
                 Id = (int)createdSE.Id,
                 ExerciseId = (int)createdSE.ExerciseId,
-                Notes = createdSE.Notes,
-                Skipped = createdSE.Skipped,
                 Order = createdSE.Order,
                 Sets = new List<ExerciseSetDto>()
             });
@@ -102,120 +71,56 @@ public class SessionService : ISessionService
         return new SessionDetailsDto
         {
             Id = (int)createdSession.Id,
-            Notes = createdSession.Notes,
             StartTime = createdSession.StartTime,
-            EndTime = createdSession.EndTime,
             Exercises = sessionExercises
         };
     }
 
     public async Task<PaginatedList<SessionSummaryDto>> GetSessionHistoryAsync(Guid userId, int page = 1, int pageSize = 20)
     {
-        var from = (page - 1) * pageSize;
-        var to = from + pageSize - 1;
-
-        var response = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.UserId == userId)
-            .Order("start_time", Supabase.Postgrest.Constants.Ordering.Descending)
-            .Range(from, to)
-            .Get();
-
-        var summaries = new List<SessionSummaryDto>();
-
-        foreach (var session in response.Models)
+        var sessions = await _sessionRepository.GetSessionHistoryAsync(userId, page, pageSize);
+        var sessionList = sessions.ToList();
+        var summaries = sessionList.Select(s => new SessionSummaryDto
         {
-            string? planName = null;
-            string? trainingDayName = null;
-
-            // Get plan name if available
-            if (session.PlanId.HasValue)
-            {
-                var plan = await _supabaseClient
-                    .From<WorkoutPlan>()
-                    .Where(wp => wp.Id == session.PlanId.Value)
-                    .Single();
-
-                if (plan != null)
-                {
-                    planName = plan.Name;
-                }
-            }
-
-            summaries.Add(new SessionSummaryDto
-            {
-                Id = (int)session.Id,
-                PlanId = session.PlanId.HasValue ? (int)session.PlanId.Value : 0,
-                PlanName = planName,
-                TrainingDayName = trainingDayName,
-                Notes = session.Notes,
-                StartTime = session.StartTime,
-                EndTime = session.EndTime
-            });
-        }
+            Id = (int)s.Id,
+            PlanId = s.PlanId.HasValue ? (int)s.PlanId.Value : 0,
+            PlanName = s.Plan?.Name,
+            StartTime = s.StartTime,
+            EndTime = s.EndTime
+        }).ToList();
 
         return new PaginatedList<SessionSummaryDto>
         {
             Data = summaries,
-            Pagination = new PaginationInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = response.Models.Count
-            }
+            Pagination = new PaginationInfo { Page = page, PageSize = pageSize, TotalCount = sessionList.Count }
         };
     }
 
     public async Task<SessionDetailsDto> GetSessionByIdAsync(int sessionId, Guid userId)
     {
-        var session = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.Id == sessionId)
-            .Where(s => s.UserId == userId)
-            .Single();
-
+        var session = await _sessionRepository.GetSessionByIdAsync(sessionId, userId);
         if (session == null)
         {
             throw new NotFoundException("Session", sessionId);
         }
 
-        // Get session exercises
-        var sessionExercisesResponse = await _supabaseClient
-            .From<SessionExercise>()
-            .Where(se => se.SessionId == sessionId)
-            .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
-            .Get();
-
-        var exercises = new List<SessionExerciseDetailsDto>();
-
-        foreach (var se in sessionExercisesResponse.Models)
+        var sessionExercises = await _sessionRepository.GetSessionExercisesWithSetsAsync(sessionId);
+        var exercises = sessionExercises.Select(se => new SessionExerciseDetailsDto
         {
-            // Get sets for this session exercise
-            var setsResponse = await _supabaseClient
-                .From<ExerciseSet>()
-                .Where(es => es.SessionExerciseId == se.Id)
-                .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
-                .Get();
-
-            var sets = setsResponse.Models.Select(es => new ExerciseSetDto
+            Id = (int)se.Id,
+            ExerciseId = (int)se.ExerciseId,
+            Notes = se.Notes,
+            Skipped = se.Skipped,
+            Order = se.Order,
+            Sets = se.Sets.Select(es => new ExerciseSetDto
             {
                 Id = (int)es.Id,
                 Weight = es.Weight,
                 Reps = es.Reps,
                 IsFailure = es.IsFailure,
                 Order = es.Order
-            }).ToList();
-
-            exercises.Add(new SessionExerciseDetailsDto
-            {
-                Id = (int)se.Id,
-                ExerciseId = (int)se.ExerciseId,
-                Notes = se.Notes,
-                Skipped = se.Skipped,
-                Order = se.Order,
-                Sets = sets
-            });
-        }
+            }).ToList()
+        }).ToList();
 
         return new SessionDetailsDto
         {
@@ -229,31 +134,19 @@ public class SessionService : ISessionService
 
     public async Task UpdateSessionNotesAsync(int sessionId, string? notes, Guid userId)
     {
-        var session = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.Id == sessionId)
-            .Where(s => s.UserId == userId)
-            .Single();
-
+        var session = await _sessionRepository.GetSessionByIdAsync(sessionId, userId);
         if (session == null)
         {
             throw new NotFoundException("Session", sessionId);
         }
 
         session.Notes = notes;
-        await _supabaseClient
-            .From<Session>()
-            .Update(session);
+        await _sessionRepository.UpdateSessionAsync(session);
     }
 
     public async Task FinishSessionAsync(int sessionId, string? notes, Guid userId)
     {
-        var session = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.Id == sessionId)
-            .Where(s => s.UserId == userId)
-            .Single();
-
+        var session = await _sessionRepository.GetSessionByIdAsync(sessionId, userId);
         if (session == null)
         {
             throw new NotFoundException("Session", sessionId);
@@ -266,34 +159,17 @@ public class SessionService : ISessionService
 
         session.Notes = notes;
         session.EndTime = DateTime.UtcNow;
-        
-        await _supabaseClient
-            .From<Session>()
-            .Update(session);
+        await _sessionRepository.UpdateSessionAsync(session);
     }
 
     public async Task<bool> HasActiveSessionAsync(Guid userId)
     {
-        var activeSessionsResponse = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.UserId == userId)
-            .Where(s => s.EndTime == null)
-            .Get();
-
-        return activeSessionsResponse.Models.Any();
+        return await _sessionRepository.HasActiveSessionAsync(userId);
     }
 
     public async Task<SessionDetailsDto?> GetActiveSessionAsync(Guid userId)
     {
-        var activeSessionResponse = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.UserId == userId)
-            .Where(s => s.EndTime == null)
-            .Limit(1)
-            .Get();
-
-        var activeSession = activeSessionResponse.Models.FirstOrDefault();
-
+        var activeSession = await _sessionRepository.GetActiveSessionAsync(userId);
         if (activeSession == null)
         {
             return null;

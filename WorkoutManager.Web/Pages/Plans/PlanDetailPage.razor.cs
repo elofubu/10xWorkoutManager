@@ -10,7 +10,7 @@ namespace WorkoutManager.Web.Pages.Plans;
 public partial class PlanDetailPage
 {
     [Parameter]
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     [Inject]
     private IWorkoutPlanService WorkoutPlanService { get; set; } = default!;
@@ -101,7 +101,7 @@ public partial class PlanDetailPage
         }
     }
 
-    private async Task AddExercise(int trainingDayId)
+    private async Task AddExercise(long trainingDayId)
     {
         var dialogOptions = new DialogOptions
         {
@@ -135,7 +135,7 @@ public partial class PlanDetailPage
         }
     }
 
-    private async Task StartWorkout(int trainingDayId)
+    private async Task StartWorkout(long trainingDayId)
     {
         var activeSession = await SessionService.GetActiveSessionAsync();
         if (activeSession != null)
@@ -164,7 +164,7 @@ public partial class PlanDetailPage
         }
     }
 
-    private async Task DeleteExercise(int trainingDayId, int planDayExerciseId)
+    private async Task DeleteExercise(long trainingDayId, long planDayExerciseId)
     {
         var parameters = new DialogParameters
         {

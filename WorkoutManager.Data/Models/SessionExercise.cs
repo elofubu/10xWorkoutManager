@@ -2,6 +2,8 @@ namespace WorkoutManager.Data.Models;
 
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 [Table("session_exercises")]
 public class SessionExercise : BaseModel
@@ -23,4 +25,10 @@ public class SessionExercise : BaseModel
 
     [Column("order")]
     public short Order { get; set; }
+
+    [JsonIgnore]
+    public Session? Session { get; set; }
+
+    [JsonIgnore]
+    public ICollection<ExerciseSet> Sets { get; set; } = new List<ExerciseSet>();
 }

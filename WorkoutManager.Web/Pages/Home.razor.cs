@@ -45,7 +45,7 @@ public partial class Home
         _pagination = result.Pagination;
     }
 
-    private void NavigateToPlan(int planId)
+    private void NavigateToPlan(long planId)
     {
         NavigationManager.NavigateTo($"/plans/{planId}");
     }

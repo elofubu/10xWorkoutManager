@@ -2,6 +2,8 @@
 
 [![.NET](https://img.shields.io/badge/.NET-9.0-blue.svg)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-WebAssembly-green.svg)](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor)
+[![Tests](https://img.shields.io/badge/Tests-xUnit%20%7C%20Playwright-green.svg)](https://github.com/xunit/xunit)
+[![Coverage](https://img.shields.io/badge/Coverage-80%25%20target-brightgreen.svg)](#-testing-strategy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 📋 Table of Contents
@@ -10,6 +12,7 @@
 - [Getting Started Locally](#-getting-started-locally)
 - [Available Scripts](#-available-scripts)
 - [Project Scope](#-project-scope)
+- [Testing Strategy](#-testing-strategy)
 - [Project Status](#-project-status)
 - [License](#-license)
 
@@ -36,6 +39,20 @@
 ### CI/CD & Hosting
 - **GitHub Actions**: For creating CI/CD pipelines
 - **DigitalOcean**: For hosting the application via Docker image
+
+### Testing
+- **xUnit**: Modern testing framework for .NET unit and integration tests
+- **FluentAssertions**: Readable and expressive assertions
+- **Bogus**: Realistic test data generation
+- **WebApplicationFactory**: Integration testing for API endpoints
+- **Respawn**: Fast database cleanup between tests
+- **Playwright for .NET**: End-to-end browser automation testing
+- **bUnit**: Component testing for Blazor
+- **Alba**: DSL for HTTP API testing
+- **Verify.Http**: Snapshot testing for API contracts
+- **NetArchTest**: Architecture rules validation
+- **k6**: Performance and load testing
+- **coverlet.collector**: Code coverage metrics
 
 ### Dependencies
 - Microsoft.AspNetCore.Components.WebAssembly (9.0.9)
@@ -87,8 +104,26 @@ dotnet build
 # Run the application in development mode
 dotnet run
 
-# Run tests (when implemented)
+# Run all tests with code coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Run only unit tests
+dotnet test --filter Category=Unit
+
+# Run only integration tests
+dotnet test --filter Category=Integration
+
+# Run E2E tests (Playwright)
+cd tests/WorkoutManager.Web.E2E
+playwright install
 dotnet test
+
+# Run performance tests (k6)
+k6 run performance/api-load-test.js
+
+# Generate coverage report
+dotnet tool install -g dotnet-reportgenerator-globaltool
+reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report
 
 # Publish the application
 dotnet publish -c Release
@@ -118,6 +153,33 @@ docker build -t 10x-workout-manager .
 - ❌ Addition of secondary activities (cardio, stretching) to plans
 - ❌ Predefined workout plans
 - ❌ Display of results from the most recently executed entire plan
+
+## 🧪 Testing Strategy
+
+The project implements comprehensive testing at multiple levels to ensure code quality, reliability, and maintainability:
+
+### Test Coverage
+- **Unit Tests**: Business logic validation, validators, service layer (~80% coverage target)
+- **Integration Tests**: API endpoints with real database connections using WebApplicationFactory
+- **Component Tests**: Blazor components tested with bUnit
+- **E2E Tests**: Full user workflows automated with Playwright for .NET
+- **Architecture Tests**: Enforcing layered architecture rules with NetArchTest
+- **Performance Tests**: Load testing critical endpoints with k6
+
+### Running Tests
+All tests are automated and run in CI/CD pipeline. See [Available Scripts](#-available-scripts) for commands to run different test suites locally.
+
+### Test Projects Structure
+```
+tests/
+├── WorkoutManager.BusinessLogic.Tests/    # Unit tests
+├── WorkoutManager.Api.IntegrationTests/   # API integration tests
+├── WorkoutManager.Web.ComponentTests/     # Blazor component tests
+├── WorkoutManager.Web.E2E/                # End-to-end tests
+└── WorkoutManager.ArchitectureTests/      # Architecture validation
+```
+
+For detailed testing documentation, see [`.cursor/test-plan.md`](.cursor/test-plan.md).
 
 ## 📊 Project Status
 

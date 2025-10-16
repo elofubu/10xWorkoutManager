@@ -1,19 +1,22 @@
-using Supabase;
 using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Exceptions;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
 using WorkoutManager.Data.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
 public class SessionExerciseService : ISessionExerciseService
 {
-    private readonly Client _supabaseClient;
+    private readonly ISessionExerciseRepository _sessionExerciseRepository;
 
-    public SessionExerciseService(Client supabaseClient)
+    public SessionExerciseService(ISessionExerciseRepository sessionExerciseRepository)
     {
-        _supabaseClient = supabaseClient;
+        _sessionExerciseRepository = sessionExerciseRepository;
     }
 
     public async Task<SessionExerciseDetailsDto> UpdateSessionExerciseAsync(
@@ -22,76 +25,43 @@ public class SessionExerciseService : ISessionExerciseService
         UpdateSessionExerciseCommand command,
         Guid userId)
     {
-        // Verify the session exists and belongs to the user
-        var session = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.Id == sessionId)
-            .Where(s => s.UserId == userId)
-            .Single();
-
+        var session = await _sessionExerciseRepository.GetSessionByIdAndUserIdAsync(sessionId, userId);
         if (session == null)
         {
             throw new NotFoundException("Session", sessionId);
         }
 
-        // Verify the session exercise exists and belongs to this session
-        var sessionExercise = await _supabaseClient
-            .From<SessionExercise>()
-            .Where(se => se.Id == sessionExerciseId)
-            .Where(se => se.SessionId == sessionId)
-            .Single();
-
+        var sessionExercise = await _sessionExerciseRepository.GetSessionExerciseByIdAndSessionIdAsync(sessionExerciseId, sessionId);
         if (sessionExercise == null)
         {
             throw new NotFoundException("SessionExercise", sessionExerciseId);
         }
 
-        // Update session exercise properties
         sessionExercise.Notes = command.Notes;
         sessionExercise.Skipped = command.Skipped;
+        await _sessionExerciseRepository.UpdateSessionExerciseAsync(sessionExercise);
 
-        await _supabaseClient
-            .From<SessionExercise>()
-            .Update(sessionExercise);
+        await _sessionExerciseRepository.DeleteSetsForSessionExerciseAsync(sessionExerciseId);
 
-        // Delete existing sets for this session exercise
-        await _supabaseClient
-            .From<ExerciseSet>()
-            .Where(es => es.SessionExerciseId == sessionExerciseId)
-            .Delete();
-
-        // Insert new sets if exercise is not skipped
-        var sets = new List<ExerciseSetDto>();
-
-        if (!command.Skipped && command.Sets.Any())
+        var setsToCreate = command.Sets.Select(s => new ExerciseSet
         {
-            foreach (var setDto in command.Sets)
-            {
-                var exerciseSet = new ExerciseSet
-                {
-                    SessionExerciseId = sessionExerciseId,
-                    Weight = setDto.Weight,
-                    Reps = (short)setDto.Reps,
-                    IsFailure = setDto.IsFailure,
-                    Order = (short)setDto.Order
-                };
-
-                var setResponse = await _supabaseClient
-                    .From<ExerciseSet>()
-                    .Insert(exerciseSet);
-
-                var createdSet = setResponse.Models.First();
-
-                sets.Add(new ExerciseSetDto
-                {
-                    Id = (int)createdSet.Id,
-                    Weight = createdSet.Weight,
-                    Reps = createdSet.Reps,
-                    IsFailure = createdSet.IsFailure,
-                    Order = createdSet.Order
-                });
-            }
-        }
+            SessionExerciseId = sessionExerciseId,
+            Weight = s.Weight,
+            Reps = (short)s.Reps,
+            IsFailure = s.IsFailure,
+            Order = (short)s.Order
+        });
+        
+        var createdSets = await _sessionExerciseRepository.AddSetsToSessionExerciseAsync(sessionExerciseId, setsToCreate);
+        
+        var setDtos = createdSets.Select(s => new ExerciseSetDto
+        {
+            Id = (int)s.Id,
+            Weight = s.Weight,
+            Reps = s.Reps,
+            IsFailure = s.IsFailure,
+            Order = s.Order
+        }).ToList();
 
         return new SessionExerciseDetailsDto
         {
@@ -100,47 +70,22 @@ public class SessionExerciseService : ISessionExerciseService
             Notes = sessionExercise.Notes,
             Skipped = sessionExercise.Skipped,
             Order = sessionExercise.Order,
-            Sets = sets
+            Sets = setDtos
         };
     }
 
     public async Task MarkAsSkippedAsync(int sessionExerciseId, Guid userId)
     {
-        // Get the session exercise
-        var sessionExercise = await _supabaseClient
-            .From<SessionExercise>()
-            .Where(se => se.Id == sessionExerciseId)
-            .Single();
-
+        var sessionExercise = await _sessionExerciseRepository.GetSessionExerciseWithSessionAsync(sessionExerciseId, userId);
         if (sessionExercise == null)
         {
             throw new NotFoundException("SessionExercise", sessionExerciseId);
         }
 
-        // Verify the session belongs to the user
-        var session = await _supabaseClient
-            .From<Session>()
-            .Where(s => s.Id == sessionExercise.SessionId)
-            .Where(s => s.UserId == userId)
-            .Single();
-
-        if (session == null)
-        {
-            throw new Exceptions.UnauthorizedAccessException("You do not have permission to modify this session exercise.");
-        }
-
-        // Mark as skipped
         sessionExercise.Skipped = true;
-
-        await _supabaseClient
-            .From<SessionExercise>()
-            .Update(sessionExercise);
-
-        // Delete any existing sets
-        await _supabaseClient
-            .From<ExerciseSet>()
-            .Where(es => es.SessionExerciseId == sessionExerciseId)
-            .Delete();
+        await _sessionExerciseRepository.UpdateSessionExerciseAsync(sessionExercise);
+        
+        await _sessionExerciseRepository.DeleteSetsForSessionExerciseAsync(sessionExerciseId);
     }
 }
 

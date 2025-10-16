@@ -31,11 +31,17 @@ builder.Services.AddScoped(_ =>
 
 // Register Business Logic Services
 builder.Services.AddScoped<IMuscleGroupService, MuscleGroupService>();
+builder.Services.AddScoped<IMuscleGroupRepository, MuscleGroupRepository>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
 builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
+builder.Services.AddScoped<IWorkoutPlanRepository, WorkoutPlanRepository>();
 builder.Services.AddScoped<IPlanExerciseService, PlanExerciseService>();
+builder.Services.AddScoped<IPlanExerciseRepository, PlanExerciseRepository>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<ISessionExerciseService, SessionExerciseService>();
+builder.Services.AddScoped<ISessionExerciseRepository, SessionExerciseRepository>();
 
 // Register API Services
 builder.Services.AddScoped<IUserContextService, UserContextService>();
@@ -97,3 +103,5 @@ app.MapControllers();
 app.UseCors();
 app.Run();
 
+// Make Program class accessible for integration tests
+public partial class Program { }

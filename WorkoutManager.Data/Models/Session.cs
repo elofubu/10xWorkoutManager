@@ -3,6 +3,7 @@ namespace WorkoutManager.Data.Models;
 using System;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
+using Newtonsoft.Json;
 
 [Table("sessions")]
 public class Session : BaseModel
@@ -24,4 +25,7 @@ public class Session : BaseModel
 
     [Column("end_time")]
     public DateTime? EndTime { get; set; }
+
+    [JsonIgnore]
+    public WorkoutPlan? Plan { get; set; }
 }
