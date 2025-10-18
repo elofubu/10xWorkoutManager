@@ -6,14 +6,14 @@ public static class TestData
     {
         public static class User1
         {
-            public const string Email = "user1@test.local";
-            public const string Password = "Test123!@#";
+            public const string Email = "testa@test.com";
+            public const string Password = "1234567890";
         }
 
         public static class User2
         {
-            public const string Email = "user2@test.local";
-            public const string Password = "Test123!@#";
+            public const string Email = "testb@test.com";
+            public const string Password = "0987654321";
         }
 
         public static class InvalidUser

@@ -31,7 +31,8 @@ public partial class LoginPage
 
     private async Task Submit()
     {
-        if (!_success) return;
+        await _form.Validate();
+        if (!_success) { _errorMessage = "Wrong user name or bad password"; return; }
 
         _isSubmitting = true;
         _errorMessage = null;

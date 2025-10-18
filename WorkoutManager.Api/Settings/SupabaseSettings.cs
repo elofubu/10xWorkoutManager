@@ -1,11 +1,9 @@
-﻿namespace WorkoutManager.Api.Tests.Settings
+﻿namespace WorkoutManager.Api.Settings
 {
     public class SupabaseSettings
     {
         public const string SectionName = nameof(SupabaseSettings);
-
         public string Url { get; set; }
         public string Secret { get; set; }
-        public Guid TestUserId { get; set; }
     }
 }

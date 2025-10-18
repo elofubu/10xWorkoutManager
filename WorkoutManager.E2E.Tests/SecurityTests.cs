@@ -111,7 +111,7 @@ public class SecurityTests : BasePlaywrightTest
         // This test verifies that API endpoints require JWT authentication
 
         // Arrange - Make API call without authentication
-        var apiUrl = BaseUrl.Replace("5000", "5048"); // API runs on 5048
+        var apiUrl = BaseUrl.Replace("7093", "5048"); // API runs on 5048
 
         // Act - Try to access API endpoint without token
         var apiRequest = await Context.NewPageAsync();

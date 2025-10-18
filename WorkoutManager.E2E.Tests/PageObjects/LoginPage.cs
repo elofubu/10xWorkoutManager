@@ -6,7 +6,8 @@ public class LoginPage : BasePage
 {
     private const string EmailInputSelector = "input[type='email']";
     private const string PasswordInputSelector = "input[type='password']";
-    private const string LoginButtonSelector = "button:has-text('Sing In')";
+    //private const string LoginButtonSelector = "button:has-text('Sing In')";
+    private const string LoginButtonSelector = "button[type='button']";
     private const string ErrorMessageSelector = ".mud-alert-message";
     private const string LogoutButtonSelector = "button[aria-label='Logout']";
 

@@ -5,12 +5,9 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Npgsql;
-using Respawn;
-using Respawn.Graph;
 using WorkoutManager.Api.Services;
-using WorkoutManager.Api.Tests.Settings;
 using Microsoft.AspNetCore.Http;
+using WorkoutManager.Api.Tests.Settings;
 
 namespace WorkoutManager.Api.Tests;
 
@@ -98,7 +95,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
     private string GenerateJwtToken()
     {
-        var jwtKey = _configuration["Jwt:Key"];
+        var jwtKey = _configuration["JwtBearerSettings:Key"];
         if (string.IsNullOrEmpty(jwtKey))
         {
             throw new InvalidOperationException("JWT Key not found in configuration.");
@@ -113,8 +110,8 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
         };
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: _configuration["JwtBearerSettings:Issuer"],
+            audience: _configuration["JwtBearerSettings:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: credentials);

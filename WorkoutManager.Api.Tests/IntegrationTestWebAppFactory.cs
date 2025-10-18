@@ -45,16 +45,16 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>
                     AutoConnectRealtime = false,
                 };
 
-                var client = new Client(supabaseSettings.Url, supabaseSettings.AnonKey, options);
+                var client = new Client(supabaseSettings.Url, supabaseSettings.Secret, options);
                 return client;
             });
 
             services.AddSingleton<IUserContextService, TestUserContextService>();
 
             // Override JWT configuration for tests to accept test-generated tokens
-            var jwtKey = builderContext.Configuration["Jwt:Key"];
-            var jwtIssuer = builderContext.Configuration["Jwt:Issuer"];
-            var jwtAudience = builderContext.Configuration["Jwt:Audience"];
+            var jwtKey = builderContext.Configuration["JwtBearerSettings:Key"];
+            var jwtIssuer = builderContext.Configuration["JwtBearerSettings:Issuer"];
+            var jwtAudience = builderContext.Configuration["JwtBearerSettings:Audience"];
 
             services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {

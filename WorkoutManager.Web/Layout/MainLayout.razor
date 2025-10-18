@@ -17,7 +17,7 @@
                 Workout Manager
                 <MudSpacer />
                 <MudText>@context.User.Identity.Name</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" aria-label="Logout" Color="Color.Inherit" OnClick="Logout" />
             </MudAppBar>
             <MudDrawer @bind-Open="_drawerOpen">
                 <NavMenu />

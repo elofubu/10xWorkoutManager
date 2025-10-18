@@ -3,10 +3,12 @@ using Supabase;
 using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.Services.Implementations;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
-using WorkoutManager.Api.HostedServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using WorkoutManager.Api;
+using WorkoutManager.Api.HostedServices;
+using WorkoutManager.Api.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,17 +18,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+builder.Configuration.AddUserSecrets<Program>();
+
 // Configure Supabase
+var supabaseSettings = new SupabaseSettings();
+builder.Configuration.GetSection(SupabaseSettings.SectionName).Bind(supabaseSettings);
+
 builder.Services.AddScoped(_ => 
 {
-    var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
-    var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY");
-
     var options = new SupabaseOptions
     {
         AutoConnectRealtime = false
     };
-    return new Client(supabaseUrl, supabaseKey, options);
+    return new Client(supabaseSettings.Url, supabaseSettings.Secret, options);
 });
 
 // Register Business Logic Services
@@ -61,27 +65,30 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHttpContextAccessor();
 
+var jwtBearerSettings = new JwtBearerSettings();
+builder.Configuration.GetSection(JwtBearerSettings.SectionName).Bind(jwtBearerSettings);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = builder.Configuration["Supabase:Url"];
-        options.Audience = "authenticated";
-        options.RequireHttpsMetadata = false;
+        options.Authority = supabaseSettings.Url;
+        options.Audience = jwtBearerSettings.Audience;
+        options.RequireHttpsMetadata = jwtBearerSettings.RequireHttpsMetadata;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = false,
-            ValidIssuer = "http://127.0.0.1:54321/auth/v1",
-            ValidAudience = "authenticated",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super-secret-jwt-token-with-at-least-32-characters-long"))
+            ValidateIssuer = jwtBearerSettings.ValidateIssuer,
+            ValidateAudience = jwtBearerSettings.ValidateAudience,
+            ValidateLifetime = jwtBearerSettings.ValidateLifetime,
+            ValidateIssuerSigningKey = jwtBearerSettings.ValidateIssuerSigningKey,
+            ValidIssuer = jwtBearerSettings.ValidIssuer,
+            ValidAudience = jwtBearerSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtBearerSettings.IssuerSigningKey))
         };
     });
 
 builder.Services.AddAuthorization();
 
-//builder.Services.AddHostedService<DatabaseSeeder>();
+builder.Services.AddHostedService<DatabaseSeeder>();
 
 var app = builder.Build();
 
