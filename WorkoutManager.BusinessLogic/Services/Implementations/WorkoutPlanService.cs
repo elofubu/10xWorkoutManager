@@ -52,7 +52,7 @@ public class WorkoutPlanService : IWorkoutPlanService
 
         var isLocked = await _workoutPlanRepository.IsPlanLockedAsync(planId, userId);
         var trainingDaysWithExercises = await _workoutPlanRepository.GetTrainingDaysWithExercisesAsync(planId);
-        
+
         var trainingDays = trainingDaysWithExercises.Select(day => new TrainingDayDto(
             (int)day.Id,
             day.Name,
@@ -62,7 +62,7 @@ public class WorkoutPlanService : IWorkoutPlanService
                 (int)pde.ExerciseId,
                 pde.Exercise?.Name ?? string.Empty,
                 pde.Order
-            )).ToList()
+            ))
         )).ToList();
 
         return new WorkoutPlanDetailDto(
@@ -87,7 +87,7 @@ public class WorkoutPlanService : IWorkoutPlanService
         var createdPlan = await _workoutPlanRepository.CreateWorkoutPlanAsync(plan, command.TrainingDays);
 
         var createdTrainingDays = command.TrainingDays.Select((day, index) => new CreatedTrainingDayDto(
-            index + 1, // Placeholder ID
+            index + 1,
             day.Name,
             day.Order
         )).ToList();

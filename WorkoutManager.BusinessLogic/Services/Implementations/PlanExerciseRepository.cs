@@ -45,7 +45,7 @@ public class PlanExerciseRepository : IPlanExerciseRepository
     {
         var response = await _supabaseClient
             .From<PlanDayExercise>()
-            .Insert(planDayExercise);
+            .Upsert(planDayExercise);
         return response.Models[0];
     }
 
@@ -82,6 +82,21 @@ public class PlanExerciseRepository : IPlanExerciseRepository
                     .Update(planDayExercise);
             }
         }
+    }
+
+    public async Task<IEnumerable<(Exercise Exercise, short Order)>> GetExercisesWithOrderAsync(long trainingDayId)
+    {
+        // Fetch plan_day_exercises with expanded exercise data
+        var planDayExercisesResponse = await _supabaseClient
+            .From<PlanDayExercise>()
+            .Select("*, exercises(*)")
+            .Filter("training_day_id", Supabase.Postgrest.Constants.Operator.Equals, trainingDayId)
+            .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
+            .Get();
+
+        return planDayExercisesResponse.Models
+            .Where(pde => pde.Exercise != null)
+            .Select(pde => (pde.Exercise!, pde.Order));
     }
 }
 

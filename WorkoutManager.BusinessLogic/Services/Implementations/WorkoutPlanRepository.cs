@@ -25,6 +25,7 @@ public class WorkoutPlanRepository : IWorkoutPlanRepository
             .Where(wp => wp.UserId == userId)
             .Order("created_at", Supabase.Postgrest.Constants.Ordering.Descending)
             .Get();
+
         return response.Models;
     }
 
@@ -32,7 +33,8 @@ public class WorkoutPlanRepository : IWorkoutPlanRepository
     {
         return await _supabaseClient
             .From<WorkoutPlan>()
-            .Where(wp => wp.Id == planId && wp.UserId == userId)
+            .Where(wp => wp.Id == planId)
+            .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
             .Single();
     }
 
@@ -43,6 +45,8 @@ public class WorkoutPlanRepository : IWorkoutPlanRepository
             .Insert(plan);
         var createdPlan = planResponse.Models.First();
 
+        var tradiningDaysList = new List<TrainingDay>();
+
         foreach (var dayCommand in trainingDays)
         {
             var trainingDay = new TrainingDay
@@ -51,8 +55,15 @@ public class WorkoutPlanRepository : IWorkoutPlanRepository
                 Name = dayCommand.Name,
                 Order = (short)dayCommand.Order
             };
-            await _supabaseClient.From<TrainingDay>().Insert(trainingDay);
+
+            var trainingDayModel = await _supabaseClient.From<TrainingDay>().Insert(trainingDay);
+
+            if (trainingDayModel.Model is not null)
+                tradiningDaysList.Add(trainingDayModel.Model);
         }
+
+        //createdPlan.TrainingDays = tradiningDaysList;
+
         return createdPlan;
     }
 
@@ -98,55 +109,20 @@ public class WorkoutPlanRepository : IWorkoutPlanRepository
 
     public async Task<IEnumerable<TrainingDay>> GetTrainingDaysWithExercisesAsync(long planId)
     {
+        // Fetch training days with both Exercise relations and PlanDayExercise (for order preservation)
         var trainingDaysResponse = await _supabaseClient
             .From<TrainingDay>()
-            .Where(td => td.PlanId == planId)
+            //.Select("*, plan_day_exercises!training_day_id(*)")
+            //.Select("*, plan_day_exercises(*, exercises(*))")
+            //.Select("*, exercises(*), plan_day_exercises(*, exercises(*))")
+            .Filter("plan_id", Supabase.Postgrest.Constants.Operator.Equals, planId)
             .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
             .Get();
 
-        var trainingDays = trainingDaysResponse.Models;
-        var trainingDayIds = trainingDays.Select(td => td.Id).ToList();
+        var trainingDays = trainingDaysResponse.Models.ToList();
 
-        if (!trainingDayIds.Any())
-        {
+        if (!trainingDays.Any())
             return trainingDays;
-        }
-
-        var planDayExercisesResponse = await _supabaseClient
-            .From<PlanDayExercise>()
-            .Filter(pde => pde.TrainingDayId, Supabase.Postgrest.Constants.Operator.In, trainingDayIds)
-            .Get();
-        
-        var planDayExercises = planDayExercisesResponse.Models;
-        var exerciseIds = planDayExercises.Select(pde => pde.ExerciseId).Distinct().ToList();
-
-        if (!exerciseIds.Any())
-        {
-            return trainingDays;
-        }
-
-        var exercisesResponse = await _supabaseClient
-            .From<Exercise>()
-            .Filter(e => e.Id, Supabase.Postgrest.Constants.Operator.In, exerciseIds)
-            .Get();
-        
-        var exercises = exercisesResponse.Models.ToDictionary(e => e.Id, e => e);
-
-        foreach (var day in trainingDays)
-        {
-            day.PlanDayExercises = planDayExercises
-                .Where(pde => pde.TrainingDayId == day.Id)
-                .OrderBy(pde => pde.Order)
-                .ToList();
-            
-            foreach (var pde in day.PlanDayExercises)
-            {
-                if (exercises.TryGetValue(pde.ExerciseId, out var exercise))
-                {
-                    pde.Exercise = exercise;
-                }
-            }
-        }
 
         return trainingDays;
     }

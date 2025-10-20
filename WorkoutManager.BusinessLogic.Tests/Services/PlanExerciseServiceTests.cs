@@ -64,11 +64,42 @@ public class PlanExerciseServiceTests
         _planExerciseRepositoryMock.Setup(x => x.GetPlanByIdAndUserIdAsync(1, _userId)).ReturnsAsync(new WorkoutPlan());
         _workoutPlanServiceMock.Setup(x => x.IsPlanLockedAsync(1, _userId)).ReturnsAsync(false);
         _planExerciseRepositoryMock.Setup(x => x.GetTrainingDayByIdAndPlanIdAsync(1, 1)).ReturnsAsync(new TrainingDay());
-        
+
         // Act
         await _sut.ReorderExercisesAsync(1, 1, commands, _userId);
 
         // Assert
         _planExerciseRepositoryMock.Verify(x => x.ReorderExercisesAsync(1, commands), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetExercisesForTrainingDayAsync_Should_Return_Exercises_With_Order()
+    {
+        // Arrange
+        var exercises = new[]
+        {
+            (new Exercise { Id = 1, Name = "Bench Press", MuscleGroupId = 1 }, (short)1),
+            (new Exercise { Id = 2, Name = "Squats", MuscleGroupId = 2 }, (short)2),
+        };
+
+        var expectedOrder = new[]
+        {
+            new DTOs.PlanExerciseDetailDto { ExerciseId = 1, ExerciseName = "Bench Press", MuscleGroupId = 1, Order = 1 },
+            new DTOs.PlanExerciseDetailDto { ExerciseId = 2, ExerciseName = "Squats", MuscleGroupId = 2, Order = 2 }
+        };
+
+        _planExerciseRepositoryMock
+            .Setup(x => x.GetExercisesWithOrderAsync(1))
+            .ReturnsAsync(exercises);
+
+        // Act
+        var result = await _sut.GetExercisesForTrainingDayAsync(1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.Select(r => r.Order).Should().ContainInOrder(
+            expectedOrder.Select(expectedOrder => expectedOrder.Order)
+        );
     }
 }

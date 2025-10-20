@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.Playwright;
-using Xunit;
 using WorkoutManager.E2E.Tests.Helpers;
 using WorkoutManager.E2E.Tests.PageObjects;
 

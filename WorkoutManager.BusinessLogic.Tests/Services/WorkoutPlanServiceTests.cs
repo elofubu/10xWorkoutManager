@@ -121,4 +121,40 @@ public class WorkoutPlanServiceTests
         // Assert
         await act.Should().ThrowAsync<BusinessRuleViolationException>();
     }
+
+    [Fact]
+    public async Task GetWorkoutPlanByIdAsync_Should_Return_Plan_With_Exercises_In_Order()
+    {
+        // Arrange
+        var plan = _workoutPlanFaker.Generate();
+        var trainingDays = new List<TrainingDay>
+        {
+            new TrainingDay
+            {
+                Id = 1,
+                PlanId = plan.Id,
+                Name = "Day A",
+                Order = 1,
+                PlanDayExercises = new List<PlanDayExercise>
+                {
+                    new PlanDayExercise { Id = 1, TrainingDayId = 1, ExerciseId = 1, Order = 1, Exercise = new Exercise { Id = 1, Name = "Bench Press", MuscleGroupId = 1 } },
+                    new PlanDayExercise { Id = 2, TrainingDayId = 1, ExerciseId = 2, Order = 2, Exercise = new Exercise { Id = 2, Name = "Squats", MuscleGroupId = 2 } }
+                }
+            }
+        };
+
+        _workoutPlanRepositoryMock.Setup(x => x.GetWorkoutPlanByIdAsync(plan.Id, _userId)).ReturnsAsync(plan);
+        _workoutPlanRepositoryMock.Setup(x => x.IsPlanLockedAsync(plan.Id, _userId)).ReturnsAsync(false);
+        _workoutPlanRepositoryMock.Setup(x => x.GetTrainingDaysWithExercisesAsync(plan.Id)).ReturnsAsync(trainingDays);
+
+        // Act
+        var result = await _sut.GetWorkoutPlanByIdAsync(plan.Id, _userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Id.Should().Be((int)plan.Id);
+        result.TrainingDays.Should().HaveCount(1);
+        result.TrainingDays.First().Exercises.Should().HaveCount(2);
+        result.TrainingDays.First().Exercises.Should().AllSatisfy(e => e.Should().BeOfType<PlanDayExerciseDto>());
+    }
 }

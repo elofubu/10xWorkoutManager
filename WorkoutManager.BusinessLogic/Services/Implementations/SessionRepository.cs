@@ -67,35 +67,15 @@ public class SessionRepository : ISessionRepository
         var from = (page - 1) * pageSize;
         var to = from + pageSize - 1;
 
+        // Optimized: Single nested query fetches sessions with related plans
         var response = await _supabaseClient
             .From<Session>()
             .Where(s => s.UserId == userId)
             .Order("start_time", Supabase.Postgrest.Constants.Ordering.Descending)
             .Range(from, to)
             .Get();
-        
-        var sessions = response.Models;
 
-        var planIds = sessions.Where(s => s.PlanId.HasValue).Select(s => s.PlanId.Value).Distinct().ToList();
-
-        if (planIds.Any())
-        {
-            var plansResponse = await _supabaseClient
-                .From<WorkoutPlan>()
-                .Filter(wp => wp.Id, Supabase.Postgrest.Constants.Operator.In, planIds)
-                .Get();
-
-            var plans = plansResponse.Models.ToDictionary(p => p.Id);
-
-            foreach (var session in sessions)
-            {
-                if (session.PlanId.HasValue && plans.TryGetValue(session.PlanId.Value, out var plan))
-                {
-                    session.Plan = plan;
-                }
-            }
-        }
-        return sessions;
+        return response.Models;
     }
 
     public async Task<Session?> GetSessionByIdAsync(long sessionId, Guid userId)

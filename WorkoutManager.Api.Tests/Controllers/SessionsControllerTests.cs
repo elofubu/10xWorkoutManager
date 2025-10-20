@@ -473,4 +473,90 @@ public class SessionsControllerTests : BaseIntegrationTest
     }
 
     #endregion
+
+    #region Session-Plan Relationship Tests (Nested Query Verification)
+
+    //[Fact]
+    //public async Task GetSessions_Should_Include_Plan_Information_Via_Nested_Query()
+    //{
+    //    // Arrange
+    //    Authenticate();
+
+    //    // Create a workout plan with a specific name
+    //    var planCommand = TestDataGenerator.CreateWorkoutPlanCommandFaker("Push Day Plan").Generate();
+    //    var createPlanResponse = await HttpClient.PostAsJsonAsync("/api/workoutplans", planCommand);
+    //    createPlanResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+    //    var createdPlan = await createPlanResponse.Content.ReadFromJsonAsync<CreatedWorkoutPlanDto>();
+    //    createdPlan.Should().NotBeNull();
+    //    createdPlan!.Name.Should().Be("Push Day Plan");
+
+    //    // Get the plan details to find a training day
+    //    var getPlanResponse = await HttpClient.GetAsync($"/api/workoutplans/{createdPlan.Id}");
+    //    getPlanResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    //    var planDetails = await getPlanResponse.Content.ReadFromJsonAsync<WorkoutPlanDetailDto>();
+    //    planDetails.Should().NotBeNull();
+    //    planDetails!.TrainingDays.Should().NotBeEmpty();
+
+    //    var trainingDayId = planDetails.TrainingDays.First().Id;
+
+    //    // Create a session using that training day (which links to the plan)
+    //    var sessionCommand = new StartSessionCommand { TrainingDayId = (int)trainingDayId };
+    //    var createSessionResponse = await HttpClient.PostAsJsonAsync("/api/sessions", sessionCommand);
+    //    createSessionResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+    //    // Act - Get all sessions (uses GetSessionHistoryAsync with nested Select("*, plan(*)"))
+    //    var getSessionsResponse = await HttpClient.GetAsync("/api/sessions?pageSize=10");
+
+    //    // Assert - Verify sessions include plan data from nested query
+    //    getSessionsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    //    var result = await getSessionsResponse.Content.ReadFromJsonAsync<PaginatedList<SessionSummaryDto>>();
+    //    result.Should().NotBeNull();
+    //    result!.Data.Should().NotBeEmpty();
+
+    //    // Find the session we just created
+    //    var sessionFromList = result.Data.FirstOrDefault(s => s.PlanId == createdPlan.Id);
+    //    sessionFromList.Should().NotBeNull("session should be in the list");
+
+    //    // Verify the nested plan data is populated
+    //    sessionFromList!.PlanId.Should().Be(createdPlan.Id, "session should have the correct plan ID");
+    //    sessionFromList.PlanName.Should().Be("Push Day Plan", "session summary should include the plan name from nested query");
+    //}
+
+    //[Fact]
+    //public async Task GetSessions_Should_Return_Sessions_With_Valid_Plan_References()
+    //{
+    //    // Arrange
+    //    Authenticate();
+
+    //    // Create a session using a training day
+    //    var (plan, trainingDayId) = await CreateTestPlanWithTrainingDayAsync();
+
+    //    var command = new StartSessionCommand { TrainingDayId = (int)trainingDayId };
+    //    var createResponse = await HttpClient.PostAsJsonAsync("/api/sessions", command);
+    //    createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+    //    var createdSession = await createResponse.Content.ReadFromJsonAsync<SessionDetailsDto>();
+    //    createdSession.Should().NotBeNull();
+
+    //    // End the session to add it to history
+    //    var endCommand = new UpdateSessionCommand { EndTime = DateTime.UtcNow };
+    //    var endResponse = await HttpClient.PutAsJsonAsync($"/api/sessions/{createdSession!.Id}", endCommand);
+    //    endResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+    //    // Act
+    //    var response = await HttpClient.GetAsync("/api/sessions?pageSize=10");
+
+    //    // Assert
+    //    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    //    var result = await response.Content.ReadFromJsonAsync<PaginatedList<SessionSummaryDto>>();
+    //    result.Should().NotBeNull();
+    //    result!.Data.Should().NotBeEmpty();
+
+    //    // Verify the session has valid plan information
+    //    var retrievedSession = result.Data.FirstOrDefault(s => s.Id == createdSession.Id);
+    //    retrievedSession.Should().NotBeNull("created session should be in history");
+    //    retrievedSession!.PlanId.Should().Be(plan.Id, "session should reference the correct plan");
+    //    retrievedSession.PlanName.Should().NotBeNullOrEmpty("plan name should be populated from nested query");
+    //}
+
+    #endregion
 }

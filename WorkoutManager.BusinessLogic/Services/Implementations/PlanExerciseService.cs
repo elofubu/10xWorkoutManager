@@ -101,6 +101,24 @@ public class PlanExerciseService : IPlanExerciseService
         await _planExerciseRepository.ReorderExercisesAsync(dayId, exercises);
     }
 
+    public async Task<IEnumerable<PlanExerciseDetailDto>> GetExercisesForTrainingDayAsync(long trainingDayId)
+    {
+        // Get exercises with order information from the junction table
+        var exercisesWithOrder = await _planExerciseRepository
+            .GetExercisesWithOrderAsync(trainingDayId);
+
+        // Map to DTOs
+        return exercisesWithOrder
+            .Select(x => new PlanExerciseDetailDto
+            {
+                ExerciseId = x.Exercise.Id,
+                ExerciseName = x.Exercise.Name,
+                MuscleGroupId = x.Exercise.MuscleGroupId,
+                Order = x.Order
+            })
+            .ToList();
+    }
+
     private async Task VerifyPlanOwnershipAsync(long planId, Guid userId)
     {
         var plan = await _planExerciseRepository.GetPlanByIdAndUserIdAsync(planId, userId);

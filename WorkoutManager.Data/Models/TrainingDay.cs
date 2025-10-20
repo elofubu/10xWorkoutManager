@@ -24,6 +24,13 @@ public class TrainingDay : BaseModel
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
 
+    // Direct M2M to Exercise for simple queries
     [JsonIgnore]
-    public ICollection<PlanDayExercise> PlanDayExercises { get; set; } = new List<PlanDayExercise>();
+    //[Reference(typeof(Exercise), useInnerJoin: false, includeInQuery: true)]
+    public List<Exercise> Exercises { get; set; } = new();
+
+    // Junction table for order/metadata access - preserves the order column
+    //[JsonIgnore]
+    [Reference(typeof(PlanDayExercise), useInnerJoin: false, includeInQuery: true)]
+    public List<PlanDayExercise> PlanDayExercises { get; set; } = new();
 }

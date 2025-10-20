@@ -15,6 +15,9 @@ public interface IPlanExerciseRepository
     Task<PlanDayExercise?> GetPlanDayExerciseAsync(long planDayExerciseId, long dayId);
     Task RemoveExerciseFromDayAsync(long planDayExerciseId);
     Task ReorderExercisesAsync(long dayId, List<ReorderExerciseCommand> exercises);
+
+    // Get exercises with order information for a training day (M2M relation)
+    Task<IEnumerable<(Exercise Exercise, short Order)>> GetExercisesWithOrderAsync(long trainingDayId);
 }
 
 

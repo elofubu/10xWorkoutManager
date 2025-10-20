@@ -10,7 +10,7 @@ public record UpdateWorkoutPlanPayload(string Name, IEnumerable<UpdateTrainingDa
 
 public class AddExerciseToTrainingDayCommand
 {
-    public int ExerciseId { get; set; }
+    public long ExerciseId { get; set; }
     public int Order { get; set; }
 }
 

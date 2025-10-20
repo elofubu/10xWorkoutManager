@@ -31,7 +31,7 @@ public static class TestDataGenerator
             .RuleFor(x => x.CreatedAt, f => f.Date.Past());
     }
 
-    public static Faker<CreateWorkoutPlanCommand> CreateWorkoutPlanCommandFaker()
+    public static Faker<CreateWorkoutPlanCommand> CreateWorkoutPlanCommandFaker(string planName = null)
     {
         return new Faker<CreateWorkoutPlanCommand>()
             .CustomInstantiator(f =>
@@ -45,7 +45,7 @@ public static class TestDataGenerator
                     )
                     .Generate(f.Random.Int(1, 5));
 
-                return new CreateWorkoutPlanCommand(f.Lorem.Word(), trainingDays);
+                return new CreateWorkoutPlanCommand(planName ?? f.Lorem.Word(), trainingDays);
             });
     }
 

@@ -54,7 +54,7 @@ public class ExercisesControllerTests : BaseIntegrationTest
 
         // Act
         var response = await HttpClient.GetAsync("/api/exercises?pageSize=1000");
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PaginatedList<ExerciseDto>>();
@@ -62,5 +62,49 @@ public class ExercisesControllerTests : BaseIntegrationTest
         result.Data.Should().HaveCount(3);
         result.Data.Should().OnlyContain(e => userExercises.Any(uae => uae.Name == e.Name));
     }
+
+    #region Query Optimization Tests
+
+    [Fact]
+    public async Task Get_Exercises_Should_Include_Shared_Exercises_Via_Single_OR_Query()
+    {
+        // Arrange
+        Authenticate();
+
+        var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
+        var muscleGroupId = muscleGroups.Models.First().Id;
+
+        // Create shared exercises (user_id IS NULL)
+        var sharedExercises = new List<Exercise>
+        {
+            new Exercise { UserId = null, MuscleGroupId = muscleGroupId, Name = "Bench Press (Shared)" },
+            new Exercise { UserId = null, MuscleGroupId = muscleGroupId, Name = "Squat (Shared)" }
+        };
+        await _supabaseClient.From<Exercise>().Insert(sharedExercises);
+
+        // Create user-specific exercises
+        var userExercises = new List<Exercise>
+        {
+            new Exercise { UserId = UserId, MuscleGroupId = muscleGroupId, Name = "Custom Bench" }
+        };
+        await _supabaseClient.From<Exercise>().Insert(userExercises);
+
+        // Act - Get exercises (should use single OR query)
+        var response = await HttpClient.GetAsync("/api/exercises?pageSize=1000");
+
+        // Assert - Verify both shared and user exercises are returned
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<ExerciseDto>>();
+        result.Should().NotBeNull();
+        result!.Data.Should().HaveCountGreaterThanOrEqualTo(3,
+            "should include 2 shared + 1 user exercise via single OR query");
+
+        // Verify both shared exercises are present
+        result.Data.Should().Contain(e => e.Name == "Bench Press (Shared)");
+        result.Data.Should().Contain(e => e.Name == "Squat (Shared)");
+        result.Data.Should().Contain(e => e.Name == "Custom Bench");
+    }
+
+    #endregion
 }
 

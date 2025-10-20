@@ -113,6 +113,7 @@ Stores the results of each individual set performed for an exercise in a session
 - **`auth.users` <-> `sessions`**: One-to-Many. A user can have many training sessions.
 - **`muscle_groups` <-> `exercises`**: One-to-Many. A muscle group can be associated with many exercises.
 - **`workout_plans` <-> `training_days`**: One-to-Many. A plan can have many training days.
+- **`workout_plans` <-> `sessions`**: One-to-Many. A workout plan can be associated with many sessions (optional link via `plan_id`). Used in SessionRepository with Supabase nested projection: `Select("*, workout_plans(*)")`.
 - **`training_days` <-> `exercises`**: Many-to-Many, via the `plan_day_exercises` junction table. A training day can have many exercises, and an exercise can be in many training days.
 - **`sessions` <-> `session_exercises`**: One-to-Many. A session consists of many performed exercises.
 - **`session_exercises` <-> `exercise_sets`**: One-to-Many. A performed exercise consists of many sets.

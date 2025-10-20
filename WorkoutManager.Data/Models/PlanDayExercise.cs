@@ -11,21 +11,21 @@ public class PlanDayExercise : BaseModel
     [PrimaryKey("id", false)]
     public long Id { get; set; }
 
-    [Column("training_day_id")]
+    [PrimaryKey("training_day_id")]
     public long TrainingDayId { get; set; }
 
-    [Column("exercise_id")]
+    [PrimaryKey("exercise_id")]
     public long ExerciseId { get; set; }
 
     [Column("order")]
     public short Order { get; set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    [JsonIgnore]
-    public Exercise? Exercise { get; set; }
-    
-    [JsonIgnore]
-    public TrainingDay? TrainingDay { get; set; }
+    [Reference(typeof(Exercise))]
+    public Exercise Exercise { get; set; }
+
+    [Reference(typeof(TrainingDay))]
+    public TrainingDay TrainingDay { get; set; }
 }
