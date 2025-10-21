@@ -18,4 +18,7 @@ public class WorkoutPlan : BaseModel
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
+
+    [Reference(typeof(TrainingDay), useInnerJoin: false, includeInQuery: true)]
+    public List<TrainingDay> TrainingDays { get; set; } = new();
 }

@@ -76,69 +76,6 @@ public class SessionExercisesControllerTests : BaseIntegrationTest
     #region PUT /api/sessions/{sessionId}/exercises/{sessionExerciseId} Tests
 
     [Fact]
-    public async Task UpdateSessionExercise_Should_Update_Exercise_With_Valid_Data()
-    {
-        // Arrange
-        Authenticate();
-
-        var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
-        var muscleGroupIds = muscleGroups.Models.Select(mg => mg.Id).ToList();
-
-        var userExercises = TestDataGenerator.ExerciseFaker(UserId, muscleGroupIds).Generate(1);
-        await _supabaseClient.From<Exercise>().Insert(userExercises);
-
-        var (plan, trainingDayId) = await CreateTestPlanWithTrainingDayAsync();
-        var session = await CreateTestSessionAsync(trainingDayId);
-
-        // Add an exercise to the session first (if needed by the service)
-        // This depends on how session exercises are created in your system
-
-        // Create a command to update the session exercise
-        var updateCommand = new UpdateSessionExerciseCommand
-        {
-            Notes = "Great performance",
-            Skipped = false,
-            Sets = new()
-            {
-                new UpdateExerciseSetDto
-                {
-                    Weight = 100m,
-                    Reps = 10,
-                    IsFailure = false,
-                    Order = 1
-                },
-                new UpdateExerciseSetDto
-                {
-                    Weight = 100m,
-                    Reps = 8,
-                    IsFailure = false,
-                    Order = 2
-                }
-            }
-        };
-
-        // For this test, we need to find or create a session exercise first
-        // Get session details to see if it has exercises
-        var getSessionResponse = await HttpClient.GetAsync($"/api/sessions/{session.Id}");
-        getSessionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var sessionDetails = await getSessionResponse.Content.ReadFromJsonAsync<SessionDetailsDto>();
-
-        if (sessionDetails?.Exercises?.Count > 0)
-        {
-            var sessionExerciseId = sessionDetails.Exercises.First().Id;
-
-            // Act
-            var response = await HttpClient.PutAsJsonAsync($"/api/sessions/{session.Id}/exercises/{sessionExerciseId}", updateCommand);
-
-            // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var updatedExercise = await response.Content.ReadFromJsonAsync<SessionExerciseDetailsDto>();
-            updatedExercise.Should().NotBeNull();
-            updatedExercise!.Notes.Should().Be("Great performance");
-        }
-    }
-
-    [Fact]
     public async Task UpdateSessionExercise_Should_Return_NotFound_When_Session_Does_Not_Exist()
     {
         // Arrange

@@ -66,38 +66,50 @@ public class ExerciseRepository : IExerciseRepository
     {
         // Optimized: Single query with nested projections for complete data hierarchy
         // Fetch session exercises with related sessions and exercise sets, sorted and limited at database level
-        var sessionExercisesResponse = await _supabaseClient
-            .From<SessionExercise>()
-            .Select("*, session(*), exercise_sets(*)")
-            .Where(se => se.ExerciseId == exerciseId && se.Skipped == false)
-            .Order("session.start_time", Supabase.Postgrest.Constants.Ordering.Descending)
+        var session = await _supabaseClient
+            .From<Session>()
+            //.Filter("session_excercises.exercise_id", Supabase.Postgrest.Constants.Operator.Equals, exerciseId)
+            .Filter("session_exercises.exercise_id", Supabase.Postgrest.Constants.Operator.Equals, exerciseId)
+            .Order("start_time", Supabase.Postgrest.Constants.Ordering.Descending)
             .Limit(1)
             .Get();
 
-        if (!sessionExercisesResponse.Models.Any()) return null;
+        //var sessionExercisesResponse = await _supabaseClient
+        //    .From<SessionExercise>()
+        //    .Select("*, sessions(*), exercise_sets(*)")
+        //    //.Filter(se => se.ExerciseId, Supabase.Postgrest.Constants.Operator.Equals, exerciseId)
+        //    //.Filter(se => se.Skipped, Supabase.Postgrest.Constants.Operator.Equals, false)
+        //    .Where(se => se.ExerciseId == exerciseId && se.Skipped == false)
+        //    .Order("sessions(start_time)", Supabase.Postgrest.Constants.Ordering.Descending)
+        //    .Limit(1)
+        //    .Get();
 
-        var mostRecentSessionExercise = sessionExercisesResponse.Models.First();
+        if (!session.Models.Any()) return null;
+
+        var mostRecentSessionExercise = session.Models.First();
 
         // Verify session is valid (completed by the correct user)
-        if (mostRecentSessionExercise.Session == null ||
-            mostRecentSessionExercise.Session.UserId != userId ||
-            !mostRecentSessionExercise.Session.EndTime.HasValue)
+        if (mostRecentSessionExercise == null ||
+            mostRecentSessionExercise.UserId != userId ||
+            !mostRecentSessionExercise.EndTime.HasValue)
         {
             return null;
         }
 
         return new PreviousExercisePerformanceDto
         {
-            SessionDate = mostRecentSessionExercise.Session.StartTime,
+            SessionDate = mostRecentSessionExercise.StartTime,
             Notes = mostRecentSessionExercise.Notes,
-            Sets = mostRecentSessionExercise.Sets
-                ?.OrderBy(s => s.Order)
+            Sets = mostRecentSessionExercise.SessionExercises
+                .SelectMany(se => se.Sets ?? new List<ExerciseSet>())
+                .OrderBy(s => s.Order)
                 .Select(s => new PreviousExerciseSetDto
                 {
                     Weight = s.Weight,
                     Reps = s.Reps,
                     IsFailure = s.IsFailure
-                }).ToList() ?? new List<PreviousExerciseSetDto>()
+                })
+                .ToList()
         };
     }
 }

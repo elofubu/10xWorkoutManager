@@ -17,7 +17,7 @@ public partial class PlanDetailPage
 
     [Inject]
     private IDialogService DialogService { get; set; } = default!;
-    
+
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
@@ -62,9 +62,9 @@ public partial class PlanDetailPage
             await LoadPlan();
             Snackbar.Add("Plan name updated successfully", Severity.Success);
         }
-        catch
+        catch (Exception ex)
         {
-            Snackbar.Add("Failed to update plan name", Severity.Error);
+            Snackbar.Add(ex.Message, Severity.Error);
         }
     }
 
@@ -94,9 +94,9 @@ public partial class PlanDetailPage
                 Snackbar.Add("Plan deleted successfully", Severity.Success);
                 NavigationManager.NavigateTo("/");
             }
-            catch
+            catch (Exception ex)
             {
-                Snackbar.Add("Failed to delete plan", Severity.Error);
+                Snackbar.Add(ex.Message, Severity.Error);
             }
         }
     }
@@ -128,9 +128,9 @@ public partial class PlanDetailPage
                 await LoadPlan();
                 Snackbar.Add("Exercise added successfully", Severity.Success);
             }
-            catch
+            catch (Exception ex)
             {
-                Snackbar.Add("Failed to add exercise", Severity.Error);
+                Snackbar.Add(ex.Message, Severity.Error);
             }
         }
     }
