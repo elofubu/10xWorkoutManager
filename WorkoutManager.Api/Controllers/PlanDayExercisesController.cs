@@ -41,7 +41,7 @@ public class PlanDayExercisesController : ControllerBase
         }
         catch (BusinessRuleViolationException ex)
         {
-            return StatusCode(403, new { error = ex.Message });
+            return StatusCode(403, ex.Message);
         }
         catch (ValidationException ex)
         {

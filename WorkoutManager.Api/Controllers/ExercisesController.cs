@@ -92,7 +92,7 @@ public class ExercisesController : ControllerBase
             return Ok(performance);
         }
         catch (Exception ex)
-        {
+        {   
             return StatusCode(500, new { error = ex.Message });
         }
     }

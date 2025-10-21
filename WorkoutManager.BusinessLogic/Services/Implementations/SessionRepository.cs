@@ -75,6 +75,17 @@ public class SessionRepository : ISessionRepository
             .Range(from, to)
             .Get();
 
+        var plansResponse = await _supabaseClient
+            .From<WorkoutPlan>()
+            .Filter("id", Supabase.Postgrest.Constants.Operator.In, response.Models.Where(s => s.PlanId.HasValue).Select(s => s.PlanId!.Value).Distinct().ToList())
+            .Get();
+
+
+        foreach(var model in response.Models)
+        {
+            model.Plan = plansResponse.Models.FirstOrDefault(pr => pr.Id == model.PlanId);
+        }
+
         return response.Models;
     }
 
@@ -94,27 +105,27 @@ public class SessionRepository : ISessionRepository
             .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
             .Get();
 
-        var sessionExercises = response.Models;
-        var sessionExerciseIds = sessionExercises.Select(se => se.Id).ToList();
+        return response.Models;
+        //var sessionExerciseIds = sessionExercises.Select(se => se.Id).ToList();
 
-        if (sessionExerciseIds.Any())
-        {
-            var setsResponse = await _supabaseClient
-                .From<ExerciseSet>()
-                .Filter(es => es.SessionExerciseId, Supabase.Postgrest.Constants.Operator.In, sessionExerciseIds)
-                .Get();
+        //if (sessionExerciseIds.Any())
+        //{
+        //    var setsResponse = await _supabaseClient
+        //        .From<ExerciseSet>()
+        //        .Filter(es => es.SessionExerciseId, Supabase.Postgrest.Constants.Operator.In, sessionExerciseIds)
+        //        .Get();
 
-            var sets = setsResponse.Models.GroupBy(es => es.SessionExerciseId).ToDictionary(g => g.Key, g => g.ToList());
+        //    var sets = setsResponse.Models.GroupBy(es => es.SessionExerciseId).ToDictionary(g => g.Key, g => g.ToList());
 
-            foreach (var se in sessionExercises)
-            {
-                if (sets.TryGetValue(se.Id, out var exerciseSets))
-                {
-                    se.Sets = exerciseSets.OrderBy(s => s.Order).ToList();
-                }
-            }
-        }
-        return sessionExercises;
+        //    foreach (var se in sessionExercises)
+        //    {
+        //        if (sets.TryGetValue(se.Id, out var exerciseSets))
+        //        {
+        //            se.Sets = exerciseSets.OrderBy(s => s.Order).ToList();
+        //        }
+        //    }
+        //}
+        //return sessionExercises;
     }
     
     public async Task UpdateSessionAsync(Session session)

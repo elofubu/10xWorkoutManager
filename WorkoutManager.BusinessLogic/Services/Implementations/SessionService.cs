@@ -86,7 +86,8 @@ public class SessionService : ISessionService
             PlanId = s.PlanId.HasValue ? (int)s.PlanId.Value : 0,
             PlanName = s.Plan?.Name,
             StartTime = s.StartTime,
-            EndTime = s.EndTime
+            EndTime = s.EndTime,
+            TrainingDayName = s.Plan?.TrainingDays.FirstOrDefault()?.Name
         }).ToList();
 
         return new PaginatedList<SessionSummaryDto>

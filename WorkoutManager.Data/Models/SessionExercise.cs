@@ -27,8 +27,10 @@ public class SessionExercise : BaseModel
     public short Order { get; set; }
 
     [JsonIgnore]
+    //[Reference(typeof(Session), useInnerJoin: false, includeInQuery: true)]
     public Session? Session { get; set; }
 
-    [JsonIgnore]
-    public ICollection<ExerciseSet> Sets { get; set; } = new List<ExerciseSet>();
+    //[JsonIgnore]
+    [Reference(typeof(ExerciseSet), useInnerJoin: false, includeInQuery: true)]
+    public List<ExerciseSet> Sets { get; set; }
 }

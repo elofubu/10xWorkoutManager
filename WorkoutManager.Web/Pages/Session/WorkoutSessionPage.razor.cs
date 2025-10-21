@@ -20,7 +20,7 @@ namespace WorkoutManager.Web.Pages.Session
         private NavigationManager NavigationManager { get; set; } = default!;
 
         private SessionDetailsDto? _session;
-        //private MudStepper _stepper = new()!;
+        private MudStepper _stepper = new()!;
         private Dictionary<long, PreviousExercisePerformanceDto> _previousSessionData = new();
         private Dictionary<long, string> _exerciseNames = new();
         private string? _sessionNotes;
@@ -82,8 +82,9 @@ namespace WorkoutManager.Web.Pages.Session
             {
                 Notes = currentExercise.Notes,
                 Skipped = currentExercise.Skipped,
-                Sets = currentExercise.Skipped ? new List<ExerciseSetDto>() : currentExercise.Sets
+                Sets = currentExercise.Skipped ? new List<ExerciseSetDto>() : currentExercise.Sets.Where(s => s.Weight != 0 && s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
             };
+
             await SessionService.UpdateSessionExerciseAsync(_session.Id, currentExercise.Id, payload);
 
             if (_index == _session.Exercises.Count - 1)
@@ -91,10 +92,10 @@ namespace WorkoutManager.Web.Pages.Session
                 await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
                 NavigationManager.NavigateTo("/history");
             }
-            //else
-            //{
-            //    await _stepper.NextStepAsync();
-            //}
+            else
+            {
+                await _stepper.NextStepAsync();
+            }
         }
 
         private async Task CancelWorkout()

@@ -15,7 +15,8 @@
     "video": "retain-on-failure"
   },
   "webServer": {
-    "command": "dotnet run --project ../WorkoutManager.Web",
+    //"command": "dotnet run --project ../WorkoutManager.Web",
+    "command": "start /d '.' dotnet run --project ../WorkoutManager.Web start /d '.' dotnet run --project ../WorkoutManager.Api",
     "port": 5000,
     "timeout": 120000,
     "reuseExistingServer": true

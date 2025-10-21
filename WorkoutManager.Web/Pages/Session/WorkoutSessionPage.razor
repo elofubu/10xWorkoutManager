@@ -11,7 +11,7 @@
 }
 else
 {
-    <MudStepper @bind-ActiveIndex="_index"  Outlined="true" Linear="false">
+    <MudStepper @ref=_stepper @bind-ActiveIndex="_index" Outlined="true" Linear="false">
         @foreach (var exercise in _session.Exercises.OrderBy(e => e.Order))
         {
             <MudStep Title="@GetExerciseName(exercise.ExerciseId)" StepContentStyle="overflow-y: auto; max-height: 60vh;">
@@ -44,9 +44,9 @@ else
                 }
 
                 <MudText Typo="Typo.h6" Class="mt-4">Current Session:</MudText>
-                
+
                 <MudCheckBox T="bool" @bind-Checked="exercise.Skipped" Label="Skip this exercise" Color="Color.Warning" Class="mb-2" />
-                
+
                 @if (!exercise.Skipped)
                 {
                     @foreach (var (set, index) in exercise.Sets.Select((s, i) => (s, i)))
@@ -66,12 +66,17 @@ else
         }
     </MudStepper>
 
-    <MudTextField @bind-Value="_sessionNotes" Label="Session Notes" Lines="3" 
+    <MudTextField @bind-Value="_sessionNotes" Label="Session Notes" Lines="3"
                   Variant="Variant.Outlined" Class="mt-4" />
 
     <div class="d-flex justify-end mt-4">
-        @* <MudButton OnClick="PreviousStep" Disabled="@(_index == 0)">Back</MudButton> *@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="ml-2">@(_index == _session.Exercises.Count - 1 ? "Finish Workout" : "Save and Next")</MudButton>
         <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelWorkout" Class="ml-2">Cancel workout</MudButton>
     </div>
 }
+
+<style>
+    .mud-card-actions.mud-stepper-actions {
+        display: none !important;
+    }
+</style>

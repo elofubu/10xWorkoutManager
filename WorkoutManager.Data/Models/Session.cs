@@ -27,5 +27,9 @@ public class Session : BaseModel
     public DateTime? EndTime { get; set; }
 
     [JsonIgnore]
+    //[JsonProperty("workout_plans")]
     public WorkoutPlan? Plan { get; set; }
+
+    [Reference(typeof(SessionExercise), useInnerJoin: false, includeInQuery: true)]
+    public List<SessionExercise> SessionExercises { get; set; } = new();
 }
