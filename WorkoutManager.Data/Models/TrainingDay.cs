@@ -33,4 +33,8 @@ public class TrainingDay : BaseModel
     //[JsonIgnore]
     [Reference(typeof(PlanDayExercise), useInnerJoin: false, includeInQuery: true)]
     public List<PlanDayExercise> PlanDayExercises { get; set; } = new();
+
+    // Sessions that were performed for this training day
+    //[Reference(typeof(Session), useInnerJoin: false, includeInQuery: true)]
+    //public List<Session> Sessions { get; set; } = new();
 }

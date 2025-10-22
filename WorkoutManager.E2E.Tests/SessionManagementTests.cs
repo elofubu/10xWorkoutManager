@@ -104,4 +104,68 @@ public class SessionManagementTests : BasePlaywrightTest
         var isStillAuth = await homePage.IsAuthenticatedAsync();
         isStillAuth.Should().BeTrue("should still be authenticated after navigation");
     }
+
+    [Fact(Skip = "Requires plan creation, session workflow, and UI selectors - implement after core features are stable")]
+    public async Task SessionHistory_ShouldDisplayTrainingDayName()
+    {
+        // This test verifies that completed sessions show the training day name in the history view
+        // This is critical for users to understand which workout day they performed
+
+        // Arrange
+        var loginPage = new LoginPage(Page, BaseUrl);
+        var homePage = new HomePage(Page, BaseUrl);
+        var planDetailPage = new PlanDetailPage(Page, BaseUrl);
+        var workoutSessionPage = new WorkoutSessionPage(Page, BaseUrl);
+        var historyPage = new HistoryPage(Page, BaseUrl);
+
+        // Step 1: Login
+        await loginPage.NavigateAsync();
+        await loginPage.LoginAsync(TestData.Users.User1.Email, TestData.Users.User1.Password);
+        await Page.WaitForURLAsync(url => !url.Contains("/authentication/login"), new() { Timeout = 10000 });
+
+        // Step 2: Create a plan with a training day
+        // Note: This would require implementing plan creation via UI
+        // For now, this is a placeholder for the flow
+        const string planName = "Test Plan";
+        const string trainingDayName = "Push Day";
+
+        // TODO: Implement plan creation
+        // await homePage.CreatePlanAsync(planName);
+        // await planDetailPage.AddTrainingDayAsync(trainingDayName);
+        // await planDetailPage.AddExerciseToDayAsync(trainingDayName, "Bench Press");
+
+        // Step 3: Start a session from the training day
+        // TODO: Navigate to plan detail and start workout for specific training day
+        // await planDetailPage.NavigateAsync(planId);
+        // await planDetailPage.StartWorkoutForDayAsync(trainingDayName);
+
+        // Step 4: Complete some exercise data
+        // TODO: Fill in exercise sets
+        // await workoutSessionPage.AddSetAsync(exerciseId: 0, weight: 100, reps: 10);
+
+        // Step 5: Finish the session
+        // TODO: Click finish workout button
+        // await workoutSessionPage.FinishWorkoutAsync();
+
+        // Step 6: Navigate to history
+        await historyPage.NavigateAsync();
+
+        // Step 7: Verify the training day name is displayed
+        // Expected: Session list should show the training day name for each session
+        // var sessionCards = await Page.Locator("[data-testid='session-card']").AllAsync();
+        // sessionCards.Should().NotBeEmpty("should have at least one completed session");
+        
+        // var firstSession = sessionCards.First();
+        // var displayedTrainingDayName = await firstSession.Locator("[data-testid='training-day-name']").TextContentAsync();
+        // displayedTrainingDayName.Should().Be(trainingDayName, "session history should display the training day name");
+        
+        // var displayedPlanName = await firstSession.Locator("[data-testid='plan-name']").TextContentAsync();
+        // displayedPlanName.Should().Be(planName, "session history should display the plan name");
+
+        // This test will be implemented once:
+        // 1. Plan creation UI is fully functional
+        // 2. Session workflow is complete
+        // 3. History page displays training day information
+        // 4. Appropriate data-testid attributes are added to UI elements
+    }
 }

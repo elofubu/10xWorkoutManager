@@ -42,10 +42,12 @@ public class SessionService : ISessionService
         {
             UserId = userId,
             PlanId = trainingDay.PlanId,
+            TrainingDayId = trainingDayId,
             StartTime = DateTime.UtcNow
         };
         var createdSession = await _sessionRepository.CreateSessionAsync(session);
 
+        // Pre-populate exercises from the training day
         var planDayExercises = await _sessionRepository.GetPlanDayExercisesAsync(trainingDayId);
         var sessionExercises = new List<SessionExerciseDetailsDto>();
 
@@ -71,6 +73,10 @@ public class SessionService : ISessionService
         return new SessionDetailsDto
         {
             Id = (int)createdSession.Id,
+            PlanId = createdSession.PlanId,
+            TrainingDayId = createdSession.TrainingDayId,
+            PlanName = plan.Name,
+            TrainingDayName = trainingDay.Name,
             StartTime = createdSession.StartTime,
             Exercises = sessionExercises
         };
@@ -83,11 +89,12 @@ public class SessionService : ISessionService
         var summaries = sessionList.Select(s => new SessionSummaryDto
         {
             Id = (int)s.Id,
-            PlanId = s.PlanId.HasValue ? (int)s.PlanId.Value : 0,
+            PlanId = s.PlanId,
+            TrainingDayId = s.TrainingDayId,
             PlanName = s.Plan?.Name,
+            TrainingDayName = s.TrainingDay?.Name,
             StartTime = s.StartTime,
-            EndTime = s.EndTime,
-            TrainingDayName = s.Plan?.TrainingDays.FirstOrDefault()?.Name
+            EndTime = s.EndTime
         }).ToList();
 
         return new PaginatedList<SessionSummaryDto>
@@ -113,6 +120,7 @@ public class SessionService : ISessionService
             Notes = se.Notes,
             Skipped = se.Skipped,
             Order = se.Order,
+            ExerciseName = se.Exercise?.Name,
             Sets = se.Sets.Select(es => new ExerciseSetDto
             {
                 Id = (int)es.Id,
@@ -126,6 +134,10 @@ public class SessionService : ISessionService
         return new SessionDetailsDto
         {
             Id = (int)session.Id,
+            PlanId = session.PlanId,
+            TrainingDayId = session.TrainingDayId,
+            PlanName = session.Plan?.Name,
+            TrainingDayName = session.TrainingDay?.Name,
             Notes = session.Notes,
             StartTime = session.StartTime,
             EndTime = session.EndTime,

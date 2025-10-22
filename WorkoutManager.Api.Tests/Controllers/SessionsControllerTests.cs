@@ -559,4 +559,89 @@ public class SessionsControllerTests : BaseIntegrationTest
     //}
 
     #endregion
+
+    #region Training Day Information Tests
+
+    [Fact]
+    public async Task StartSession_Should_Return_TrainingDayName_When_Started_From_TrainingDay()
+    {
+        // Arrange
+        Authenticate();
+        var (plan, trainingDayId) = await CreateTestPlanWithTrainingDayAsync();
+        
+        var command = new StartSessionCommand { TrainingDayId = (int)trainingDayId };
+
+        // Act
+        var response = await HttpClient.PostAsJsonAsync("/api/sessions", command);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var result = await response.Content.ReadFromJsonAsync<SessionDetailsDto>();
+        result.Should().NotBeNull();
+        result!.TrainingDayId.Should().Be(trainingDayId);
+        result.TrainingDayName.Should().NotBeNullOrEmpty("training day name should be populated from the training day");
+        result.PlanName.Should().NotBeNullOrEmpty("plan name should be populated from the plan");
+        result.PlanId.Should().Be(plan.Id);
+    }
+
+    [Fact]
+    public async Task GetSessions_Should_Return_TrainingDayName_For_Each_Session()
+    {
+        // Arrange
+        Authenticate();
+        var (plan, trainingDayId) = await CreateTestPlanWithTrainingDayAsync();
+
+        // Create session from training day
+        var command = new StartSessionCommand { TrainingDayId = (int)trainingDayId };
+        var createResponse = await HttpClient.PostAsJsonAsync("/api/sessions", command);
+        var session = await createResponse.Content.ReadFromJsonAsync<SessionDetailsDto>();
+        session.Should().NotBeNull();
+        
+        // End session
+        var endCommand = new UpdateSessionCommand { EndTime = DateTime.UtcNow };
+        await HttpClient.PutAsJsonAsync($"/api/sessions/{session!.Id}", endCommand);
+
+        // Act
+        var response = await HttpClient.GetAsync("/api/sessions");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<SessionSummaryDto>>();
+        result.Should().NotBeNull();
+        result!.Data.Should().HaveCount(1);
+        
+        var sessionSummary = result.Data[0];
+        sessionSummary.TrainingDayId.Should().Be(trainingDayId, "session should be linked to the correct training day");
+        sessionSummary.TrainingDayName.Should().NotBeNullOrEmpty("training day name should be populated in session history");
+        sessionSummary.PlanName.Should().NotBeNullOrEmpty("plan name should be populated in session history");
+        sessionSummary.PlanId.Should().Be(plan.Id);
+    }
+
+    [Fact]
+    public async Task GetSessionById_Should_Return_TrainingDayName()
+    {
+        // Arrange
+        Authenticate();
+        var (plan, trainingDayId) = await CreateTestPlanWithTrainingDayAsync();
+
+        var command = new StartSessionCommand { TrainingDayId = (int)trainingDayId };
+        var createResponse = await HttpClient.PostAsJsonAsync("/api/sessions", command);
+        var createdSession = await createResponse.Content.ReadFromJsonAsync<SessionDetailsDto>();
+        createdSession.Should().NotBeNull();
+
+        // Act
+        var response = await HttpClient.GetAsync($"/api/sessions/{createdSession!.Id}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var retrievedSession = await response.Content.ReadFromJsonAsync<SessionDetailsDto>();
+        retrievedSession.Should().NotBeNull();
+        retrievedSession!.Id.Should().Be(createdSession.Id);
+        retrievedSession.TrainingDayId.Should().Be(trainingDayId);
+        retrievedSession.TrainingDayName.Should().NotBeNullOrEmpty("training day name should be populated");
+        retrievedSession.PlanName.Should().NotBeNullOrEmpty("plan name should be populated");
+        retrievedSession.PlanId.Should().Be(plan.Id);
+    }
+
+    #endregion
 }
