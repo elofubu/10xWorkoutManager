@@ -30,7 +30,7 @@ jobs:
       env:
         SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS__SECRET }}
         SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS__TESTUSERID }}
-        SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS__URL }}
+        SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
         JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS__KEY }}
         ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}
 
