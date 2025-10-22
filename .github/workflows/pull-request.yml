@@ -1,9 +1,9 @@
 name: Unit and Integration Tests
 
 on:
-  push:
+  pull_request:
     branches: master
-  workflow_dispatch:
+    types: [opened, synchronize, reopened]
 
 jobs:
   test:
