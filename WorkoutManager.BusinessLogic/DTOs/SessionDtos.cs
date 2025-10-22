@@ -3,7 +3,8 @@ namespace WorkoutManager.BusinessLogic.DTOs;
 public class SessionSummaryDto
 {
     public long Id { get; set; }
-    public long PlanId { get; set; }
+    public long? PlanId { get; set; }
+    public long? TrainingDayId { get; set; }
     public string? PlanName { get; set; }
     public string? TrainingDayName { get; set; }
     public string? Notes { get; set; }
@@ -14,6 +15,10 @@ public class SessionSummaryDto
 public class SessionDetailsDto
 {
     public long Id { get; set; }
+    public long? PlanId { get; set; }
+    public long? TrainingDayId { get; set; }
+    public string? PlanName { get; set; }
+    public string? TrainingDayName { get; set; }
     public string? Notes { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime? EndTime { get; set; }
@@ -24,6 +29,7 @@ public class SessionExerciseDetailsDto
 {
     public long Id { get; set; }
     public long ExerciseId { get; set; }
+    public string ExerciseName { get; set; }
     public string? Notes { get; set; }
     public bool Skipped { get; set; }
     public int Order { get; set; }

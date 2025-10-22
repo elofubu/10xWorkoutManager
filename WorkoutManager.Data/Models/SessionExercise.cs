@@ -30,6 +30,9 @@ public class SessionExercise : BaseModel
     //[Reference(typeof(Session), useInnerJoin: false, includeInQuery: true)]
     public Session? Session { get; set; }
 
+    [JsonIgnore]
+    public Exercise Exercise { get; set; }
+
     //[JsonIgnore]
     [Reference(typeof(ExerciseSet), useInnerJoin: false, includeInQuery: true)]
     public List<ExerciseSet> Sets { get; set; }

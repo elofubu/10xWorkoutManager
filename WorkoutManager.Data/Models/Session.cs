@@ -17,6 +17,9 @@ public class Session : BaseModel
     [Column("plan_id")]
     public long? PlanId { get; set; }
 
+    [Column("training_day_id")]
+    public long? TrainingDayId { get; set; }
+
     [Column("notes")]
     public string? Notes { get; set; }
 
@@ -29,6 +32,9 @@ public class Session : BaseModel
     [JsonIgnore]
     //[JsonProperty("workout_plans")]
     public WorkoutPlan? Plan { get; set; }
+
+    [JsonIgnore]
+    public TrainingDay? TrainingDay { get; set; }
 
     [Reference(typeof(SessionExercise), useInnerJoin: false, includeInQuery: true)]
     public List<SessionExercise> SessionExercises { get; set; } = new();

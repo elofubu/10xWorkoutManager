@@ -30,7 +30,8 @@ else
             <MudCardHeader>
                 <CardHeaderContent>
                     <MudText Typo="Typo.h6">
-                        @GetExerciseName(exercise.ExerciseId)
+                        @* @GetExerciseName(exercise.ExerciseId) *@
+                        @exercise.ExerciseName
                         @if (exercise.Skipped)
                         {
                             <MudChip T="string" Size="Size.Small" Color="Color.Warning">Skipped</MudChip>

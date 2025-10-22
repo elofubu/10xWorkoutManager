@@ -26,8 +26,8 @@ To decouple the UI from the database schema, services will use DTOs for input an
 -   **ExerciseDto**: Represents a single exercise with its muscle group.
 -   **CreateExerciseDto**: DTO for creating a new exercise.
 -   **MuscleGroupDto**: Represents a muscle group.
--   **SessionDto**: Contains full details of a past session, including all exercises and sets.
--   **SessionSummaryDto**: A lightweight version for the history list, with `Id`, `StartTime`, `EndTime`, and `PlanName`.
+-   **SessionDto**: Contains full details of a past session, including all exercises and sets. Also includes `PlanId`, `TrainingDayId`, `PlanName`, and `TrainingDayName`.
+-   **SessionSummaryDto**: A lightweight version for the history list, with `Id`, `StartTime`, `EndTime`, `PlanId`, `TrainingDayId`, `PlanName`, and `TrainingDayName`.
 -   **ExerciseSetDto**: Represents a single set performed by the user.
 -   **LastExercisePerformanceDto**: A specific DTO to show the last performance of an exercise during an active session.
 
@@ -93,11 +93,12 @@ The business logic will be organized into several services, each with a specific
 
 -   **Description**: Manages workout `Session`s.
 -   **Methods**:
-    -   `Task<SessionDto> StartSession(long? planId)`
+    -   `Task<SessionDto> StartSession(long? trainingDayId)` - Starts a new session. If `trainingDayId` is provided, links the session to that specific training day and pre-populates exercises from that day. If null, creates an ad-hoc session.
     -   `Task<SessionDto> EndSession(long sessionId)`
     -   `Task<IEnumerable<SessionSummaryDto>> GetSessionHistory(int page, int pageSize)`
     -   `Task<SessionDto> GetSessionDetails(long sessionId)`
 -   **Input/Output**: `SessionDto`, `SessionSummaryDto`
+-   **Note**: Sessions track which specific training day was performed via `training_day_id`, enabling better history tracking and progression analysis.
 
 ### ISessionExerciseService & IExerciseSetService
 

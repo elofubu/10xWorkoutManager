@@ -5,6 +5,10 @@ namespace WorkoutManager.BusinessLogic.Services.Interfaces;
 
 public interface ISessionService
 {
+    /// <summary>
+    /// Starts a new workout session for a specific training day.
+    /// The session will be linked to the training day and pre-populated with its exercises.
+    /// </summary>
     Task<SessionDetailsDto> StartSessionAsync(long trainingDayId, Guid userId);
     Task<PaginatedList<SessionSummaryDto>> GetSessionHistoryAsync(Guid userId, int page = 1, int pageSize = 20);
     Task<SessionDetailsDto> GetSessionByIdAsync(long sessionId, Guid userId);
