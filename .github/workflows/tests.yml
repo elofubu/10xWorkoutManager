@@ -1,4 +1,4 @@
-name: Tests
+name: Unit and Integration Tests
 
 on:
   push:
@@ -23,19 +23,22 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release
     
+    - name: WorkoutManager.Api.Tests Secrets Variables Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: '**/appsettings.Testing.json'
+      env:
+        SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS__SECRET }}
+        SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS__TESTUSERID }}
+        SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS__URL }}
+        JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS__KEY }}
+        ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}
+
     - name: Run Unit and Integration Tests
       run: |
         dotnet test WorkoutManager.Api.Tests --no-build --configuration Release --collect:"XPlat Code Coverage" --logger "trx;LogFileName=api-tests.trx"
         dotnet test WorkoutManager.BusinessLogic.Tests --no-build --configuration Release --collect:"XPlat Code Coverage" --logger "trx;LogFileName=businesslogic-tests.trx"
         dotnet test WorkoutManager.Data.Tests --no-build --configuration Release --collect:"XPlat Code Coverage" --logger "trx;LogFileName=data-tests.trx"
-    
-    - name: Install Playwright Browsers
-      run: |
-        cd WorkoutManager.E2E.Tests
-        pwsh bin/Release/net9.0/playwright.ps1 install chromium --with-deps
-    
-    - name: Run E2E Tests
-      run: dotnet test WorkoutManager.E2E.Tests --no-build --configuration Release --logger "trx;LogFileName=e2e-tests.trx"
     
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
