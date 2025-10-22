@@ -23,6 +23,15 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release
     
+    - name: WorkoutManager.Api Secrets Variables Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: '**/appsettings.json'
+      env:
+        SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
+        SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
+        JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS__ISSUERSIGNINGKEY }}
+    
     - name: WorkoutManager.Api.Tests Secrets Variables Substitution
       uses: microsoft/variable-substitution@v1
       with:
