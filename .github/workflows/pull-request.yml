@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    environment: TST
     steps:
     - uses: actions/checkout@v4
     
@@ -31,7 +31,6 @@ jobs:
         SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
         SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
         JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
-        ENV_NAME: TST
     
     - name: WorkoutManager.Api.Tests Secrets Variables Substitution
       uses: microsoft/variable-substitution@v1
@@ -43,7 +42,6 @@ jobs:
         SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
         JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS_KEY }}
         ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS_DEFAULTCONNECTION }}
-        ENV_NAME: TST
 
     - name: Run Unit and Integration Tests
       run: |
