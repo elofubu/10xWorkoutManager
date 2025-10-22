@@ -30,20 +30,18 @@ jobs:
       env:
         SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
         SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-        JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
-        ENV_NAME: TST
+        JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS__ISSUERSIGNINGKEY }}
     
     - name: WorkoutManager.Api.Tests Secrets Variables Substitution
       uses: microsoft/variable-substitution@v1
       with:
         files: '**/appsettings.Testing.json'
       env:
-        SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
-        SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS_TESTUSERID }}
+        SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS__SECRET }}
+        SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS__TESTUSERID }}
         SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-        JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS_KEY }}
-        ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS_DEFAULTCONNECTION }}
-        ENV_NAME: TST
+        JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS__KEY }}
+        ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS__DEFAULTCONNECTION }}
 
     - name: Run Unit and Integration Tests
       run: |
