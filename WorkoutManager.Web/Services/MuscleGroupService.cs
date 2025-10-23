@@ -14,7 +14,7 @@ public class MuscleGroupService : IMuscleGroupService
 
     public async Task<IEnumerable<MuscleGroupDto>> GetMuscleGroupsAsync()
     {
-        return await _httpClient.GetFromJsonAsync<IEnumerable<MuscleGroupDto>>("api/musclegroups") 
+        return await _httpClient.GetFromJsonAsync<IEnumerable<MuscleGroupDto>>("api/musclegroups")
             ?? Enumerable.Empty<MuscleGroupDto>();
     }
 }

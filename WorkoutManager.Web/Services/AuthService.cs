@@ -62,7 +62,7 @@ namespace WorkoutManager.Web.Services
                 Password = newPassword
             });
         }
-        
+
         public async Task<bool> DeleteAccountAsync(string password)
         {
             try

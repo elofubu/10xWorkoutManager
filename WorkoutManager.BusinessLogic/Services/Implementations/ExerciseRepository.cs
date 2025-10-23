@@ -49,7 +49,7 @@ public class ExerciseRepository : IExerciseRepository
             .Where(e => e.UserId == null || e.UserId == userId)
             .Filter(e => e.Name.ToLower(), Supabase.Postgrest.Constants.Operator.Equals, name.ToLower())
             .Get();
-        
+
         return response.Models.FirstOrDefault();
     }
 

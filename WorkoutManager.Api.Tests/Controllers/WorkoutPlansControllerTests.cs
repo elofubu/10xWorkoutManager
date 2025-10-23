@@ -17,7 +17,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     {
         _supabaseClient = factory.Services.GetRequiredService<Client>();
     }
-    
+
     [Fact]
     public async Task Create_WorkoutPlan_Should_Return_Created_When_Payload_Is_Valid()
     {
@@ -27,7 +27,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
 
         // Act
         var response = await HttpClient.PostAsJsonAsync("/api/workoutplans", command);
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var createdPlan = await response.Content.ReadFromJsonAsync<CreatedWorkoutPlanDto>();
@@ -36,7 +36,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         response.Headers.Location.Should().NotBeNull();
         response.Headers.Location!.ToString().Should().Be($"http://localhost/api/WorkoutPlans/{createdPlan.Id}");
     }
-    
+
     [Fact]
     public async Task Create_WorkoutPlan_Should_Return_BadRequest_When_Payload_Is_Invalid()
     {
@@ -46,11 +46,11 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
 
         // Act
         var response = await HttpClient.PostAsJsonAsync("/api/workoutplans", command);
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact]
     public async Task Get_WorkoutPlan_Should_Return_NotFound_When_Plan_Does_Not_Exist()
     {
@@ -59,11 +59,11 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
 
         // Act
         var response = await HttpClient.GetAsync("/api/workoutplans/999");
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-    
+
     [Fact]
     public async Task Get_WorkoutPlan_Should_Return_Plan_When_It_Exists()
     {
@@ -75,7 +75,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
 
         // Act
         var response = await HttpClient.GetAsync($"/api/workoutplans/{planId}");
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var workoutPlan = await response.Content.ReadFromJsonAsync<WorkoutPlanDetailDto>();
@@ -83,18 +83,18 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         workoutPlan.Id.Should().Be(planId);
         workoutPlan.Name.Should().Be(plan.Name);
     }
-    
+
     [Fact]
     public async Task Get_WorkoutPlans_Should_Return_Paginated_List_Of_Plans()
     {
         // Arrange
-        Authenticate(   );
+        Authenticate();
         var plans = TestDataGenerator.WorkoutPlanFaker(UserId).Generate(5);
         await _supabaseClient.From<WorkoutPlan>().Insert(plans);
 
         // Act
         var response = await HttpClient.GetAsync("/api/workoutplans?page=1&pageSize=3");
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PaginatedList<WorkoutPlanDto>>();
@@ -113,13 +113,13 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         var plan = TestDataGenerator.WorkoutPlanFaker(UserId).Generate();
         var inserted = await _supabaseClient.From<WorkoutPlan>().Insert(plan);
         var planId = inserted.Models.First().Id;
-        
+
         // Act
         var response = await HttpClient.DeleteAsync($"/api/workoutplans/{planId}");
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        
+
         var getResponse = await HttpClient.GetAsync($"/api/workoutplans/{planId}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }

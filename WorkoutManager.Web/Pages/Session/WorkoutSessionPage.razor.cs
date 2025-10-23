@@ -35,7 +35,7 @@ namespace WorkoutManager.Web.Pages.Session
                 // TODO: Handle case where session is not found, maybe navigate away
                 return;
             }
-            
+
             _sessionNotes = _session.Notes;
 
             foreach (var exercise in _session.Exercises)

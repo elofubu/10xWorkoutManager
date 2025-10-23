@@ -90,7 +90,7 @@ public class WorkoutPlanServiceTests
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
     }
-    
+
     [Fact]
     public async Task UpdateWorkoutPlanAsync_Should_Throw_BusinessRuleViolationException_When_Plan_Is_Locked()
     {

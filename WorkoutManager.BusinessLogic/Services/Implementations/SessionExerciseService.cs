@@ -51,9 +51,9 @@ public class SessionExerciseService : ISessionExerciseService
             IsFailure = s.IsFailure,
             Order = (short)s.Order
         });
-        
+
         var createdSets = await _sessionExerciseRepository.AddSetsToSessionExerciseAsync(sessionExerciseId, setsToCreate);
-        
+
         var setDtos = createdSets.Select(s => new ExerciseSetDto
         {
             Id = (int)s.Id,
@@ -84,7 +84,7 @@ public class SessionExerciseService : ISessionExerciseService
 
         sessionExercise.Skipped = true;
         await _sessionExerciseRepository.UpdateSessionExerciseAsync(sessionExercise);
-        
+
         await _sessionExerciseRepository.DeleteSetsForSessionExerciseAsync(sessionExerciseId);
     }
 }

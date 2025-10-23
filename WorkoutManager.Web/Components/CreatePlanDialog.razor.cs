@@ -45,7 +45,7 @@ namespace WorkoutManager.Web.Components
                 _newDayName = string.Empty;
             }
         }
-        
+
         private void RemoveTrainingDay(CreateTrainingDayDto day)
         {
             _trainingDays.Remove(day);

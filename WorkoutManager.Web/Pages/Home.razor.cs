@@ -9,12 +9,12 @@ namespace WorkoutManager.Web.Pages;
 
 public partial class Home
 {
-    [Inject] 
+    [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
 
     [Inject]
     private IWorkoutPlanService WorkoutPlanService { get; set; } = default!;
-    
+
     [Inject]
     private IDialogService DialogService { get; set; } = default!;
 
@@ -33,7 +33,7 @@ public partial class Home
     {
         var hasSeenWelcome = await LocalStorage.GetItemAsync<bool>("hasSeenWelcome");
         var isAuthenticated = await AuthService.IsAuthenticatedAsync();
-        
+
         if (isAuthenticated && !hasSeenWelcome)
         {
             NavigationManager.NavigateTo("/welcome");

@@ -43,7 +43,7 @@ public class SessionExerciseServiceTests
     public async Task UpdateSessionExerciseAsync_Should_Update_Exercise_And_Sets()
     {
         // Arrange
-        var command = new UpdateSessionExerciseCommand { Sets = new List<UpdateExerciseSetDto> { new UpdateExerciseSetDto() }};
+        var command = new UpdateSessionExerciseCommand { Sets = new List<UpdateExerciseSetDto> { new UpdateExerciseSetDto() } };
         _sessionExerciseRepositoryMock.Setup(x => x.GetSessionByIdAndUserIdAsync(1, _userId)).ReturnsAsync(new Session());
         _sessionExerciseRepositoryMock.Setup(x => x.GetSessionExerciseByIdAndSessionIdAsync(1, 1)).ReturnsAsync(new SessionExercise());
         _sessionExerciseRepositoryMock.Setup(x => x.AddSetsToSessionExerciseAsync(1, It.IsAny<IEnumerable<ExerciseSet>>())).ReturnsAsync(new List<ExerciseSet> { new ExerciseSet() });
@@ -58,7 +58,7 @@ public class SessionExerciseServiceTests
         _sessionExerciseRepositoryMock.Verify(x => x.AddSetsToSessionExerciseAsync(1, It.IsAny<IEnumerable<ExerciseSet>>()), Times.Once);
         result.Sets.Should().HaveCount(1);
     }
-    
+
     [Fact]
     public async Task MarkAsSkippedAsync_Should_Throw_NotFoundException_When_Exercise_Not_Found()
     {

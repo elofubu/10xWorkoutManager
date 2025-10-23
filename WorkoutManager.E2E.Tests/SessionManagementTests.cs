@@ -154,11 +154,11 @@ public class SessionManagementTests : BasePlaywrightTest
         // Expected: Session list should show the training day name for each session
         // var sessionCards = await Page.Locator("[data-testid='session-card']").AllAsync();
         // sessionCards.Should().NotBeEmpty("should have at least one completed session");
-        
+
         // var firstSession = sessionCards.First();
         // var displayedTrainingDayName = await firstSession.Locator("[data-testid='training-day-name']").TextContentAsync();
         // displayedTrainingDayName.Should().Be(trainingDayName, "session history should display the training day name");
-        
+
         // var displayedPlanName = await firstSession.Locator("[data-testid='plan-name']").TextContentAsync();
         // displayedPlanName.Should().Be(planName, "session history should display the plan name");
 

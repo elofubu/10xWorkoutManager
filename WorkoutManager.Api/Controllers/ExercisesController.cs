@@ -86,13 +86,13 @@ public class ExercisesController : ControllerBase
         {
             var userId = _userContext.GetCurrentUserId();
             var performance = await _exerciseService.GetLastPerformanceAsync(exerciseId, userId);
-            
+
             if (performance == null) return NotFound(new { error = "No previous performance found" });
-            
+
             return Ok(performance);
         }
         catch (Exception ex)
-        {   
+        {
             return StatusCode(500, new { error = ex.Message });
         }
     }

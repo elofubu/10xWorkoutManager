@@ -40,10 +40,10 @@ public class SessionExerciseRepository : ISessionExerciseRepository
             .Where(se => se.Id == sessionExerciseId)
             .Single();
 
-        if(sessionExercise == null) return null;
+        if (sessionExercise == null) return null;
 
         var session = await GetSessionByIdAndUserIdAsync(sessionExercise.SessionId, userId);
-        if(session == null) return null;
+        if (session == null) return null;
 
         sessionExercise.Session = session;
         return sessionExercise;

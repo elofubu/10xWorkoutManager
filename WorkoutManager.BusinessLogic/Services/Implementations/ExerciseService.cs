@@ -22,18 +22,18 @@ public class ExerciseService : IExerciseService
         int pageSize = 20)
     {
         var exercises = await _exerciseRepository.GetExercisesForUserAsync(userId);
-        
+
         if (muscleGroupId.HasValue)
         {
             exercises = exercises.Where(e => e.MuscleGroupId == muscleGroupId.Value);
         }
-        
+
         if (!string.IsNullOrWhiteSpace(search))
         {
-            exercises = exercises.Where(e => 
+            exercises = exercises.Where(e =>
                 e.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
-        
+
         var exercisesList = exercises.ToList();
 
         var dtos = exercisesList.Select(e => new ExerciseDto
@@ -55,7 +55,7 @@ public class ExerciseService : IExerciseService
             }
         };
     }
-    
+
     public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId)
     {
         var exercise = await _exerciseRepository.GetExerciseByIdAsync(exerciseId);
@@ -69,7 +69,7 @@ public class ExerciseService : IExerciseService
             Name = exercise.Name
         };
     }
-    
+
     public async Task<ExerciseDto> CreateExerciseAsync(CreateExerciseDto dto, Guid userId)
     {
         var existing = await _exerciseRepository.GetExerciseByNameForUserAsync(dto.Name, userId);

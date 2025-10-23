@@ -29,7 +29,7 @@ public class UpdateSessionCommandValidatorTests
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }
-    
+
     [Fact]
     public void Should_Not_Have_Error_When_Model_Is_Valid()
     {
