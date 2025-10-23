@@ -1,0 +1,23 @@
+{
+  "routes": [
+    {
+      "route": "/history",
+      "allowedRoles": [ "public" ]
+    },
+    {
+      "route": "/authorization/login",
+      "allowedRoles": [ "public" ]
+    },
+    {
+      "route": "/authorization/callback",
+      "allowedRoles": [ "public" ]
+    },
+    {
+      "route": "/settings",
+      "allowedRoles": [ "public" ]
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  }
+}
