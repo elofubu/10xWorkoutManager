@@ -38,7 +38,8 @@
 
 ### CI/CD & Hosting
 - **GitHub Actions**: For creating CI/CD pipelines
-- **DigitalOcean**: For hosting the application via Docker image
+- **Azure Static Web Apps**: For hosting the Blazor WASM frontend with global distribution and CI/CD integration.
+- **Azure App Service**: For hosting the .NET Web API backend, providing a scalable and managed environment.
 
 ### Testing
 - **xUnit**: Modern testing framework for .NET unit and integration tests

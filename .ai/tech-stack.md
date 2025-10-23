@@ -1,4 +1,5 @@
 Backend + Frontend
+- .NET Web API
 - .NET Blazor WebAssembly:
   - allows you to create fast and efficient pages
   - has static typing
@@ -48,4 +49,6 @@ CI/CD and Hosting:
   - Automatic running of tests (unit, integration, e2e)
   - Generating code coverage reports
   - Test matrix for various browsers (Playwright)
-- DigitalOcean for hosting applications via a docker image
+- **Azure Static Web Apps & Azure App Service**: A hybrid model chosen for optimal performance and scalability.
+  - *Azure Static Web Apps* hosts the Blazor WASM frontend, leveraging its global CDN and integrated CI/CD for pull request previews.
+  - *Azure App Service* hosts the .NET Web API, providing a robust, scalable, and managed environment for the backend.

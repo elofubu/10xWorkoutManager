@@ -1,0 +1,108 @@
+name: Deploy to Azure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    environment: TST
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: WorkoutManager.Api Secrets Variables Substitution
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: "**/appsettings.json"
+        env:
+          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
+          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
+          JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
+
+      - name: WorkoutManager.Api.Tests Secrets Variables Substitution
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: "**/appsettings.Testing.json"
+        env:
+          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
+          SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS_TESTUSERID }}
+          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
+          JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS_KEY }}
+          ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS_DEFAULTCONNECTION }}
+
+      - name: Run Unit and Integration Tests
+        run: |
+          dotnet test WorkoutManager.Api.Tests --no-build --configuration Release
+          dotnet test WorkoutManager.BusinessLogic.Tests --no-build --configuration Release
+          dotnet test WorkoutManager.Data.Tests --no-build --configuration Release
+
+      - name: Publish API artifact
+        run: dotnet publish ./WorkoutManager.Api -c Release -o ./api-app
+      
+      - name: Upload API artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-app
+          path: ./api-app
+
+  deploy_api:
+    runs-on: ubuntu-latest
+    needs: build_and_test
+    environment:
+      name: Production
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    steps:
+      - name: Download API artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-app
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "workout-manager" # Replace with your Azure App Service name
+          package: .
+          
+      - name: Logout from Azure
+        run: |
+          az logout
+
+  deploy_web:
+    runs-on: ubuntu-latest
+    needs: build_and_test
+    environment:
+      name: Production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create appsettings.json
+        run: |
+          echo '{ "ApiUrl": "https://workout-manager-f9ecgyhgg0adejav.westeurope-01.azurewebsites.net/" }' > WorkoutManager.Web/wwwroot/appsettings.json
+        # IMPORTANT: Replace YOUR_AZURE_API_APP_NAME with the same name used in the deploy_api job.
+
+      - name: Deploy to Azure Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "WorkoutManager.Web"
+          api_location: ""
+          output_location: "wwwroot" # The build output for Blazor WASM is directed here by default.
