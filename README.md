@@ -1,4 +1,4 @@
-# 10xWorkoutManager - test PR
+# 10xWorkoutManager - test PR2
 
 [![.NET](https://img.shields.io/badge/.NET-9.0-blue.svg)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-WebAssembly-green.svg)](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor)
