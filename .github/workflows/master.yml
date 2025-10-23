@@ -92,15 +92,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create appsettings.json
-        run: |
-          echo '{ "ApiUrl": "https://workout-manager-f9ecgyhgg0adejav.westeurope-01.azurewebsites.net/" }' > WorkoutManager.Web/wwwroot/appsettings.json
-        # IMPORTANT: Replace YOUR_AZURE_API_APP_NAME with the same name used in the deploy_api job.
-
       - name: WorkoutManager.Web Secrets Variables Substitution
         uses: microsoft/variable-substitution@v1
         with:
-          files: "**/appsettings.json"
+          files: "**/wwwroot/appsettings.json"
         env:
           SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
           SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
