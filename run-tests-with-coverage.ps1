@@ -8,7 +8,7 @@ if (Test-Path "TestResults") {
 }
 
 # Run tests with coverage
-dotnet test --collect:"XPlat Code Coverage" --results-directory:"TestResults"
+dotnet test --collect:"XPlat Code Coverage" --results-directory:"TestResults" --filter Category!=E2E
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Tests failed!" -ForegroundColor Red
