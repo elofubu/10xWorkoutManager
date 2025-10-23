@@ -97,6 +97,16 @@ jobs:
           echo '{ "ApiUrl": "https://workout-manager-f9ecgyhgg0adejav.westeurope-01.azurewebsites.net/" }' > WorkoutManager.Web/wwwroot/appsettings.json
         # IMPORTANT: Replace YOUR_AZURE_API_APP_NAME with the same name used in the deploy_api job.
 
+      - name: WorkoutManager.Web Secrets Variables Substitution
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: "**/appsettings.json"
+        env:
+          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
+          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
+          JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
+          ApiUrl: ${{ secrets.API_URL }}
+
       - name: Deploy to Azure Static Web App
         uses: Azure/static-web-apps-deploy@v1
         with:
