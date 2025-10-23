@@ -34,7 +34,7 @@ namespace WorkoutManager.Web.Components
                 Name = _model.Name,
                 MuscleGroupId = _model.MuscleGroupId
             };
-            
+
             var exercise = await ExerciseService.CreateExerciseAsync(newExerciseDto);
             MudDialog.Close(MudBlazor.DialogResult.Ok(exercise));
         }

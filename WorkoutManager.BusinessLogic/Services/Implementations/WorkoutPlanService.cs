@@ -128,7 +128,7 @@ public class WorkoutPlanService : IWorkoutPlanService
         {
             throw new BusinessRuleViolationException("Cannot delete a workout plan that is currently being used in an active session.");
         }
-        
+
         await _workoutPlanRepository.DeleteWorkoutPlanAsync(planId);
     }
 

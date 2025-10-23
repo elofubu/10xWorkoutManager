@@ -37,7 +37,7 @@ public class SessionsController : ControllerBase
             return StatusCode(500, new { error = ex.Message });
         }
     }
-    
+
     [HttpGet("{id:long}")]
     public async Task<ActionResult<SessionDetailsDto>> GetSessionById(long id)
     {
@@ -56,7 +56,7 @@ public class SessionsController : ControllerBase
             return StatusCode(500, new { error = ex.Message });
         }
     }
-    
+
     [HttpGet("active")]
     public async Task<ActionResult<SessionDetailsDto>> GetActiveSession()
     {
@@ -109,7 +109,7 @@ public class SessionsController : ControllerBase
         try
         {
             var userId = _userContext.GetCurrentUserId();
-            
+
             if (command.EndTime.HasValue)
             {
                 await _sessionService.FinishSessionAsync(id, command.Notes, userId);
@@ -118,7 +118,7 @@ public class SessionsController : ControllerBase
             {
                 await _sessionService.UpdateSessionNotesAsync(id, command.Notes, userId);
             }
-            
+
             return NoContent();
         }
         catch (NotFoundException)

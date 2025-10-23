@@ -14,7 +14,7 @@ namespace WorkoutManager.Web.Pages.History
 
         private IEnumerable<SessionSummaryDto> _sessions = new List<SessionSummaryDto>();
         private PaginationInfo _pagination = new();
-        
+
         private int PageCount => _pagination.PageSize > 0 ? (int)Math.Ceiling((double)_pagination.TotalCount / _pagination.PageSize) : 0;
 
         protected override async Task OnInitializedAsync()

@@ -15,12 +15,12 @@ public class UserContextService : IUserContextService
     {
         var userId = _httpContextAccessor.HttpContext?.User?
             .FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
+
         if (string.IsNullOrEmpty(userId))
         {
             throw new InvalidOperationException("User ID not found in token.");
         }
-        
+
         return Guid.Parse(userId);
     }
 

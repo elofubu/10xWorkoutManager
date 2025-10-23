@@ -27,7 +27,7 @@ namespace WorkoutManager.Web.Services
                     _navigationManager.NavigateTo("/authentication/update-password");
                 }
 
-                if(state == AuthState.SignedIn)
+                if (state == AuthState.SignedIn)
                 {
                     var session = _supabaseClient.Auth.CurrentSession;
                     if (session != null)
@@ -36,7 +36,7 @@ namespace WorkoutManager.Web.Services
                         _localStorage.SetItemAsStringAsync("supabase_session", sessionJson);
                     }
                 }
-                else if(state == AuthState.SignedOut)
+                else if (state == AuthState.SignedOut)
                 {
                     _localStorage.RemoveItemAsync("supabase_session");
                 }
@@ -61,7 +61,7 @@ namespace WorkoutManager.Web.Services
                 await _localStorage.RemoveItemAsync("supabase_session");
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
-            
+
             var claims = new[] {
                 new Claim(ClaimTypes.NameIdentifier, session.User.Id),
                 new Claim(ClaimTypes.Email, session.User.Email),

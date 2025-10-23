@@ -568,7 +568,7 @@ public class SessionsControllerTests : BaseIntegrationTest
         // Arrange
         Authenticate();
         var (plan, trainingDayId) = await CreateTestPlanWithTrainingDayAsync();
-        
+
         var command = new StartSessionCommand { TrainingDayId = (int)trainingDayId };
 
         // Act
@@ -596,7 +596,7 @@ public class SessionsControllerTests : BaseIntegrationTest
         var createResponse = await HttpClient.PostAsJsonAsync("/api/sessions", command);
         var session = await createResponse.Content.ReadFromJsonAsync<SessionDetailsDto>();
         session.Should().NotBeNull();
-        
+
         // End session
         var endCommand = new UpdateSessionCommand { EndTime = DateTime.UtcNow };
         await HttpClient.PutAsJsonAsync($"/api/sessions/{session!.Id}", endCommand);
@@ -609,7 +609,7 @@ public class SessionsControllerTests : BaseIntegrationTest
         var result = await response.Content.ReadFromJsonAsync<PaginatedList<SessionSummaryDto>>();
         result.Should().NotBeNull();
         result!.Data.Should().HaveCount(1);
-        
+
         var sessionSummary = result.Data[0];
         sessionSummary.TrainingDayId.Should().Be(trainingDayId, "session should be linked to the correct training day");
         sessionSummary.TrainingDayName.Should().NotBeNullOrEmpty("training day name should be populated in session history");

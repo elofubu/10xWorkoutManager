@@ -153,7 +153,7 @@ public class SessionRepository : ISessionRepository
         //return response.Models;
         var exerciseIds = sessionExercises.Models.Select(se => se.ExerciseId).ToList();
 
-        if(exerciseIds.Any() == false)
+        if (exerciseIds.Any() == false)
             return sessionExercises.Models;
 
         var exerciseResponse = await _supabaseClient
@@ -161,10 +161,10 @@ public class SessionRepository : ISessionRepository
             .Filter("id", Supabase.Postgrest.Constants.Operator.In, exerciseIds)
             .Get();
 
-        if(exerciseResponse.Models.Any() == false)
+        if (exerciseResponse.Models.Any() == false)
             return sessionExercises.Models;
 
-        foreach(var sessionExercise in sessionExercises.Models)
+        foreach (var sessionExercise in sessionExercises.Models)
         {
             var exercise = exerciseResponse.Models.FirstOrDefault(e => e.Id == sessionExercise.ExerciseId);
             sessionExercise.Exercise = exercise;
@@ -191,7 +191,7 @@ public class SessionRepository : ISessionRepository
         //}
         //return sessionExercises;
     }
-    
+
     public async Task UpdateSessionAsync(Session session)
     {
         await _supabaseClient.From<Session>().Update(session);

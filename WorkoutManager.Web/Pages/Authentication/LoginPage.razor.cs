@@ -25,7 +25,7 @@ public partial class LoginPage
 
     [Inject]
     private NavigationManager NavigationManager { get; set; }
-    
+
     [Inject]
     private AuthenticationStateProvider AuthStateProvider { get; set; }
 

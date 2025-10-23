@@ -35,11 +35,11 @@ public class ExercisesControllerTests : BaseIntegrationTest
         Authenticate();
         // Act
         var response = await HttpClient.GetAsync("/api/exercises");
-        
+
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
-    
+
     [Fact]
     public async Task Get_Exercises_Should_Return_Only_User_Owned_Exercises()
     {

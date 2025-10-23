@@ -31,7 +31,7 @@ public class PlanExerciseService : IPlanExerciseService
         {
             throw new BusinessRuleViolationException("Cannot modify a workout plan that is currently being used in an active session.");
         }
-        
+
         var trainingDay = await _planExerciseRepository.GetTrainingDayByIdAndPlanIdAsync(dayId, planId);
         if (trainingDay == null)
         {
@@ -68,7 +68,7 @@ public class PlanExerciseService : IPlanExerciseService
         {
             throw new BusinessRuleViolationException("Cannot modify a workout plan that is currently being used in an active session.");
         }
-        
+
         var trainingDay = await _planExerciseRepository.GetTrainingDayByIdAndPlanIdAsync(dayId, planId);
         if (trainingDay == null)
         {
@@ -80,7 +80,7 @@ public class PlanExerciseService : IPlanExerciseService
         {
             throw new NotFoundException("PlanDayExercise", planDayExerciseId);
         }
-        
+
         await _planExerciseRepository.RemoveExerciseFromDayAsync(planDayExerciseId);
     }
 
@@ -91,13 +91,13 @@ public class PlanExerciseService : IPlanExerciseService
         {
             throw new BusinessRuleViolationException("Cannot modify a workout plan that is currently being used in an active session.");
         }
-        
+
         var trainingDay = await _planExerciseRepository.GetTrainingDayByIdAndPlanIdAsync(dayId, planId);
         if (trainingDay == null)
         {
             throw new NotFoundException("TrainingDay", dayId);
         }
-        
+
         await _planExerciseRepository.ReorderExercisesAsync(dayId, exercises);
     }
 

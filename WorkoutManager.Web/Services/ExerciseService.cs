@@ -33,7 +33,7 @@ namespace WorkoutManager.Web.Services
             {
                 query["muscleGroupId"] = muscleGroupId.Value.ToString();
             }
-            if(page > 1)
+            if (page > 1)
             {
                 query["page"] = page.ToString();
             }

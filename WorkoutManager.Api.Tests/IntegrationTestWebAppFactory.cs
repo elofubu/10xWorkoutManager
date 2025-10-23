@@ -23,7 +23,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>
             config.AddJsonFile(configPath);
             config.AddUserSecrets<IntegrationTestWebAppFactory>();
 
-            
+
         });
 
         builder.ConfigureServices((builderContext, services) =>

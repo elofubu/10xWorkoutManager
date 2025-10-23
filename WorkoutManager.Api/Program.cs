@@ -24,7 +24,7 @@ builder.Configuration.AddUserSecrets<Program>();
 var supabaseSettings = new SupabaseSettings();
 builder.Configuration.GetSection(SupabaseSettings.SectionName).Bind(supabaseSettings);
 
-builder.Services.AddScoped(_ => 
+builder.Services.AddScoped(_ =>
 {
     var options = new SupabaseOptions
     {

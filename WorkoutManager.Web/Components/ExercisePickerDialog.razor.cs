@@ -24,7 +24,7 @@ namespace WorkoutManager.Web.Components
         private IEnumerable<ExerciseDto> _exercises = new List<ExerciseDto>();
         private List<MuscleGroupDto> _muscleGroups = new();
         private PaginationInfo _pagination = new();
-        
+
         private int PageCount => _pagination.PageSize > 0 ? (int)Math.Ceiling((double)_pagination.TotalCount / _pagination.PageSize) : 0;
 
         protected override async Task OnInitializedAsync()

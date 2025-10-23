@@ -25,7 +25,7 @@ namespace WorkoutManager.Web.Pages.Authentication
 
         [Inject]
         private IAuthService AuthService { get; set; }
-        
+
         [Inject]
         private NavigationManager NavigationManager { get; set; }
 

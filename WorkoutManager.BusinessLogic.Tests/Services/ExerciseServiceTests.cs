@@ -64,7 +64,8 @@ public class ExerciseServiceTests
         // Arrange
         var createDto = new CreateExerciseDto { Name = "New Exercise", MuscleGroupId = 1 };
         _exerciseRepositoryMock.Setup(x => x.GetExerciseByNameForUserAsync(createDto.Name, _userId)).ReturnsAsync((Exercise?)null);
-        _exerciseRepositoryMock.Setup(x => x.CreateExerciseAsync(It.IsAny<Exercise>())).ReturnsAsync((Exercise e) => {
+        _exerciseRepositoryMock.Setup(x => x.CreateExerciseAsync(It.IsAny<Exercise>())).ReturnsAsync((Exercise e) =>
+        {
             e.Id = 1;
             return e;
         });
