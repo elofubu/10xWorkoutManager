@@ -19,7 +19,9 @@ namespace WorkoutManager.Web.Services
         {
             try
             {
-                return await _supabaseClient.Auth.SignUp(email, password);
+                await _supabaseClient.Auth.SignUp(email, password);
+
+                return await Task.FromResult(true);
             }
             catch
             {
