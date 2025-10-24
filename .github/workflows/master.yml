@@ -28,6 +28,7 @@ jobs:
         env:
           SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
           SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
+          SupabaseSettings.ValidIssuer: ${{ secrets.SUPABASESETTINGS_VALIDISSUER }}
           JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
 
       - name: WorkoutManager.Api.Tests Secrets Variables Substitution
