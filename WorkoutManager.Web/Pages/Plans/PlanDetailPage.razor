@@ -49,12 +49,23 @@ else
                         <div class="d-flex gap-2 align-self-center mr-4">
                             @if (day.Exercises.Any())
                             {
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
+                                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                                    <MudIconButton Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)"></MudIconButton>
+                                </MudHidden>
+                                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
+                                </MudHidden>
                             }
 
                             @if (_isEditMode || day.Exercises.Count() == 0)
                             {
-                                <MudButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
+                                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                                    <MudIconButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" Icon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))"></MudIconButton>
+                                </MudHidden>
+                                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                                    <MudButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
+                                </MudHidden>
+
                             }
                         </div>
                     </div>

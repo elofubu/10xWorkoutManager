@@ -51,11 +51,17 @@ else
                 {
                     @foreach (var (set, index) in exercise.Sets.Select((s, i) => (s, i)))
                     {
-                        <div class="d-flex align-center mt-2">
+                        <div class="d-flex flex-wrap align-center mt-2">
                             <MudTextField @bind-Value="set.Weight" Label="Weight (kg)" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
-                            <MudTextField @bind-Value="set.Reps" Label="Reps" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" Class="ml-2" />
-                            <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2" />
+                            <MudTextField @bind-Value="set.Reps" Label="Reps" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
+                            <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                                <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2 flex-grow-1" />
+                            </MudHidden>
+                            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                                <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2" />
+                            </MudHidden>
                         </div>
                     }
                     <MudButton OnClick="() => AddSet(exercise)" Variant="Variant.Filled" Class="mt-2">Add Set</MudButton>
