@@ -24,24 +24,24 @@ jobs:
       run: dotnet build --no-restore --configuration Release
     
     - name: WorkoutManager.Api Secrets Variables Substitution
-        uses: microsoft/variable-substitution@v1
-        with:
-          files: "**/appsettings.json"
-        env:
-          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
-          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: "**/appsettings.json"
+      env:
+        SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
+        SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
+        JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
     
     - name: WorkoutManager.Api.Tests Secrets Variables Substitution
-        uses: microsoft/variable-substitution@v1
-        with:
-          files: "**/appsettings.Testing.json"
-        env:
-          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
-          SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS_TESTUSERID }}
-          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS_KEY }}
-          ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS_DEFAULTCONNECTION }}
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: "**/appsettings.Testing.json"
+      env:
+        SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
+        SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS_TESTUSERID }}
+        SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
+        JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS_KEY }}
+        ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS_DEFAULTCONNECTION }}
 
 
     - name: Run Unit and Integration Tests
