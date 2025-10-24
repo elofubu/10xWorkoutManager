@@ -108,7 +108,7 @@ jobs:
         with:
           files: "**/wwwroot/appsettings.json"
         env:
-          Supabase.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
+          Supabase.AnonKey: ${{ secrets.SUPABASESETTINGS_SECRET }}
           Supabase.Url: ${{ secrets.SUPABASESETTINGS_URL }}
           ApiUrl: ${{ secrets.API_URL }}
 
