@@ -108,9 +108,8 @@ jobs:
         with:
           files: "**/wwwroot/appsettings.json"
         env:
-          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
-          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_ISSUERSIGNINGKEY }}
+          Supabase.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
+          Supabase.Url: ${{ secrets.SUPABASESETTINGS_URL }}
           ApiUrl: ${{ secrets.API_URL }}
 
       - name: Deploy to Azure Static Web App
