@@ -2,19 +2,23 @@
   "routes": [
     {
       "route": "/history",
-      "allowedRoles": [ "public" ]
+      "allowedRoles": [ "anonymous" ]
     },
     {
       "route": "/authorization/login",
-      "allowedRoles": [ "public" ]
+      "allowedRoles": [ "anonymous" ]
     },
     {
       "route": "/authorization/callback",
-      "allowedRoles": [ "public" ]
+      "allowedRoles": [ "anonymous" ]
     },
     {
       "route": "/settings",
-      "allowedRoles": [ "public" ]
+      "allowedRoles": [ "anonymous" ]
+    },
+    {
+      "route": "/plans/*",
+      "allowedRoles": [ "anonymous" ]
     }
   ],
   "navigationFallback": {
