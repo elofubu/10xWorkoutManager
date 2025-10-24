@@ -19,9 +19,7 @@ namespace WorkoutManager.Web.Services
         {
             try
             {
-                // TODO: Implement Supabase registration
-                // Placeholder for now - will be implemented with Supabase SDK
-                return await Task.FromResult(false);
+                return await _supabaseClient.Auth.SignUp(email, password);
             }
             catch
             {
