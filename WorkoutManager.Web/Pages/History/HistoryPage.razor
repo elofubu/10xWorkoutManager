@@ -17,7 +17,7 @@ else if (!_sessions.Any())
 }
 else
 {
-    <div class="d-flex flex-wrap justify-center gap-4">
+    <div class="d-flex flex-wrap gap-4">
         @foreach (var session in _sessions)
         {
             <MudCard Class="mb-4" Style="min-width: 300px">
@@ -26,18 +26,24 @@ else
                         <MudText Typo="Typo.caption" style="text-transform: uppercase" Class="">Plan name</MudText>
                         <MudText Typo="Typo.h5">@session.PlanName</MudText>
                     </div>
+                </MudCardHeader>
+                <MudCardContent Class="d-flex justify-space-between">
                     <div>
                         <MudText Typo="Typo.caption" style="text-transform: uppercase">Training day</MudText>
-                        <MudText Typo="Typo.h6">@session.TrainingDayName</MudText>
+                        <MudText Typo="Typo.subtitle2">@session.TrainingDayName</MudText>
                     </div>
-                </MudCardHeader>
-                <MudCardContent>
+                    <div class="self-start">
+                        <MudText Typo="Typo.caption" style="text-transform: uppercase">Date</MudText>
+                        <MudText Typo="Typo.subtitle2">@session.StartTime.ToString("dd-MM-yyyy")</MudText>
+                    </div>
                     @if (session.EndTime.HasValue)
                     {
-                        <MudText Typo="Typo.caption" style="text-transform: uppercase">Duration</MudText>
-                        <MudText Typo="Typo.subtitle2">
-                            @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
-                        </MudText>
+                        <div>
+                            <MudText Typo="Typo.caption" style="text-transform: uppercase">Duration</MudText>
+                            <MudText Typo="Typo.subtitle2">
+                                @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
+                            </MudText>
+                        </div>
                     }
                 </MudCardContent>
                 <MudCardActions>
