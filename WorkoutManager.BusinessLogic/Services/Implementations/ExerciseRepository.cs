@@ -46,7 +46,8 @@ public class ExerciseRepository : IExerciseRepository
     {
         var response = await _supabaseClient
             .From<Exercise>()
-            .Where(e => e.UserId == null || e.UserId == userId)
+            .Where(e => e.UserId == null)
+            .Where(e => e.UserId == userId)
             .Filter(e => e.Name.ToLower(), Supabase.Postgrest.Constants.Operator.Equals, name.ToLower())
             .Get();
 
