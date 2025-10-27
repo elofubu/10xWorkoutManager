@@ -6,7 +6,15 @@
 <MudPopoverProvider />
 
 <MudMainContent>
-    <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
-        @Body
-    </MudContainer>
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
+            @Body
+        </MudContainer>
+    </MudHidden>
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudContainer>
+            @Body
+        </MudContainer>
+    </MudHidden>
+
 </MudMainContent>
