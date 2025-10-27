@@ -46,7 +46,7 @@ else
                 }
                 else if (exercise.Sets.Any())
                 {
-                    <MudSimpleTable Dense="true">
+                    <MudSimpleTable Elevation="0" Dense="true">
                         <thead>
                             <tr>
                                 <th>Set</th>
@@ -72,7 +72,7 @@ else
                 {
                     <MudText>No sets recorded for this exercise.</MudText>
                 }
-                
+
                 @if (!string.IsNullOrEmpty(exercise.Notes))
                 {
                     <MudText Class="mt-2"><strong>Notes:</strong> @exercise.Notes</MudText>
