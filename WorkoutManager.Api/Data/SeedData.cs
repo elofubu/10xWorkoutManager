@@ -20,7 +20,9 @@ public static class SeedData
             new() { Name = "Triceps" },
             new() { Name = "Legs" },
             new() { Name = "Abs" },
-            new() { Name = "Calves" }
+            new() { Name = "Calves" },
+            new() { Name = "Forearms" },
+            new() { Name = "Others" }
         };
 
     public static IEnumerable<ExerciseSeed> Exercises =>
