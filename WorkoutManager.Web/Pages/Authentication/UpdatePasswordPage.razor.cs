@@ -1,7 +1,6 @@
-using System;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using WorkoutManager.Web.Services;
 
@@ -29,13 +28,12 @@ namespace WorkoutManager.Web.Pages.Authentication
         [Inject]
         private NavigationManager NavigationManager { get; set; }
 
-        [CascadingParameter]
-        private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+        [Inject]
+        private ISnackbar Snackbar { get; set; } = default!;
 
         protected override async Task OnInitializedAsync()
         {
-            var authState = await AuthenticationStateTask;
-            if (authState.User?.Identity == null || !authState.User.Identity.IsAuthenticated)
+            if (!await AuthService.IsAuthenticatedAsync())
             {
                 NavigationManager.NavigateTo("/authentication/login");
             }
@@ -52,15 +50,26 @@ namespace WorkoutManager.Web.Pages.Authentication
             try
             {
                 await AuthService.UpdatePasswordAsync(_model.Password);
-                _message = "Your password has been updated successfully.";
-                _messageSeverity = Severity.Success;
-                await Task.Delay(2000); // Give user time to read the message
+
+                Snackbar.Add("Your password has been updated successfully.", Severity.Success);
+                
+                await AuthService.LogoutAsync();
                 NavigationManager.NavigateTo("/");
             }
-            catch (Exception ex)
+            catch (Supabase.Gotrue.Exceptions.GotrueException ex)
             {
-                _message = $"An error occurred: {ex.Message}";
                 _messageSeverity = Severity.Error;
+
+                try
+                {
+                    var detailedError = JsonSerializer.Deserialize<GotureMessageDetails>(ex.Message);
+
+                    _message = detailedError.Message;
+                }
+                catch (Exception innerEx)
+                {
+                    _message = $"An error occurred: {ex.Message}";
+                }
             }
             finally
             {
@@ -80,6 +89,16 @@ namespace WorkoutManager.Web.Pages.Authentication
                 return "Passwords do not match.";
             }
             return null;
+        }
+
+        private class GotureMessageDetails
+        {
+            [JsonPropertyName("code")]
+            public int Code { get; set; }
+            [JsonPropertyName("error_code")]
+            public string ErrorCode { get; set; }
+            [JsonPropertyName("msg")]
+            public string Message { get; set; }
         }
     }
 }

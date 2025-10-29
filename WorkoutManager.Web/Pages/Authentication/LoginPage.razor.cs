@@ -19,6 +19,7 @@ public partial class LoginPage
     private bool _success;
     private bool _isSubmitting;
     private string _errorMessage;
+    private bool _isLoading = false;
 
     [Inject]
     private IAuthService AuthService { get; set; }

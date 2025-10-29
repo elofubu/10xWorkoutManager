@@ -13,7 +13,7 @@ else
         <MudGrid Spacing="2">
             @foreach (var plan in _plans)
             {
-                <MudItem xs="12" sm="6" md="4">
+                <MudItem xs="12" sm="6" md="4" Class="cursor-pointer">
                     <MudCard @onclick="() => NavigateToPlan(plan.Id)">
                         <MudCardContent>
                             <MudText Typo="Typo.h6">@plan.Name</MudText>

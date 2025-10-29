@@ -1,15 +1,19 @@
 @page "/authentication/callback"
+@using WorkoutManager.Web.Services
+
 @layout EmptyLayout
 @inject Supabase.Client SupabaseClient
 @inject NavigationManager NavigationManager
+@inject IAuthService AuthService
 
 @code {
     protected override async Task OnInitializedAsync()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        
+
         // Use GetSessionFromUri which correctly parses the fragment and determines the AuthState.
-        await SupabaseClient.Auth.GetSessionFromUrl(uri, true);
+        // var session = await SupabaseClient.Auth.GetSessionFromUrl(uri, true);
+        await AuthService.GetSessionFromUri(uri);
 
         // The state change listener in SupabaseAuthenticationStateProvider will now receive
         // the correct 'PasswordRecovery' state and navigate to the update password page.
