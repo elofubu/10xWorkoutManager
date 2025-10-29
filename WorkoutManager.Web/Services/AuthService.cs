@@ -1,6 +1,5 @@
 using Blazored.LocalStorage;
 using Supabase;
-using WorkoutManager.BusinessLogic.DTOs;
 
 namespace WorkoutManager.Web.Services
 {
@@ -42,7 +41,8 @@ namespace WorkoutManager.Web.Services
 
         public async Task LogoutAsync()
         {
-            await _localStorage.RemoveItemAsync("supabase_session");
+            await _supabaseClient.Auth.SignOut();
+            //await _localStorage.RemoveItemAsync("supabase_session");
         }
 
         public async Task ResetPasswordAsync(string email)
@@ -78,26 +78,19 @@ namespace WorkoutManager.Web.Services
             }
         }
 
-        public async Task<UserDto?> GetCurrentUserAsync()
-        {
-            var token = await _localStorage.GetItemAsync<string>("accessToken");
-            if (string.IsNullOrEmpty(token))
-                return null;
-
-            // TODO: Decode token and extract user info
-            return null;
-        }
-
         public async Task<bool> IsAuthenticatedAsync()
         {
-            var token = await _localStorage.GetItemAsync<string>("accessToken");
+            var token = await _localStorage.GetItemAsync<string>("supabase_session");
+
             return !string.IsNullOrEmpty(token);
         }
 
-        //public async Task<UserDto?> IAuthService.GetCurrentUserAsync()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public async Task<bool> GetSessionFromUri(Uri uri)
+        {
+            var session = await _supabaseClient.Auth.GetSessionFromUrl(uri, true);
+            
+            return session != null;
+        }
     }
 }
 

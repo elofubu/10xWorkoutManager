@@ -5,11 +5,11 @@
       "allowedRoles": [ "anonymous" ]
     },
     {
-      "route": "/authorization/login",
+      "route": "/authentication/login",
       "allowedRoles": [ "anonymous" ]
     },
     {
-      "route": "/authorization/callback",
+      "route": "/authentication/callback",
       "allowedRoles": [ "anonymous" ]
     },
     {

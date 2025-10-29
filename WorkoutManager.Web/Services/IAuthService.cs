@@ -10,7 +10,7 @@ public interface IAuthService
     Task ResetPasswordAsync(string email);
     Task UpdatePasswordAsync(string newPassword);
     Task<bool> DeleteAccountAsync(string password);
-    Task<UserDto?> GetCurrentUserAsync();
     Task<bool> IsAuthenticatedAsync();
+    Task<bool> GetSessionFromUri(Uri uri);
 }
 
