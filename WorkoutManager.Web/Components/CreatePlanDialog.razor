@@ -5,10 +5,10 @@
         <MudText Typo="Typo.h6">Create New Workout Plan</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_planName" Label="Plan Name" Required="true" />
+        <MudTextField Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_planName" Label="Plan Name" Required="true" Disabled="@_isSubmitting" />
         <div class="d-flex gap-2">
-            <MudTextField Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_newDayName" Label="New Day Name" OnKeyUp="HandleDayNameKeyup" />
-            <MudButton Class="mr-auto" OnClick="AddTrainingDay">Add Day</MudButton>
+            <MudTextField Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_newDayName" Label="New Day Name" OnKeyUp="HandleDayNameKeyup" Disabled="@_isSubmitting" />
+            <MudButton Class="mr-auto" OnClick="AddTrainingDay" Disabled="@_isSubmitting">Add Day</MudButton>
         </div>
         <div class="mt-4">
             <MudText Class="py-2" Typo="Typo.subtitle2">Days list</MudText>
@@ -21,19 +21,23 @@
                 {
                     <MudListItem Class="pa-1 mx-2">
                         <MudText>@day.Name
-                            <MudIconButton Style="float: right" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveTrainingDay(day)" />
+                            <MudIconButton Style="float: right" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveTrainingDay(day)" Disabled="@_isSubmitting" />
                         </MudText>
-                        
+
                     </MudListItem>
                 }
             </MudList>
         </div>
     </DialogContent>
     <DialogActions>
-
-
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Create</MudButton>
+        <MudButton OnClick="Cancel" Disabled="@_isSubmitting">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@_isSubmitting">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Create
+        </MudButton>
     </DialogActions>
 </MudDialog>
 <style>

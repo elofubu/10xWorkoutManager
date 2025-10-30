@@ -3,86 +3,123 @@
 
 <PageTitle>Workout Session</PageTitle>
 
-@if (_session is null)
+@if (_isLoading)
 {
-    <div class="d-flex justify-center">
-        <MudProgressCircular Indeterminate="true" />
-    </div>
+    <MudOverlay Visible="true" DarkBackground="true">
+        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    </MudOverlay>
+}
+else if (_session is null)
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
+        <MudText Color="Color.Error">Unable to load session details. Please try again.</MudText>
+    </MudContainer>
 }
 else
 {
-    <MudStepper @ref=_stepper @bind-ActiveIndex="_index" Outlined="true" Linear="false">
-        @foreach (var exercise in _session.Exercises.OrderBy(e => e.Order))
-        {
-            <MudStep Title="@GetExerciseName(exercise.ExerciseId)" StepContentStyle="overflow-y: auto; max-height: 60vh;">
-                @if (_previousSessionData.TryGetValue(exercise.ExerciseId, out var previous))
-                {
-                    <MudText Typo="Typo.h6">Previous Session:</MudText>
-                    <MudSimpleTable>
-                        <thead>
-                            <tr>
-                                <th>Weight</th>
-                                <th>Reps</th>
-                                <th>Failure</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var set in previous.Sets)
-                            {
-                                <tr>
-                                    <td>@set.Weight</td>
-                                    <td>@set.Reps</td>
-                                    <td>@(set.IsFailure ? "Yes" : "No")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </MudSimpleTable>
-                }
-                else
-                {
-                    <MudText>No previous data for this exercise.</MudText>
-                }
+    <MudProgressLinear Value="@((_index + 1) / (double)_session.Exercises.Count * 100)" Color="Color.Info" Class="mb-4" />
+    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-4">
+        Exercise @(_index + 1) of @_session.Exercises.Count
+    </MudText>
 
-                <MudText Typo="Typo.h6" Class="mt-4">Current Session:</MudText>
-
-                <MudCheckBox T="bool" @bind-Checked="exercise.Skipped" Label="Skip this exercise" Color="Color.Warning" Class="mb-2" />
-
-                @if (!exercise.Skipped)
-                {
-                    @foreach (var (set, index) in exercise.Sets.Select((s, i) => (s, i)))
+    <MudStepper Context=_stepper @bind-ActiveIndex="_index" Outlined="true" Linear="false">
+        <ChildContent>
+            @foreach (var exercise in _session.Exercises.OrderBy(e => e.Order))
+            {
+                <MudStep Title="@GetExerciseName(exercise.ExerciseId)" StepContentStyle="overflow-y: auto; max-height: 60vh;">
+                    @if (_previousSessionData.TryGetValue(exercise.ExerciseId, out var previous))
                     {
-                        <div class="d-flex flex-wrap align-center mt-2">
-                            <MudTextField @bind-Value="set.Weight" Label="Weight (kg)" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
-                            <MudTextField @bind-Value="set.Reps" Label="Reps" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
-                            <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                                <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2 flex-grow-1" />
-                            </MudHidden>
-                            <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                                <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2" />
-                            </MudHidden>
-                        </div>
+                        <MudText Typo="Typo.h6">Previous Session:</MudText>
+                        <MudSimpleTable>
+                            <thead>
+                                <tr>
+                                    <th>Weight</th>
+                                    <th>Reps</th>
+                                    <th>Failure</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var set in previous.Sets)
+                                {
+                                    <tr>
+                                        <td>@set.Weight</td>
+                                        <td>@set.Reps</td>
+                                        <td>@(set.IsFailure ? "Yes" : "No")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </MudSimpleTable>
                     }
-                    <MudButton OnClick="() => AddSet(exercise)" Variant="Variant.Filled" Class="mt-2">Add Set</MudButton>
-                }
+                    else
+                    {
+                        <MudText>No previous data for this exercise.</MudText>
+                    }
 
-                <MudTextField @bind-Value="exercise.Notes" Label="Notes" Lines="3" Variant="Variant.Outlined" Class="mt-4" />
-            </MudStep>
-        }
+                    <MudText Typo="Typo.h6" Class="mt-4">Current Session:</MudText>
+
+                    <MudCheckBox T="bool" @bind-Checked="exercise.Skipped" Label="Skip this exercise" Color="Color.Warning" Class="mb-2" />
+
+                    @if (!exercise.Skipped)
+                    {
+                        @foreach (var (set, index) in exercise.Sets.Select((s, i) => (s, i)))
+                        {
+                            <div class="d-flex flex-wrap align-center mt-2">
+                                <MudTextField @bind-Value="set.Weight" Label="Weight (kg)" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
+                                <MudTextField @bind-Value="set.Reps" Label="Reps" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
+                                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                                    <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2 flex-grow-1" />
+                                </MudHidden>
+                                <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                                    <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2" />
+                                </MudHidden>
+                            </div>
+                        }
+                        <MudButton OnClick="() => AddSet(exercise)" Variant="Variant.Filled" Class="mt-2">Add Set</MudButton>
+                    }
+
+                    <MudTextField @bind-Value="exercise.Notes" Label="Notes" Lines="3" Variant="Variant.Outlined" Class="mt-4" />
+                </MudStep>
+            }
+        </ChildContent>
+        <CompletedContent>
+            @* <MudStack Row Class="ma-3"> *@
+            <div class="d-flex flex-column align-center">
+
+                <MudIcon Icon="@Icons.Material.Filled.Done" Color="Color.Success" Size="Size.Large" />
+                <MudText Class="my-4">
+                    Congratulations! Your workout is done!
+                </MudText>
+                <MudText Class="my-4">You can write your notest and save all data!</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Disabled="@(_isSavingExercise || _isCanceling)" Class="my-4">
+                    @if (_isSavingExercise)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Finish Workout
+                </MudButton>
+            </div>
+            @* </MudStack> *@
+        </CompletedContent>
     </MudStepper>
 
     <MudTextField @bind-Value="_sessionNotes" Label="Session Notes" Lines="3"
-                  Variant="Variant.Outlined" Class="mt-4" />
+                  Variant="Variant.Outlined" Class="mt-4" Disabled="@_isSavingExercise" />
 
-    <div class="d-flex justify-end mt-4">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Class="ml-2">@(_index == _session.Exercises.Count - 1 ? "Finish Workout" : "Save and Next")</MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelWorkout" Class="ml-2">Cancel workout</MudButton>
+    <div class="d-flex justify-end mt-4 gap-2">
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelWorkout" Disabled="@(_isSavingExercise || _isCanceling)" Class="ml-2">
+            @if (_isCanceling)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Cancel workout
+        </MudButton>
     </div>
 }
 
 <style>
-    .mud-card-actions.mud-stepper-actions {
-        display: none !important;
-    }
+    /* .mud-card-actions.mud-stepper-actions {
+                                    display: none !important;
+                                } */
 </style>

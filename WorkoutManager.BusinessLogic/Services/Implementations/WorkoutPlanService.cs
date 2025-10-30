@@ -27,7 +27,10 @@ public class WorkoutPlanService : IWorkoutPlanService
         var dtos = planList.Select(wp => new WorkoutPlanDto(
             (int)wp.Id,
             wp.Name,
-            wp.CreatedAt
+            wp.CreatedAt,
+            wp.TrainingDays?.Select(td => 
+                new TrainingDayDto(td.Id, td.Name, td.Order, td.Exercises.Select(e =>
+                    new PlanDayExerciseDto(-1, e.Id, e.Name, -1))))
         )).ToList();
 
         return new PaginatedList<WorkoutPlanDto>
