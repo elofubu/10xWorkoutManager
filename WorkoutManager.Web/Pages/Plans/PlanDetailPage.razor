@@ -3,11 +3,17 @@
 
 <PageTitle>@($"Plan: {_plan?.Name ?? "..."}")</PageTitle>
 
-@if (_plan is null)
+@if (_isLoading)
 {
-    <div class="d-flex justify-center">
+    <MudOverlay Visible="true" DarkBackground="true">
         <MudProgressCircular Indeterminate="true" />
-    </div>
+    </MudOverlay>
+}
+else if (_plan is null)
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
+        <MudText Color="Color.Error">Unable to load plan details. Please try again.</MudText>
+    </MudContainer>
 }
 else
 {
@@ -15,24 +21,30 @@ else
         <MudItem>
             @if (_isEditingName)
             {
-                <MudTextField @bind-Value="_editedPlanName" Label="Plan Name" Variant="Variant.Outlined" />
-                <MudButton OnClick="SavePlanName" Size="Size.Small" Color="Color.Primary">Save</MudButton>
-                <MudButton OnClick="CancelEditName" Size="Size.Small">Cancel</MudButton>
+                <MudTextField @bind-Value="_editedPlanName" Label="Plan Name" Variant="Variant.Outlined" Disabled="@_isSavingName" />
+                <MudButton OnClick="SavePlanName" Size="Size.Small" Color="Color.Primary" Disabled="@_isSavingName">
+                    @if (_isSavingName)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Save
+                </MudButton>
+                <MudButton OnClick="CancelEditName" Size="Size.Small" Disabled="@_isSavingName">Cancel</MudButton>
             }
             else
             {
                 <MudText Typo="Typo.h4">
                     @_plan.Name
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="StartEditingName" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="StartEditingName" Disabled="@_isSavingName" />
                 </MudText>
             }
         </MudItem>
         <MudItem Class="d-flex gap-2 align-center">
             @if (_plan.TrainingDays.Any())
             {
-                <MudSwitch T="bool" @bind-Value="_isEditMode" Label="Edit Mode" Color="Color.Primary" />
+                <MudSwitch T="bool" @bind-Value="_isEditMode" Label="Edit Mode" Color="Color.Primary" Disabled="@_isDeleting" />
             }
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeletePlan" />
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeletePlan" Disabled="@_isDeleting" />
         </MudItem>
     </MudGrid>
 
@@ -50,20 +62,32 @@ else
                             @if (day.Exercises.Any())
                             {
                                 <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                                    <MudIconButton Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)"></MudIconButton>
+                                    <MudIconButton Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)" Disabled="@_isStartingWorkout"></MudIconButton>
                                 </MudHidden>
                                 <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)">Start Workout</MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)" Disabled="@_isStartingWorkout">
+                                        @if (_isStartingWorkout)
+                                        {
+                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                        }
+                                        Start Workout
+                                    </MudButton>
                                 </MudHidden>
                             }
 
                             @if (_isEditMode || day.Exercises.Count() == 0)
                             {
                                 <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                                    <MudIconButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" Icon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))"></MudIconButton>
+                                    <MudIconButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" Icon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))" Disabled="@_isAddingExercise"></MudIconButton>
                                 </MudHidden>
                                 <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                                    <MudButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))">Add Exercise</MudButton>
+                                    <MudButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))" Disabled="@_isAddingExercise">
+                                        @if (_isAddingExercise)
+                                        {
+                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                        }
+                                        Add Exercise
+                                    </MudButton>
                                 </MudHidden>
 
                             }
@@ -79,7 +103,7 @@ else
                                     @exercise.Name
                                     @if (_isEditMode)
                                     {
-                                        <MudIconButton Class="float-right" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" />
+                                        <MudIconButton Class="float-right" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" Disabled="@(_isDeletingExercise && _deletingExerciseId == exercise.PlanDayExerciseId)" />
                                     }
                                 </MudListItem>
                             </div>

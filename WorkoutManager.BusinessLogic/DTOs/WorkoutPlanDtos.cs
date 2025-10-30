@@ -17,7 +17,8 @@ public record CreateWorkoutPlanDto
 public record WorkoutPlanDto(
     long Id,
     string Name,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    IEnumerable<TrainingDayDto> TrainingDays
 );
 
 public record CreatedTrainingDayDto(

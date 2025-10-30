@@ -16,6 +16,11 @@ public partial class SettingsPage
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    private bool _isDeletingAccount = false;
+
     private async Task DeleteAccount()
     {
         var parameters = new DialogParameters
@@ -30,14 +35,25 @@ public partial class SettingsPage
 
         if (result is not null && !result.Canceled && result.Data is string password)
         {
-            var success = await AuthService.DeleteAccountAsync(password);
-            if (success)
+            _isDeletingAccount = true;
+            try
             {
-                Snackbar.Add("Account deleted successfully.", Severity.Success);
+                var success = await AuthService.DeleteAccountAsync(password);
+                if (success)
+                {
+                    Snackbar.Add("Account deleted successfully.", Severity.Success);
+                    // Redirect after a short delay to allow user to see the message
+                    await Task.Delay(1500);
+                    NavigationManager.NavigateTo("/authentication/login");
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete account. Please check your password.", Severity.Error);
+                }
             }
-            else
+            finally
             {
-                Snackbar.Add("Failed to delete account. Please check your password.", Severity.Error);
+                _isDeletingAccount = false;
             }
         }
     }

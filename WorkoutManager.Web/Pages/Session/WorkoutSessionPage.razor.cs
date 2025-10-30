@@ -25,37 +25,48 @@ namespace WorkoutManager.Web.Pages.Session
         private Dictionary<long, string> _exerciseNames = new();
         private string? _sessionNotes;
         private int _index;
+        private bool _isLoading = true;
+        private bool _isSavingExercise = false;
+        private bool _isCanceling = false;
 
         protected override async Task OnInitializedAsync()
         {
-            _session = await SessionService.GetSessionDetailsAsync(SessionId);
-
-            if (_session is null)
+            _isLoading = true;
+            try
             {
-                // TODO: Handle case where session is not found, maybe navigate away
-                return;
+                _session = await SessionService.GetSessionDetailsAsync(SessionId);
+
+                if (_session is null)
+                {
+                    // TODO: Handle case where session is not found, maybe navigate away
+                    return;
+                }
+
+                _sessionNotes = _session.Notes;
+
+                foreach (var exercise in _session.Exercises)
+                {
+                    //Add 3 empty sets objects
+                    while (exercise.Sets.Count < 3)
+                    {
+                        exercise.Sets.Add(new ExerciseSetDto());
+                    }
+
+                    var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId);
+                    if (previous is not null)
+                    {
+                        _previousSessionData[exercise.ExerciseId] = previous;
+                    }
+                    var exerciseDetails = await ExerciseService.GetExerciseByIdAsync(exercise.ExerciseId);
+                    if (exerciseDetails is not null)
+                    {
+                        _exerciseNames[exercise.ExerciseId] = exerciseDetails.Name;
+                    }
+                }
             }
-
-            _sessionNotes = _session.Notes;
-
-            foreach (var exercise in _session.Exercises)
+            finally
             {
-                //Add 3 empty sets objects
-                while (exercise.Sets.Count < 3)
-                {
-                    exercise.Sets.Add(new ExerciseSetDto());
-                }
-
-                var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId);
-                if (previous is not null)
-                {
-                    _previousSessionData[exercise.ExerciseId] = previous;
-                }
-                var exerciseDetails = await ExerciseService.GetExerciseByIdAsync(exercise.ExerciseId);
-                if (exerciseDetails is not null)
-                {
-                    _exerciseNames[exercise.ExerciseId] = exerciseDetails.Name;
-                }
+                _isLoading = false;
             }
         }
 
@@ -76,37 +87,48 @@ namespace WorkoutManager.Web.Pages.Session
 
         private async Task NextStep()
         {
-            var currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
-
-            var payload = new UpdateSessionExerciseDto
+            _isSavingExercise = true;
+            try
             {
-                Notes = currentExercise.Notes,
-                Skipped = currentExercise.Skipped,
-                Sets = currentExercise.Skipped ? new List<ExerciseSetDto>() : currentExercise.Sets.Where(s => s.Weight != 0 && s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
-            };
+                var currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
 
-            await SessionService.UpdateSessionExerciseAsync(_session.Id, currentExercise.Id, payload);
+                var payload = new UpdateSessionExerciseDto
+                {
+                    Notes = currentExercise.Notes,
+                    Skipped = currentExercise.Skipped,
+                    Sets = currentExercise.Skipped ? new List<ExerciseSetDto>() : currentExercise.Sets.Where(s => s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
+                };
 
-            if (_index == _session.Exercises.Count - 1)
-            {
-                await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
-                NavigationManager.NavigateTo("/history");
+                await SessionService.UpdateSessionExerciseAsync(_session.Id, currentExercise.Id, payload);
+
+                if (_index == _session.Exercises.Count - 1)
+                {
+                    await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
+                    NavigationManager.NavigateTo("/history");
+                }
+                else
+                {
+                    await _stepper.NextStepAsync();
+                }
             }
-            else
+            finally
             {
-                await _stepper.NextStepAsync();
+                _isSavingExercise = false;
             }
         }
 
         private async Task CancelWorkout()
         {
-            await SessionService.FinishSessionAsync(_session.Id, _session.Notes);
-            NavigationManager.NavigateTo("/");
+            _isCanceling = true;
+            try
+            {
+                await SessionService.FinishSessionAsync(_session.Id, _session.Notes);
+                NavigationManager.NavigateTo("/");
+            }
+            catch
+            {
+                _isCanceling = false;
+            }
         }
-
-        //private async Task PreviousStep()
-        //{
-        //    await _stepper.PreviousStepAsync();
-        //}
     }
 }

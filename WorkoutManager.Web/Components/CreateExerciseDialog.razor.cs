@@ -20,23 +20,41 @@ namespace WorkoutManager.Web.Components
         private bool _success;
         private CreateExerciseModel _model = new();
         private List<MuscleGroupDto> _muscleGroups = new();
+        private bool _isLoading = true;
+        private bool _isSubmitting = false;
 
         protected override async Task OnInitializedAsync()
         {
-            var result = await MuscleGroupService.GetMuscleGroupsAsync();
-            _muscleGroups = result.ToList();
+            _isLoading = true;
+            try
+            {
+                var result = await MuscleGroupService.GetMuscleGroupsAsync();
+                _muscleGroups = result.ToList();
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
 
         private async Task Submit()
         {
-            var newExerciseDto = new CreateExerciseDto
+            _isSubmitting = true;
+            try
             {
-                Name = _model.Name,
-                MuscleGroupId = _model.MuscleGroupId
-            };
+                var newExerciseDto = new CreateExerciseDto
+                {
+                    Name = _model.Name,
+                    MuscleGroupId = _model.MuscleGroupId
+                };
 
-            var exercise = await ExerciseService.CreateExerciseAsync(newExerciseDto);
-            MudDialog.Close(MudBlazor.DialogResult.Ok(exercise));
+                var exercise = await ExerciseService.CreateExerciseAsync(newExerciseDto);
+                MudDialog.Close(MudBlazor.DialogResult.Ok(exercise));
+            }
+            finally
+            {
+                _isSubmitting = false;
+            }
         }
 
         private void Cancel() => MudDialog.Cancel();

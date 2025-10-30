@@ -14,6 +14,12 @@
         <MudText>Be careful, these actions are destructive.</MudText>
     </MudCardContent>
     <MudCardActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="async () => await DeleteAccount()">Delete Account</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="async () => await DeleteAccount()" Disabled="@_isDeletingAccount">
+            @if (_isDeletingAccount)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Delete Account
+        </MudButton>
     </MudCardActions>
 </MudCard>

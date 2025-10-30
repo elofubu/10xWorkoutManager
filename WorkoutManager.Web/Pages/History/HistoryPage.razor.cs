@@ -14,14 +14,44 @@ namespace WorkoutManager.Web.Pages.History
 
         private IEnumerable<SessionSummaryDto> _sessions = new List<SessionSummaryDto>();
         private PaginationInfo _pagination = new();
+        private bool _isLoading = true;
+        private bool _isPaginationLoading = false;
+        private int _currentPage = 1;
 
         private int PageCount => _pagination.PageSize > 0 ? (int)Math.Ceiling((double)_pagination.TotalCount / _pagination.PageSize) : 0;
 
         protected override async Task OnInitializedAsync()
         {
-            var result = await SessionService.GetSessionHistoryAsync();
-            _sessions = result.Data;
-            _pagination = result.Pagination;
+            _isLoading = true;
+            try
+            {
+                var result = await SessionService.GetSessionHistoryAsync();
+                _sessions = result.Data;
+                _pagination = result.Pagination;
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+
+        private async Task PageChanged(int page)
+        {
+            _isPaginationLoading = true;
+            _currentPage = page;
+            try
+            {
+                //no paggination implemented yet
+                //var result = await SessionService.GetSessionHistoryAsync(page);
+                var result = await SessionService.GetSessionHistoryAsync();
+                _sessions = result.Data;
+                _pagination = result.Pagination;
+                StateHasChanged();
+            }
+            finally
+            {
+                _isPaginationLoading = false;
+            }
         }
 
         private void NavigateToSession(long sessionId)

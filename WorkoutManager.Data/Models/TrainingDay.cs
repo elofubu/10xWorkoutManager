@@ -25,8 +25,8 @@ public class TrainingDay : BaseModel
     public DateTime CreatedAt { get; set; }
 
     // Direct M2M to Exercise for simple queries
-    [JsonIgnore]
-    //[Reference(typeof(Exercise), useInnerJoin: false, includeInQuery: true)]
+    //[JsonIgnore]
+    [Reference(typeof(Exercise), useInnerJoin: false, includeInQuery: true)]
     public List<Exercise> Exercises { get; set; } = new();
 
     // Junction table for order/metadata access - preserves the order column

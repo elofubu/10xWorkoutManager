@@ -31,10 +31,25 @@ public partial class PlanDetailPage
     private bool _isEditMode;
     private bool _isEditingName;
     private string _editedPlanName = string.Empty;
+    private bool _isLoading = true;
+    private bool _isSavingName = false;
+    private bool _isDeleting = false;
+    private bool _isAddingExercise = false;
+    private bool _isDeletingExercise = false;
+    private bool _isStartingWorkout = false;
+    private long? _deletingExerciseId = null;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadPlan();
+        _isLoading = true;
+        try
+        {
+            await LoadPlan();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private async Task LoadPlan()
@@ -52,6 +67,7 @@ public partial class PlanDetailPage
     {
         if (_plan == null) return;
 
+        _isSavingName = true;
         try
         {
             await WorkoutPlanService.UpdateWorkoutPlanAsync(Id, new UpdateWorkoutPlanDto(
@@ -65,6 +81,10 @@ public partial class PlanDetailPage
         catch (Exception ex)
         {
             Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _isSavingName = false;
         }
     }
 
@@ -88,6 +108,7 @@ public partial class PlanDetailPage
 
         if (result is not null && !result.Canceled)
         {
+            _isDeleting = true;
             try
             {
                 await WorkoutPlanService.DeleteWorkoutPlanAsync(Id);
@@ -97,6 +118,7 @@ public partial class PlanDetailPage
             catch (Exception ex)
             {
                 Snackbar.Add(ex.Message, Severity.Error);
+                _isDeleting = false;
             }
         }
     }
@@ -115,11 +137,12 @@ public partial class PlanDetailPage
 
         if (result is not null && !result.Canceled && result.Data is ExerciseDto selectedExercise)
         {
-            var trainingDay = _plan!.TrainingDays.First(td => td.Id == trainingDayId);
-            var nextOrder = trainingDay.Exercises.Any() ? trainingDay.Exercises.Max(e => e.Order) + 1 : 1;
-
+            _isAddingExercise = true;
             try
             {
+                var trainingDay = _plan!.TrainingDays.First(td => td.Id == trainingDayId);
+                var nextOrder = trainingDay.Exercises.Any() ? trainingDay.Exercises.Max(e => e.Order) + 1 : 1;
+
                 await WorkoutPlanService.AddExerciseToTrainingDayAsync(Id, trainingDayId, new AddExerciseToTrainingDayCommand
                 {
                     ExerciseId = (int)selectedExercise.Id,
@@ -132,35 +155,52 @@ public partial class PlanDetailPage
             {
                 Snackbar.Add(ex.Message, Severity.Error);
             }
+            finally
+            {
+                _isAddingExercise = false;
+            }
         }
     }
 
     private async Task StartWorkout(long trainingDayId)
     {
-        var activeSession = await SessionService.GetActiveSessionAsync();
-        if (activeSession != null)
+        _isStartingWorkout = true;
+        try
         {
-            var dialog = await DialogService.ShowAsync<ActiveSessionDialog>("Active Session Found");
-            var result = await dialog.Result;
-
-            if (result is not null && !result.Canceled && result.Data is string choice)
+            var activeSession = await SessionService.GetActiveSessionAsync();
+            if (activeSession != null)
             {
-                if (choice == "continue")
+                var dialog = await DialogService.ShowAsync<ActiveSessionDialog>("Active Session Found");
+                var result = await dialog.Result;
+
+                if (result is not null && !result.Canceled && result.Data is string choice)
                 {
-                    NavigationManager.NavigateTo($"/session/workout/{activeSession.Id}");
+                    if (choice == "continue")
+                    {
+                        NavigationManager.NavigateTo($"/session/workout/{activeSession.Id}");
+                    }
+                    else if (choice == "finish_and_start_new")
+                    {
+                        await SessionService.FinishSessionAsync(activeSession.Id, activeSession.Notes);
+                        var newSession = await SessionService.StartSessionAsync(trainingDayId);
+                        NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+                    }
                 }
-                else if (choice == "finish_and_start_new")
+                else
                 {
-                    await SessionService.FinishSessionAsync(activeSession.Id, activeSession.Notes);
-                    var newSession = await SessionService.StartSessionAsync(trainingDayId);
-                    NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+                    _isStartingWorkout = false;
                 }
             }
+            else
+            {
+                var newSession = await SessionService.StartSessionAsync(trainingDayId);
+                NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var newSession = await SessionService.StartSessionAsync(trainingDayId);
-            NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+            Snackbar.Add($"Error starting workout: {ex.Message}", Severity.Error);
+            _isStartingWorkout = false;
         }
     }
 
@@ -178,6 +218,8 @@ public partial class PlanDetailPage
 
         if (result is not null && !result.Canceled)
         {
+            _isDeletingExercise = true;
+            _deletingExerciseId = planDayExerciseId;
             try
             {
                 await WorkoutPlanService.RemoveExerciseFromTrainingDayAsync(Id, trainingDayId, planDayExerciseId);
@@ -187,6 +229,8 @@ public partial class PlanDetailPage
             catch
             {
                 Snackbar.Add("Failed to remove exercise", Severity.Error);
+                _isDeletingExercise = false;
+                _deletingExerciseId = null;
             }
         }
     }
