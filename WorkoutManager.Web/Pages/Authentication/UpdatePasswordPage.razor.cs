@@ -52,7 +52,7 @@ namespace WorkoutManager.Web.Pages.Authentication
                 await AuthService.UpdatePasswordAsync(_model.Password);
 
                 Snackbar.Add("Your password has been updated successfully.", Severity.Success);
-                
+
                 await AuthService.LogoutAsync();
                 NavigationManager.NavigateTo("/");
             }
