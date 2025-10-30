@@ -28,7 +28,7 @@ public class WorkoutPlanService : IWorkoutPlanService
             (int)wp.Id,
             wp.Name,
             wp.CreatedAt,
-            wp.TrainingDays?.Select(td => 
+            wp.TrainingDays?.Select(td =>
                 new TrainingDayDto(td.Id, td.Name, td.Order, td.Exercises.Select(e =>
                     new PlanDayExerciseDto(-1, e.Id, e.Name, -1))))
         )).ToList();
