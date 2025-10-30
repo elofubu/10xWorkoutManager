@@ -1,3 +1,10 @@
+@if (_isLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    </MudOverlay>
+}
+
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">Create Exercise</MudText>
@@ -10,7 +17,8 @@
                           Margin="Margin.Dense"
                           Label="Name"
                           Required="true"
-                          RequiredError="Name is required!" />
+                          RequiredError="Name is required!"
+                          Disabled="@_isSubmitting" />
 
             <MudSelect T="long"
                        @bind-Value="_model.MuscleGroupId"
@@ -19,7 +27,8 @@
                        Label="Muscle Group"
                        Placeholder="Select muscle group"
                        Required="true"
-                       RequiredError="Please select a muscle group">
+                       RequiredError="Please select a muscle group"
+                       Disabled="@_isSubmitting">
 
                 <MudSelectItem Value="0L" Disabled="true">Select muscle group</MudSelectItem>
 
@@ -31,10 +40,16 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="Cancel" Disabled="@_isSubmitting">Cancel</MudButton>
         <MudButton Color="Color.Primary"
                    Variant="Variant.Filled"
-                   Disabled="@(!_success)"
-                   OnClick="Submit">Create</MudButton>
+                   Disabled="@(!_success || _isSubmitting)"
+                   OnClick="Submit">
+            @if (_isSubmitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            Create
+        </MudButton>
     </DialogActions>
 </MudDialog>

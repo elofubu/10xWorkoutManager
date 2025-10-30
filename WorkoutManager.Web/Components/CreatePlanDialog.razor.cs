@@ -18,6 +18,7 @@ namespace WorkoutManager.Web.Components
         private string _newDayName = string.Empty;
         private List<CreateTrainingDayDto> _trainingDays = new();
         private int _orderCounter = 1;
+        private bool _isSubmitting = false;
 
         private void Submit()
         {
@@ -27,12 +28,20 @@ namespace WorkoutManager.Web.Components
                 return;
             }
 
-            var newPlan = new CreateWorkoutPlanDto
+            _isSubmitting = true;
+            try
             {
-                Name = _planName,
-                TrainingDays = _trainingDays.Select(d => new CreateTrainingDayDto { Name = d.Name, Order = d.Order }).ToList()
-            };
-            MudDialog.Close(DialogResult.Ok(newPlan));
+                var newPlan = new CreateWorkoutPlanDto
+                {
+                    Name = _planName,
+                    TrainingDays = _trainingDays.Select(d => new CreateTrainingDayDto { Name = d.Name, Order = d.Order }).ToList()
+                };
+                MudDialog.Close(DialogResult.Ok(newPlan));
+            }
+            finally
+            {
+                _isSubmitting = false;
+            }
         }
 
         void Cancel() => MudDialog.Cancel();

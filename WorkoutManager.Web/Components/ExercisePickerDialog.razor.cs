@@ -24,22 +24,40 @@ namespace WorkoutManager.Web.Components
         private IEnumerable<ExerciseDto> _exercises = new List<ExerciseDto>();
         private List<MuscleGroupDto> _muscleGroups = new();
         private PaginationInfo _pagination = new();
+        private bool _isLoading = true;
+        private bool _isSearching = false;
 
         private int PageCount => _pagination.PageSize > 0 ? (int)Math.Ceiling((double)_pagination.TotalCount / _pagination.PageSize) : 0;
 
         protected override async Task OnInitializedAsync()
         {
-            var muscleGroupsResult = await MuscleGroupService.GetMuscleGroupsAsync();
-            _muscleGroups = muscleGroupsResult.ToList();
-            await LoadExercises();
+            _isLoading = true;
+            try
+            {
+                var muscleGroupsResult = await MuscleGroupService.GetMuscleGroupsAsync();
+                _muscleGroups = muscleGroupsResult.ToList();
+                await LoadExercises();
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
 
         private async Task LoadExercises(int page = 1)
         {
-            var result = await ExerciseService.GetExercisesAsync(_search, _selectedMuscleGroupId, page);
-            _exercises = result.Data;
-            _pagination = result.Pagination;
-            StateHasChanged();
+            _isSearching = true;
+            try
+            {
+                var result = await ExerciseService.GetExercisesAsync(_search, _selectedMuscleGroupId, page);
+                _exercises = result.Data;
+                _pagination = result.Pagination;
+                StateHasChanged();
+            }
+            finally
+            {
+                _isSearching = false;
+            }
         }
 
         private async Task SearchExercises()
