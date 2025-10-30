@@ -88,7 +88,7 @@ namespace WorkoutManager.Web.Services
         public async Task<bool> GetSessionFromUri(Uri uri)
         {
             var session = await _supabaseClient.Auth.GetSessionFromUrl(uri, true);
-            
+
             return session != null;
         }
     }
