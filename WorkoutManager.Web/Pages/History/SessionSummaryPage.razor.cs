@@ -16,11 +16,20 @@ namespace WorkoutManager.Web.Pages.History
         [Inject]
         private ISessionService SessionService { get; set; } = default!;
 
-        private SessionDetailsDto _session = new();
+        private SessionDetailsDto? _session = null;
+        private bool _isLoading = true;
 
         protected override async Task OnInitializedAsync()
         {
-            _session = await SessionService.GetSessionDetailsAsync(Id);
+            _isLoading = true;
+            try
+            {
+                _session = await SessionService.GetSessionDetailsAsync(Id);
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
 
         private string GetExerciseName(long exerciseId)

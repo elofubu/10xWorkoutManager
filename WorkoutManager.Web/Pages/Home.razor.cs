@@ -24,25 +24,35 @@ public partial class Home
     [Inject]
     private ILocalStorageService LocalStorage { get; set; } = default!;
 
-    private IEnumerable<WorkoutPlanDto> _plans = new List<WorkoutPlanDto>();
+    private IEnumerable<WorkoutPlanDto>? _plans = null;
     private PaginationInfo _pagination = new();
+    private bool _isLoading = true;
+    private bool _isCreatingPlan = false;
 
     private int PageCount => _pagination.PageSize > 0 ? (int)Math.Ceiling((double)_pagination.TotalCount / _pagination.PageSize) : 0;
 
     protected override async Task OnInitializedAsync()
     {
-        var hasSeenWelcome = await LocalStorage.GetItemAsync<bool>("hasSeenWelcome");
-        var isAuthenticated = await AuthService.IsAuthenticatedAsync();
-
-        if (isAuthenticated && !hasSeenWelcome)
+        _isLoading = true;
+        try
         {
-            NavigationManager.NavigateTo("/welcome");
-            return;
-        }
+            var hasSeenWelcome = await LocalStorage.GetItemAsync<bool>("hasSeenWelcome");
+            var isAuthenticated = await AuthService.IsAuthenticatedAsync();
 
-        var result = await WorkoutPlanService.GetWorkoutPlansAsync();
-        _plans = result.Data;
-        _pagination = result.Pagination;
+            if (isAuthenticated && !hasSeenWelcome)
+            {
+                NavigationManager.NavigateTo("/welcome");
+                return;
+            }
+
+            var result = await WorkoutPlanService.GetWorkoutPlansAsync();
+            _plans = result.Data;
+            _pagination = result.Pagination;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private void NavigateToPlan(long planId)
@@ -64,11 +74,19 @@ public partial class Home
 
         if (result is not null && !result.Canceled && result.Data is CreateWorkoutPlanDto newPlan)
         {
-            await WorkoutPlanService.CreateWorkoutPlanAsync(newPlan);
-            var paginatedResult = await WorkoutPlanService.GetWorkoutPlansAsync();
-            _plans = paginatedResult.Data;
-            _pagination = paginatedResult.Pagination;
-            StateHasChanged();
+            _isCreatingPlan = true;
+            try
+            {
+                await WorkoutPlanService.CreateWorkoutPlanAsync(newPlan);
+                var paginatedResult = await WorkoutPlanService.GetWorkoutPlansAsync();
+                _plans = paginatedResult.Data;
+                _pagination = paginatedResult.Pagination;
+                StateHasChanged();
+            }
+            finally
+            {
+                _isCreatingPlan = false;
+            }
         }
     }
 }

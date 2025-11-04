@@ -5,18 +5,29 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">Workout History</MudText>
 
-@if (_sessions is null)
+@if (_isLoading)
 {
-    <div class="d-flex justify-center">
-        <MudProgressCircular Indeterminate="true" />
-    </div>
+    <MudOverlay Visible="true" DarkBackground="true">
+        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    </MudOverlay>
 }
-else if (!_sessions.Any())
+else if (_sessions is null || !_sessions.Any())
 {
-    <MudText>You haven't completed any workouts yet.</MudText>
+    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
+        <MudStack Spacing="3" AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 3rem; color: var(--mud-palette-action-disabled);" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary">No workouts completed yet</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Start a workout to see your history</MudText>
+        </MudStack>
+    </MudContainer>
 }
 else
 {
+    @if (_isPaginationLoading)
+    {
+        <MudProgressLinear Color="Color.Info" Indeterminate="true" Class="mb-4" />
+    }
+
     <div class="d-flex flex-wrap gap-4">
         @foreach (var session in _sessions)
         {
@@ -47,7 +58,7 @@ else
                     }
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton OnClick="() => NavigateToSession(session.Id)" Variant="Variant.Text" Color="Color.Primary">View details</MudButton>
+                    <MudButton OnClick="() => NavigateToSession(session.Id)" Variant="Variant.Text" Color="Color.Primary" Disabled="@_isPaginationLoading">View details</MudButton>
                 </MudCardActions>
             </MudCard>
         }
@@ -55,6 +66,6 @@ else
 
     @if (PageCount > 1)
     {
-        <MudPagination Count="PageCount" />
+        <MudPagination Count="PageCount" SelectedChanged="PageChanged" Disabled="@_isPaginationLoading" Class="mt-4" />
     }
 }

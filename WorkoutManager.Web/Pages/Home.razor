@@ -2,37 +2,71 @@
 
 <PageTitle>Workout Plans</PageTitle>
 
-@if (_plans is null)
+@if (_isLoading)
 {
-    <MudProgressCircular Color="Color.Default" Indeterminate="true"></MudProgressCircular>
+    <MudOverlay Visible="true" DarkBackground="true">
+        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    </MudOverlay>
+}
+else if (_plans is null || !_plans.Any())
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
+        <MudStack Spacing="3" AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 3rem; color: var(--mud-palette-action-disabled);" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary">No workout plans yet</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Create your first workout plan to get started</MudText>
+        </MudStack>
+    </MudContainer>
 }
 else
 {
-    if (_plans.Any())
-    {
-        <MudGrid Spacing="2">
-            @foreach (var plan in _plans)
-            {
-                <MudItem xs="12" sm="6" md="4" Class="cursor-pointer">
-                    <MudCard @onclick="() => NavigateToPlan(plan.Id)">
-                        <MudCardContent>
-                            <MudText Typo="Typo.h6">@plan.Name</MudText>
-                            <MudText Typo="Typo.caption">Created: @plan.CreatedAt.ToShortDateString()</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            }
-        </MudGrid>
-    }
-    else
-    {
-        <MudText>No workout plans yet. Create one!</MudText>
-    }
-    
+    <MudGrid Spacing="2">
+        @foreach (var plan in _plans)
+        {
+            <MudItem xs="12" sm="6" md="4" Class="cursor-pointer">
+                <MudCard @onclick="() => NavigateToPlan(plan.Id)" Elevation=2>
+                    <MudCardHeader Class="py-4 d-flex flex-column">
+                        <MudText Typo="Typo.h5">@plan.Name</MudText>
+                        <MudText Typo="Typo.caption">Created: @plan.CreatedAt.ToShortDateString()</MudText>
+                    </MudCardHeader>
+                    <MudDivider DividerType="DividerType.Middle" Class="my-1" />
+                    <MudCardContent Class="py-2">
+                        <MudText Typo="Typo.h6">Training days</MudText>
+                        @foreach (var trainingDay in plan.TrainingDays)
+                        {
+                            <div class="my-1 pa-1 d-flex justify-space-between border-b border-solid mud-border-primary">
+                                <MudText Class="pt-1" Typo="Typo.body1">@trainingDay.Name</MudText>
+                                <MudText Class="align-self-end font-small" Typo="Typo.subtitle1">Exercises: @trainingDay.Exercises?.Count()</MudText>
+                            </div>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
     @if (PageCount > 1)
     {
-        <MudPagination Count="PageCount" />
+        <MudPagination Count="PageCount" Class="mt-4" />
     }
 }
 
-<MudFab Color="Color.Primary" aria-label="Add" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewPlan" Style="position: fixed; bottom: 20px; right: 20px;" />
+<MudFab Color="Color.Primary"
+        aria-label="Add"
+        StartIcon="@Icons.Material.Filled.Add"
+        OnClick="CreateNewPlan"
+        Disabled="@_isCreatingPlan"
+        Style="position: fixed; bottom: 20px; right: 20px;" />
+
+@if (_isCreatingPlan)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="1000">
+        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    </MudOverlay>
+}
+
+<style>
+    .font-small {
+        font-size: .8rem;
+    }
+</style>
