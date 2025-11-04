@@ -20,7 +20,6 @@ namespace WorkoutManager.Web.Pages.Session
         private NavigationManager NavigationManager { get; set; } = default!;
 
         private SessionDetailsDto? _session;
-        private MudStepper _stepper = new()!;
         private Dictionary<long, PreviousExercisePerformanceDto> _previousSessionData = new();
         private Dictionary<long, string> _exerciseNames = new();
         private string? _sessionNotes;
@@ -31,7 +30,6 @@ namespace WorkoutManager.Web.Pages.Session
 
         protected override async Task OnInitializedAsync()
         {
-            _isLoading = true;
             try
             {
                 _session = await SessionService.GetSessionDetailsAsync(SessionId);
@@ -85,9 +83,9 @@ namespace WorkoutManager.Web.Pages.Session
             }
         }
 
-        private async Task NextStep()
+        private async Task NextStep(int index)
         {
-            _isSavingExercise = true;
+            _isLoading = true;
             try
             {
                 var currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
@@ -100,16 +98,22 @@ namespace WorkoutManager.Web.Pages.Session
                 };
 
                 await SessionService.UpdateSessionExerciseAsync(_session.Id, currentExercise.Id, payload);
+            }
+            finally
+            {
+                _index = index;
+                _isLoading = false;
+            }
+        }
 
-                if (_index == _session.Exercises.Count - 1)
-                {
-                    await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
-                    NavigationManager.NavigateTo("/history");
-                }
-                else
-                {
-                    await _stepper.NextStepAsync();
-                }
+        private async Task CompleteSession()
+        {
+            _isSavingExercise = true;
+
+            try
+            {
+                await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
+                NavigationManager.NavigateTo("/history");
             }
             finally
             {

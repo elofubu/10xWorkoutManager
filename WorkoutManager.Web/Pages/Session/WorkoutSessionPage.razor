@@ -3,26 +3,24 @@
 
 <PageTitle>Workout Session</PageTitle>
 
-@if (_isLoading)
-{
-    <MudOverlay Visible="true" DarkBackground="true">
-        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-    </MudOverlay>
-}
-else if (_session is null)
+<MudOverlay Visible="_isLoading" DarkBackground="true">
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+</MudOverlay>
+
+@if (_session is null && !_isLoading)
 {
     <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
         <MudText Color="Color.Error">Unable to load session details. Please try again.</MudText>
     </MudContainer>
 }
-else
+else if(_session is not null)
 {
     <MudProgressLinear Value="@((_index + 1) / (double)_session.Exercises.Count * 100)" Color="Color.Info" Class="mb-4" />
     <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-4">
         Exercise @(_index + 1) of @_session.Exercises.Count
     </MudText>
 
-    <MudStepper Context=_stepper @bind-ActiveIndex="_index" Outlined="true" Linear="false">
+    <MudStepper Context=_stepper ActiveIndexChanged="NextStep" Outlined="true" Linear="false">
         <ChildContent>
             @foreach (var exercise in _session.Exercises.OrderBy(e => e.Order))
             {
@@ -92,7 +90,7 @@ else
                     Congratulations! Your workout is done!
                 </MudText>
                 <MudText Class="my-4">You can write your notest and save all data!</MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextStep" Disabled="@(_isSavingExercise || _isCanceling)" Class="my-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CompleteSession" Disabled="@(_isSavingExercise || _isCanceling)" Class="my-4">
                     @if (_isSavingExercise)
                     {
                         <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
@@ -120,6 +118,6 @@ else
 
 <style>
     /* .mud-card-actions.mud-stepper-actions {
-                                    display: none !important;
-                                } */
+                                        display: none !important;
+                                    } */
 </style>

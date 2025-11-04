@@ -55,7 +55,6 @@ else
                     <MudSimpleTable Elevation="0" Dense="true">
                         <thead>
                             <tr>
-                                <th>Set</th>
                                 <th>Weight</th>
                                 <th>Reps</th>
                                 <th>Failure</th>
@@ -65,7 +64,6 @@ else
                             @foreach (var set in exercise.Sets.OrderBy(s => s.Order))
                             {
                                 <tr>
-                                    <td>@set.Order</td>
                                     <td>@set.Weight</td>
                                     <td>@set.Reps</td>
                                     <td>@(set.IsFailure ? "Yes" : "No")</td>
