@@ -69,6 +69,7 @@ public class ExerciseRepository : IExerciseRepository
         // Fetch session exercises with related sessions and exercise sets, sorted and limited at database level
         var session = await _supabaseClient
             .From<Session>()
+            .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
             .Filter("session_exercises.exercise_id", Supabase.Postgrest.Constants.Operator.Equals, exerciseId)
             .Filter<DateTime?>("end_time", Supabase.Postgrest.Constants.Operator.Not, null)
             .Order("start_time", Supabase.Postgrest.Constants.Ordering.Descending)
