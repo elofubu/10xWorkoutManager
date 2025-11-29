@@ -50,7 +50,7 @@ namespace WorkoutManager.Web.Pages.Session
                         exercise.Sets.Add(new ExerciseSetDto());
                     }
 
-                    var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId);
+                    var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId, _session.TrainingDayId);
                     if (previous is not null)
                     {
                         _previousSessionData[exercise.ExerciseId] = previous;

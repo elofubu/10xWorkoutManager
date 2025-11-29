@@ -201,7 +201,7 @@ public class SessionRepository : ISessionRepository
     {
         var response = await _supabaseClient
             .From<Session>()
-            .Where(s => s.UserId == userId)
+            .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
             .Filter<DateTime?>(s => s.EndTime, Supabase.Postgrest.Constants.Operator.Equals, null)
             .Limit(1)
             .Get();

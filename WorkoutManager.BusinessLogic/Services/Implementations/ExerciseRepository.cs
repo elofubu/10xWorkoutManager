@@ -63,36 +63,33 @@ public class ExerciseRepository : IExerciseRepository
         return response.Models.First();
     }
 
-    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId)
+    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId, long trainingDayId)
     {
-        // Optimized: Single query with nested projections for complete data hierarchy
-        // Fetch session exercises with related sessions and exercise sets, sorted and limited at database level
         var session = await _supabaseClient
             .From<Session>()
-            .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
+            .Filter("training_day_id", Supabase.Postgrest.Constants.Operator.Equals, trainingDayId)
             .Filter("session_exercises.exercise_id", Supabase.Postgrest.Constants.Operator.Equals, exerciseId)
             .Filter<DateTime?>("end_time", Supabase.Postgrest.Constants.Operator.Not, null)
             .Order("start_time", Supabase.Postgrest.Constants.Ordering.Descending)
-            .Limit(1)
             .Get();
 
         if (!session.Models.Any()) return null;
 
-        var mostRecentSessionExercise = session.Models.First();
+        var recentSession = session.Models.FirstOrDefault();
 
         // Verify session is valid (completed by the correct user)
-        if (mostRecentSessionExercise == null ||
-            mostRecentSessionExercise.UserId != userId ||
-            !mostRecentSessionExercise.EndTime.HasValue)
+        if (recentSession == null ||
+            recentSession.UserId != userId ||
+            !recentSession.EndTime.HasValue)
         {
             return null;
         }
 
         return new PreviousExercisePerformanceDto
         {
-            SessionDate = mostRecentSessionExercise.StartTime,
-            Notes = mostRecentSessionExercise.Notes,
-            Sets = mostRecentSessionExercise.SessionExercises
+            SessionDate = recentSession.StartTime,
+            Notes = recentSession.Notes,
+            Sets = recentSession.SessionExercises
                 .SelectMany(se => se.Sets ?? new List<ExerciseSet>())
                 .OrderBy(s => s.Order)
                 .Select(s => new PreviousExerciseSetDto

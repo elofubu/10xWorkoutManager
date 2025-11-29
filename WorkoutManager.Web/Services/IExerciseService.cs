@@ -6,7 +6,7 @@ namespace WorkoutManager.Web.Services
     {
         Task<PaginatedList<ExerciseDto>> GetExercisesAsync(string? search = null, long? muscleGroupId = null, int page = 1);
         Task<ExerciseDto> CreateExerciseAsync(CreateExerciseDto newExercise);
-        Task<PreviousExercisePerformanceDto?> GetPreviousSessionExerciseAsync(long exerciseId);
+        Task<PreviousExercisePerformanceDto?> GetPreviousSessionExerciseAsync(long exerciseId, long trainingDayId);
         Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId);
     }
 }

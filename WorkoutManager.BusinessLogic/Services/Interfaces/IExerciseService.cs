@@ -15,6 +15,6 @@ public interface IExerciseService
 
     Task<ExerciseDto> CreateExerciseAsync(CreateExerciseDto dto, Guid userId);
 
-    Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId);
+    Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId, long trainingDayId);
 }
 

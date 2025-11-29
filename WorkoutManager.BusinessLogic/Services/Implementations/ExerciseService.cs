@@ -96,9 +96,9 @@ public class ExerciseService : IExerciseService
         };
     }
 
-    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId)
+    public async Task<PreviousExercisePerformanceDto?> GetLastPerformanceAsync(long exerciseId, Guid userId, long trainingDayId)
     {
-        return await _exerciseRepository.GetLastPerformanceAsync(exerciseId, userId);
+        return await _exerciseRepository.GetLastPerformanceAsync(exerciseId, userId, trainingDayId);
     }
 }
 

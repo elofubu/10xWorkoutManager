@@ -79,13 +79,13 @@ public class ExercisesController : ControllerBase
         }
     }
 
-    [HttpGet("{exerciseId:long}/previous-session")]
-    public async Task<ActionResult<PreviousExercisePerformanceDto>> GetPreviousPerformance(long exerciseId)
+    [HttpGet("{trainingDayId:long}/{exerciseId:long}/previous-session")]
+    public async Task<ActionResult<PreviousExercisePerformanceDto>> GetPreviousPerformance(long exerciseId, long trainingDayId)
     {
         try
         {
             var userId = _userContext.GetCurrentUserId();
-            var performance = await _exerciseService.GetLastPerformanceAsync(exerciseId, userId);
+            var performance = await _exerciseService.GetLastPerformanceAsync(exerciseId, userId, trainingDayId);
 
             if (performance == null) return NotFound(new { error = "No previous performance found" });
 
@@ -93,7 +93,7 @@ public class ExercisesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = ex.Message }); 
         }
     }
 }

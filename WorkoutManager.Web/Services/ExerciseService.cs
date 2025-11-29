@@ -61,7 +61,7 @@ namespace WorkoutManager.Web.Services
             }
         }
 
-        public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId)
+        public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId, long trainingDayId)
         {
             try
             {

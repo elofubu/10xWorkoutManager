@@ -36,6 +36,6 @@ public class Session : BaseModel
     [JsonIgnore]
     public TrainingDay? TrainingDay { get; set; }
 
-    [Reference(typeof(SessionExercise))]
-    public List<SessionExercise> SessionExercises { get; set; }
+    [Reference(typeof(SessionExercise), useInnerJoin: false, includeInQuery: true)]
+    public List<SessionExercise> SessionExercises { get; set; } = new();
 }
