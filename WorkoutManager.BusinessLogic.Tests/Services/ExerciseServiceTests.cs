@@ -97,10 +97,10 @@ public class ExerciseServiceTests
     {
         // Arrange
         var performanceDto = new PreviousExercisePerformanceDto();
-        _exerciseRepositoryMock.Setup(x => x.GetLastPerformanceAsync(1, _userId)).ReturnsAsync(performanceDto);
+        _exerciseRepositoryMock.Setup(x => x.GetLastPerformanceAsync(1, _userId, 1)).ReturnsAsync(performanceDto);
 
         // Act
-        var result = await _sut.GetLastPerformanceAsync(1, _userId);
+        var result = await _sut.GetLastPerformanceAsync(1, _userId, 1);
 
         // Assert
         result.Should().Be(performanceDto);

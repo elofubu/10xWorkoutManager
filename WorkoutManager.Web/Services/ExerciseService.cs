@@ -49,11 +49,11 @@ namespace WorkoutManager.Web.Services
             return await response.Content.ReadFromJsonAsync<ExerciseDto>() ?? throw new Exception("Failed to create exercise.");
         }
 
-        public async Task<PreviousExercisePerformanceDto?> GetPreviousSessionExerciseAsync(long exerciseId)
+        public async Task<PreviousExercisePerformanceDto?> GetPreviousSessionExerciseAsync(long exerciseId, long trainingDayId)
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<PreviousExercisePerformanceDto>($"api/exercises/{exerciseId}/previous-session");
+                return await _httpClient.GetFromJsonAsync<PreviousExercisePerformanceDto>($"api/exercises/{trainingDayId}/{exerciseId}/previous-session");
             }
             catch (HttpRequestException e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -61,7 +61,7 @@ namespace WorkoutManager.Web.Services
             }
         }
 
-        public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId, long trainingDayId)
+        public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId)
         {
             try
             {
