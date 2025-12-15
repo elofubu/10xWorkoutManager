@@ -129,6 +129,14 @@ public class SessionsController : ControllerBase
         {
             return Conflict(new { error = ex.Message });
         }
+        catch(BusinessLogic.Exceptions.UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
         catch (Exception ex)
         {
             return StatusCode(500, new { error = ex.Message });

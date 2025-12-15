@@ -1,17 +1,22 @@
 using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Commands;
+using System.Net;
 
 namespace WorkoutManager.Web.Services
 {
     public class SessionService : ISessionService
     {
         private readonly HttpClient _httpClient;
+        private readonly IAuthService _authService;
         private readonly ILogger<SessionService> _logger;
 
-        public SessionService(HttpClient httpClient, ILogger<SessionService> logger)
+        public SessionService(HttpClient httpClient, 
+            IAuthService authService,
+            ILogger<SessionService> logger)
         {
             _httpClient = httpClient;
+            this._authService = authService;
             this._logger = logger;
         }
 
@@ -43,7 +48,14 @@ namespace WorkoutManager.Web.Services
 
         public async Task UpdateSessionExerciseAsync(long sessionId, long sessionExerciseId, UpdateSessionExerciseDto payload)
         {
-            await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}/exercises/{sessionExerciseId}", payload);
+            var result = await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}/exercises/{sessionExerciseId}", payload);
+
+            if (result.StatusCode.Equals(System.Net.HttpStatusCode.Forbidden))
+            {
+                _logger.LogError("Response result is {statusCode}, trying to refresh token", HttpStatusCode.Forbidden);
+                await _authService.RefreshToken();
+                await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}/exercises/{sessionExerciseId}", payload);
+            }
         }
 
         public async Task UpdateSessionAsync(long sessionId, UpdateSessionCommand command)

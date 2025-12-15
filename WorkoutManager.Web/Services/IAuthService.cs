@@ -12,5 +12,6 @@ public interface IAuthService
     Task<bool> DeleteAccountAsync(string password);
     Task<bool> IsAuthenticatedAsync();
     Task<bool> GetSessionFromUri(Uri uri);
+    Task RefreshToken();
 }
 

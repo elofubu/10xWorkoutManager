@@ -20,6 +20,8 @@ namespace WorkoutManager.Web.Pages.Session
         private NavigationManager NavigationManager { get; set; } = default!;
 
         private SessionDetailsDto? _session;
+        private SessionExerciseDetailsDto? _currentExercise;
+
         private Dictionary<long, PreviousExercisePerformanceDto> _previousSessionData = new();
         private Dictionary<long, string> _exerciseNames = new();
         private string? _sessionNotes;
@@ -61,6 +63,8 @@ namespace WorkoutManager.Web.Pages.Session
                         _exerciseNames[exercise.ExerciseId] = exerciseDetails.Name;
                     }
                 }
+
+                _currentExercise = _session.Exercises.OrderBy(e => e.Order).FirstOrDefault();
             }
             finally
             {
@@ -85,24 +89,25 @@ namespace WorkoutManager.Web.Pages.Session
 
         private async Task NextStep(int index)
         {
+            if(index <= 0) return;
+
             _isLoading = true;
             try
             {
-                var currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
-
                 var payload = new UpdateSessionExerciseDto
                 {
-                    Notes = currentExercise.Notes,
-                    Skipped = currentExercise.Skipped,
-                    Sets = currentExercise.Skipped ? new List<ExerciseSetDto>() : currentExercise.Sets.Where(s => s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
+                    Notes = _currentExercise.Notes,
+                    Skipped = _currentExercise.Skipped,
+                    Sets = _currentExercise.Skipped ? new List<ExerciseSetDto>() : _currentExercise.Sets.Where(s => s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
                 };
 
-                await SessionService.UpdateSessionExerciseAsync(_session.Id, currentExercise.Id, payload);
+                await SessionService.UpdateSessionExerciseAsync(_session.Id, _currentExercise.Id, payload);
             }
             finally
             {
                 _index = index;
                 _isLoading = false;
+                _currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
             }
         }
 

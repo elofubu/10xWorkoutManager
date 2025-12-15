@@ -91,6 +91,11 @@ namespace WorkoutManager.Web.Services
 
             return session != null;
         }
+
+        public async Task RefreshToken()
+        {
+            await _supabaseClient.Auth.RefreshSession();
+        }
     }
 }
 
