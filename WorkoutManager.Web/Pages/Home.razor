@@ -2,46 +2,72 @@
 
 <PageTitle>Workout Plans</PageTitle>
 
-<MudOverlay Visible="_isLoading" DarkBackground="true">
-    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+<MudOverlay Visible="_isLoading" LightBackground="true">
+    <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
 </MudOverlay>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex">
+    <div class="plans-content-wrapper">
+        <div class="plans-content-header">
+            <div class="plans-content-title">
+                <MudText Typo="Typo.h4">Your plans</MudText>
+                <MudText Typo="Typo.subtitle2">Select training to begin</MudText>
+            </div>
+            <div class="plans-content-button">
+                <MudIcon Icon="@Icons.Material.Outlined.Add" @onclick="CreateNewPlan" Disabled="@_isCreatingPlan" />
+            </div>
+        </div>
+        <div class="plans-content-body">
+        </div>
+    </div>
+</MudContainer>
 
 @if (_plans is null || !_plans.Any())
 {
-    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
+    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 150px;">
         <MudStack Spacing="3" AlignItems="AlignItems.Center">
-            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 3rem; color: var(--mud-palette-action-disabled);" />
-            <MudText Typo="Typo.h6" Color="Color.Secondary">No workout plans yet</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Create your first workout plan to get started</MudText>
+            <MudText Typo="Typo.h6">No workout plans yet</MudText>
+            <MudText Typo="Typo.body2">Create your first workout plan to get started</MudText>
         </MudStack>
     </MudContainer>
 }
 else
 {
-    <MudGrid Spacing="2">
+    <MudContainer MaxWidth="MaxWidth.Small">
         @foreach (var plan in _plans)
         {
-            <MudItem xs="12" sm="6" md="4" Class="cursor-pointer">
-                <MudCard @onclick="() => NavigateToPlan(plan.Id)" Elevation=2>
-                    <MudCardHeader Class="py-4 d-flex justify-space-between mud-theme-tertiary">
+            <MudCard Class="training-card">
+                <MudCardHeader Class="d-flex justify-space-between">
+                    <div class="d-flex flex-column card-header-title">
                         <MudText Typo="Typo.h5">@plan.Name</MudText>
-                        <MudText Typo="Typo.caption">Created: @plan.CreatedAt.ToShortDateString()</MudText>
-                    </MudCardHeader>
-                    <MudCardContent Class="py-2">
-                        <MudText Typo="Typo.body2">Training days</MudText>
-                        <MudDivider DividerType="DividerType.FullWidth" Class="my-1" />
-                        @foreach (var trainingDay in plan.TrainingDays)
-                        {
-                            <div class="my-1 pa-1 d-flex justify-space-between border-b border-solid mud-border-primary">
-                                <MudText Class="pt-1" Typo="Typo.body1">@trainingDay.Name</MudText>
-                                <MudText Class="align-self-end font-small" Typo="Typo.subtitle1">Exercises: @trainingDay.Exercises?.Count()</MudText>
+                        <MudText Class="caption" Typo="Typo.caption">Created: @plan.CreatedAt.ToShortDateString()</MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.Edit" @onclick="() => NavigateToPlan(plan.Id)" />
+                </MudCardHeader>
+                <MudCardContent>
+                    @foreach (var trainingDay in plan.TrainingDays)
+                    {
+                        <div class="training-exerices-wrapper d-flex align-center gap-3">
+                            <div class="">
+                                <MudAvatar Class="training-day-avatar">@trainingDay.Name.FirstOrDefault()</MudAvatar>
                             </div>
-                        }
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
+                            <div class="d-flex flex-column flex-grow-1">
+                                <MudText Typo="Typo.body1">@trainingDay.Name</MudText>
+                                <MudText Class="caption" Typo="Typo.caption">Exercises: @trainingDay.Exercises?.Count()</MudText>
+                            </div>
+                            <div>
+                                <MudIconButton Class="training-day-button"
+                                               Variant="Variant.Filled"
+                                               Icon="@Icons.Material.Filled.PlayCircle"
+                                               OnClick="() => StartWorkout(trainingDay.Id)">Start</MudIconButton>
+                            </div>
+
+                        </div>
+                    }
+                </MudCardContent>
+            </MudCard>
         }
-    </MudGrid>
+    </MudContainer>
 
     @if (PageCount > 1)
     {
@@ -49,13 +75,13 @@ else
     }
 }
 
-<MudFab Color="Color.Success"
+@* <MudFab Color="Color.Success"
         aria-label="Add"
         StartIcon="@Icons.Material.Filled.Add"
         OnClick="CreateNewPlan"
         Disabled="@_isCreatingPlan"
         Style="position: fixed; bottom: 20px; right: 20px;" />
-
+ *@
 @if (_isCreatingPlan)
 {
     <MudOverlay Visible="true" DarkBackground="true" ZIndex="1000">
@@ -64,7 +90,46 @@ else
 }
 
 <style>
-    .font-small {
-        font-size: .8rem;
+    .training-card {
+        background-color: var(--color-primary-background-element);
+        color: var(--color-primary-text);
+        border: 1px solid var(--color-secondary-background);
+        border-radius: 12px;
+        padding: 10px 0;
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
+
+        .training-card .mud-icon-root {
+            cursor: pointer;
+        }
+
+        .training-card .mud-card-header,
+        .training-card .mud-card-content {
+            padding: 0;
+        }
+
+        .training-card .mud-card-header {
+            padding-left: 16px;
+            padding-right: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--color-secondary-background);
+        }
+
+        .training-card .caption {
+            color: var(--color-tertiary-text);
+        }
+
+        .training-card .mud-card-content .training-exerices-wrapper {
+            padding: 12px 20px;
+        }
+
+            .training-card .mud-card-content .training-exerices-wrapper:hover {
+                background-color: var(--color-secondary-background);
+                cursor: pointer;
+            }
+
+        .training-card .mud-card-content .training-day-button {
+            background-color: var(--color-secondary-text);
+        }
 </style>

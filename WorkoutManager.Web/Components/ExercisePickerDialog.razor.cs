@@ -83,7 +83,14 @@ namespace WorkoutManager.Web.Components
 
         private async Task OpenCreateExerciseDialog()
         {
-            var dialog = await DialogService.ShowAsync<CreateExerciseDialog>("Create Exercise");
+            var dialogOptions = new DialogOptions
+            {
+                FullWidth = true,
+                NoHeader = true,
+                FullScreen = true
+            };
+
+            var dialog = await DialogService.ShowAsync<CreateExerciseDialog>("Create Exercise", dialogOptions);
             var result = await dialog.Result;
 
             if (result is not null && !result.Canceled)

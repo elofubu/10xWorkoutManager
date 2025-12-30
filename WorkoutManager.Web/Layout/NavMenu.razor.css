@@ -1,0 +1,39 @@
+﻿.nav-wrapper {
+    position: fixed;
+    bottom: 0;
+    /*padding: 10px;*/
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background-color: rgb(15 23 42);
+    border: solid 1px rgb(30 41 59);
+    color: rgb(132 204 22);
+}
+
+    .nav-wrapper ::deep .mud-navmenu {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+
+        .nav-wrapper ::deep .mud-navmenu .mud-nav-item .mud-nav-link{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+            .nav-wrapper ::deep .mud-navmenu .mud-nav-item .mud-nav-link.active{
+                color: rgb(132 204 22);
+            }
+
+            .nav-wrapper ::deep .mud-navmenu .mud-nav-item .mud-nav-link .mud-nav-link-text {
+                font-size: .7rem;
+                text-align: center;
+                margin: 0;
+            }
+
+            .nav-wrapper ::deep .mud-navmenu .mud-nav-item .mud-icon-root {
+                color: rgb(132 204 22);
+                font-size: 1.7rem;
+            }

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Commands;
+using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.Web.Components;
 using WorkoutManager.Web.Services;
 
@@ -88,11 +88,11 @@ public partial class PlanDetailPage
         }
     }
 
-    private void CancelEditName()
-    {
-        _editedPlanName = _plan?.Name ?? string.Empty;
-        _isEditingName = false;
-    }
+    //private void CancelEditName()
+    //{
+    //    _editedPlanName = _plan?.Name ?? string.Empty;
+    //    _isEditingName = false;
+    //}
 
     private async Task DeletePlan()
     {
@@ -121,6 +121,11 @@ public partial class PlanDetailPage
                 _isDeleting = false;
             }
         }
+    }
+
+    private async Task SavePlan()
+    {
+
     }
 
     private async Task AddExercise(long trainingDayId)
@@ -233,5 +238,11 @@ public partial class PlanDetailPage
                 _deletingExerciseId = null;
             }
         }
+    }
+    
+    //TODO remove from database
+    private void RemoveTrainingDay(TrainingDayDto day)
+    {
+        _plan.TrainingDays.Remove(day);
     }
 }

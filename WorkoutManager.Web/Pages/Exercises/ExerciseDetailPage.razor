@@ -1,0 +1,128 @@
+﻿@page "/plans/{planId:long}/days/{dayId:long}"
+@using WorkoutManager.BusinessLogic.Commands
+@using WorkoutManager.BusinessLogic.DTOs
+@using WorkoutManager.Web.Components
+@using WorkoutManager.Web.Services
+
+<div class="plan-day-exercise-wrapper">
+
+    <MudOverlay Visible="_isLoading" LightBackground="true">
+        <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
+    </MudOverlay>
+
+    @if (!_isLoading)
+    {
+        <MudContainer Class="px-0 py-2 d-flex align-center gap-2 training-day-header">
+            <MudIcon Class="mr-2 cursor-pointer" Icon="@Icons.Material.Outlined.ArrowBack" @onclick="@(() => NavigationManager.NavigateTo($"/plans/{PlanId}"))" />
+            <MudText Class="flex-grow-1" Typo="Typo.h6">@_trainingDay.Name</MudText>
+        </MudContainer>
+        <MudContainer Class="pa-0">
+            @{
+                var x = 1;
+            }
+            @foreach (var exercise in _trainingDay.Exercises)
+            {
+                <div class="training-day-item">
+                    <div>@x</div>
+                    <div class="exercise-name">@exercise.Name</div>
+                    <MudIcon Icon="material-symbols-outlined/delete" />
+                </div>
+                x++;
+            }
+
+            @if (_trainingDay.Exercises == null || !_trainingDay.Exercises.Any())
+            {
+                <div class="no-data">
+                    No exercises yet ;)
+                </div>
+            }
+        </MudContainer>
+        <MudButton StartIcon="@Icons.Material.Outlined.Add" FullWidth=true OnClick="AddExercise">Add exercise</MudButton>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public long PlanId { get; set; }
+
+    [Parameter]
+    public long DayId { get; set; }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    [Inject]
+    private IWorkoutPlanService WorkoutPlanService { get; set; } = default!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    private WorkoutPlanDetailDto? _plan;
+    private TrainingDayDto _trainingDay = default!;
+
+    private bool _isLoading = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            await LoadPlan();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadPlan()
+    {
+        _plan = await WorkoutPlanService.GetWorkoutPlanByIdAsync(PlanId);
+        _trainingDay = _plan.TrainingDays.FirstOrDefault(p => p.Id == DayId);
+    }
+
+    private async Task AddExercise()
+    {
+        var dialogOptions = new DialogOptions
+        {
+            FullWidth = true,
+            CloseButton = true,
+            NoHeader = true,
+            FullScreen = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ExercisePickerDialog>("Add Exercise", dialogOptions);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled && result.Data is ExerciseDto selectedExercise)
+        {
+            try
+            {
+                var trainingDay = _plan!.TrainingDays.First(td => td.Id == DayId);
+                var nextOrder = trainingDay.Exercises.Any() ? trainingDay.Exercises.Max(e => e.Order) + 1 : 1;
+
+                await WorkoutPlanService.AddExerciseToTrainingDayAsync(PlanId, DayId, new AddExerciseToTrainingDayCommand
+                {
+                    ExerciseId = (int)selectedExercise.Id,
+                    Order = nextOrder
+                });
+                await LoadPlan();
+                Snackbar.Add("Exercise added successfully", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            finally
+            {
+                // _isAddingExercise = false;
+            }
+        }
+    }
+
+
+}

@@ -1,0 +1,30 @@
+﻿.plans-content-wrapper{
+    width: 100%;
+}
+
+    .plans-content-wrapper .plans-content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--color-primary-text);
+    }
+
+        .plans-content-wrapper .plans-content-header .plans-content-title ::deep .mud-typography-h4 {
+            font-weight: 600;
+        }
+
+        .plans-content-wrapper .plans-content-header .plans-content-button {
+            color: var(--color-secondary-text);
+            background-color: var(--color-secondary-background);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+        }
+
+            .plans-content-wrapper .plans-content-header .plans-content-button:hover {
+                cursor: pointer;
+                background-color: var(--color-secondary-background-hover);
+            }

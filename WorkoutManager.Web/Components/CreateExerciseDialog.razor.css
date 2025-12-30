@@ -1,0 +1,59 @@
+﻿.create-exercise-wrapper {
+    background-color: var(--color-primary-background);
+    height: 99vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    .create-exercise-wrapper ::deep .mud-focus-trap-child-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .create-exercise-wrapper ::deep .title{
+        padding: 20px;
+        color: var(--color-primary-text);
+    }
+
+    .create-exercise-wrapper ::deep .mud-dialog-actions .mud-button-filled:disabled,
+    .create-exercise-wrapper ::deep .mud-dialog-actions .mud-button-root:disabled {
+        color: var(--color-secondary-background) !important;
+    }
+
+    .create-exercise-wrapper ::deep .mud-dialog-actions .save-button {
+        color: var(--color-secondary-text);
+    }
+
+    .create-exercise-wrapper ::deep .mud-typography-body1 {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: .8rem;
+        color: var(--color-tertiary-text);
+    }
+    .create-exercise-wrapper ::deep .input-style{
+        margin-bottom: 20px;
+    }
+    .create-exercise-wrapper ::deep .input-style .mud-input-outlined {
+        color: var(--color-primary-text);
+        font-weight: 300;
+        padding: 10px 0;
+        border-radius: 12px;
+        background-color: var(--color-tertiary-background);
+    }
+
+
+        .create-exercise-wrapper ::deep .input-style .mud-input-outlined:hover .mud-input-outlined-border,
+        .create-exercise-wrapper ::deep .input-style .mud-input-outlined:focus .mud-input-outlined-border,
+        .create-exercise-wrapper ::deep .input-style .mud-input-outlined:focus-within .mud-input-outlined-border {
+            border-color: var(--color-secondary-text) !important;
+            outline-color: var(--color-secondary-text) !important;
+        }
+
+    .create-exercise-wrapper ::deep .mud-pagination .mud-pagination-item > .mud-button-root:disabled {
+        color: var(--mud-palette-text-primary) !important;
+    }
+
+    .create-exercise-wrapper ::deep .mud-pagination {
+        padding: 20px 0;
+    }

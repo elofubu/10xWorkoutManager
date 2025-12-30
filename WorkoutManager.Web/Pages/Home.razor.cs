@@ -24,6 +24,13 @@ public partial class Home
     [Inject]
     private ILocalStorageService LocalStorage { get; set; } = default!;
 
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [Inject]
+    private ISessionService SessionService { get; set; } = default!;
+
+
     private IEnumerable<WorkoutPlanDto>? _plans = null;
     private PaginationInfo _pagination = new();
     private bool _isLoading = true;
@@ -67,6 +74,7 @@ public partial class Home
             MaxWidth = MaxWidth.Small,
             FullWidth = true,
             CloseButton = true,
+            NoHeader = true,
         };
 
         var dialog = await DialogService.ShowAsync<CreatePlanDialog>("Create New Plan", dialogOptions);
@@ -87,6 +95,42 @@ public partial class Home
             {
                 _isCreatingPlan = false;
             }
+        }
+    }
+
+    private async Task StartWorkout(long trainingDayId)
+    {
+        try
+        {
+            var activeSession = await SessionService.GetActiveSessionAsync();
+            if (activeSession != null)
+            {
+                var dialog = await DialogService.ShowAsync<ActiveSessionDialog>("Active Session Found");
+                var result = await dialog.Result;
+
+                if (result is not null && !result.Canceled && result.Data is string choice)
+                {
+                    if (choice == "continue")
+                    {
+                        NavigationManager.NavigateTo($"/session/workout/{activeSession.Id}");
+                    }
+                    else if (choice == "finish_and_start_new")
+                    {
+                        await SessionService.FinishSessionAsync(activeSession.Id, activeSession.Notes);
+                        var newSession = await SessionService.StartSessionAsync(trainingDayId);
+                        NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+                    }
+                }
+            }
+            else
+            {
+                var newSession = await SessionService.StartSessionAsync(trainingDayId);
+                NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error starting workout: {ex.Message}", Severity.Error);
         }
     }
 }

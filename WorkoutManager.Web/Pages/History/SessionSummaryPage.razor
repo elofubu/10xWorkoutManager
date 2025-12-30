@@ -2,13 +2,11 @@
 
 <PageTitle>Workout Summary</PageTitle>
 
-@if (_isLoading)
-{
-    <MudOverlay Visible="true" DarkBackground="true">
-        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-    </MudOverlay>
-}
-else if (_session is null)
+<MudOverlay Visible="_isLoading" LightBackground="true">
+    <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
+</MudOverlay>
+
+@if (_session is null)
 {
     <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
         <MudText Color="Color.Error">Unable to load session details. Please try again.</MudText>

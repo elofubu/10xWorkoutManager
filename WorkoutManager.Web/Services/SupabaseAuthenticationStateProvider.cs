@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Supabase.Gotrue;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using static Supabase.Gotrue.Constants;
@@ -60,6 +61,16 @@ namespace WorkoutManager.Web.Services
             {
                 await _localStorage.RemoveItemAsync("supabase_session");
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            }
+
+            //check for expiration
+
+            var jwtHandler = new JwtSecurityTokenHandler();
+            var jwtToken = jwtHandler.ReadToken(session.AccessToken);
+            if (jwtToken.ValidTo <= DateTime.UtcNow) 
+            {
+                //refresh the token
+                await _supabaseClient.Auth.RefreshSession();
             }
 
             var claims = new[] {

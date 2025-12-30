@@ -1,0 +1,87 @@
+﻿.exercise-picker-dialog-wrapper{
+    height: 100vh;
+    background-color: var(--color-primary-background);
+}
+
+    .exercise-picker-dialog-wrapper ::deep .label-style{
+        color: var(--color-tertiary-text);
+        font-size: .8rem;
+    }
+
+    .exercise-picker-dialog-wrapper ::deep .mud-input-control .mud-button-root{
+        color: var(--color-secondary-text);
+    }
+
+    .exercise-picker-dialog-wrapper ::deep .mud-list {
+        color: var(--color-primary-text);
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: 50vh;
+    }
+
+    .exercise-picker-dialog-wrapper ::deep .mud-list .mud-list-item {
+        border: solid 1px var(--color-secondary-background);
+        background-color: var(--color-tertiary-background);
+        margin-bottom: 12px;
+        border-radius: 12px;
+    }
+
+            .exercise-picker-dialog-wrapper ::deep .mud-list .mud-list-item:hover{
+                background-color: var(--color-secondary-background);
+            }
+
+            .exercise-picker-dialog-wrapper ::deep .mud-list .mud-list-item:first-child {
+                margin-top: 12px;
+            }
+
+            .exercise-picker-dialog-wrapper ::deep .exercise-picker-title-wrapper {
+                background-color: var(--color-primary-background);
+                color: var(--color-primary-text);
+                padding: 16px 0;
+                display: flex;
+                justify-content: space-between;
+                max-width: 100%;
+            }
+
+    .exercise-picker-dialog-wrapper ::deep .input-style .mud-input-outlined {
+        color: var(--color-primary-text);
+        font-weight: 300;
+        padding: 10px 0;
+        border-radius: 12px;
+        background-color: var(--color-tertiary-background);
+    }
+
+    .exercise-picker-dialog-wrapper ::deep .input-style .mud-input-control-input-container > .mud-input.mud-input-outlined > input:hover ~ .mud-input-outlined-border,
+    .exercise-picker-dialog-wrapper ::deep .input-style .mud-input-control-input-container > .mud-input.mud-input-outlined > input:focus ~ .mud-input-outlined-border,
+    .exercise-picker-dialog-wrapper ::deep .input-style .mud-input-control-input-container > .mud-input.mud-input-outlined > input:focus ~ .mud-input-outlined-border {
+        border-color: var(--color-secondary-text);
+    }
+
+    .exercise-picker-dialog-wrapper ::deep .mud-pagination .mud-pagination-item > .mud-button-root:disabled {
+        color: var(--mud-palette-text-primary)!important;
+    }
+    .exercise-picker-dialog-wrapper ::deep .mud-pagination {
+        padding: 20px 0;
+    }
+
+        .exercise-picker-dialog-wrapper ::deep .mud-pagination .mud-pagination-item > .mud-icon-button,
+        .exercise-picker-dialog-wrapper ::deep .mud-pagination .mud-pagination-item > .mud-button-root {
+            color: var(--color-primary-text);
+        }
+
+
+        .exercise-picker-dialog-wrapper ::deep .mud-pagination .mud-pagination-item > .mud-button-filled {
+            color: var(--color-secondary-background);
+            background-color: var(--color-secondary-text);
+        }
+
+    .exercise-picker-dialog-wrapper ::deep .create-button {
+        padding: 12px;
+        border: dashed 2px var(--color-secondary-background);
+        color: var(--color-tertiary-text);
+    }
+
+    .exercise-picker-dialog-wrapper ::deep .create-button:hover{
+        border-color: var(--color-secondary-text);
+        color: var(--color-secondary-text);
+    }

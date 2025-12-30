@@ -58,7 +58,7 @@ public record WorkoutPlanDetailDto(
     long Id,
     string Name,
     bool IsLocked,
-    IEnumerable<TrainingDayDto> TrainingDays
+    ICollection<TrainingDayDto> TrainingDays
 );
 
 public record UpdateWorkoutPlanDto(

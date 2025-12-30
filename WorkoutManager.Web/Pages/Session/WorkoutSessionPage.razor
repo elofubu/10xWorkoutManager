@@ -1,123 +1,262 @@
 @page "/session/workout/{SessionId:long}"
 @using WorkoutManager.BusinessLogic.DTOs
 
-<PageTitle>Workout Session</PageTitle>
 
-<MudOverlay Visible="_isLoading" DarkBackground="true">
-    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+<MudOverlay Visible="_isLoading" LightBackground="true">
+    <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
 </MudOverlay>
 
-@if (_session is null && !_isLoading)
+@if (_session is not null)
 {
-    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
-        <MudText Color="Color.Error">Unable to load session details. Please try again.</MudText>
-    </MudContainer>
-}
-else if(_session is not null)
-{
-    <MudProgressLinear Value="@((_index + 1) / (double)_session.Exercises.Count * 100)" Color="Color.Info" Class="mb-4" />
-    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-4">
-        Exercise @(_index + 1) of @_session.Exercises.Count
-    </MudText>
-
-    <MudStepper Context=_stepper ActiveIndexChanged="NextStep" Outlined="true" Linear="false">
-        <ChildContent>
-            @foreach (var exercise in _session.Exercises.OrderBy(e => e.Order))
-            {
-                <MudStep Title="@GetExerciseName(exercise.ExerciseId)" StepContentStyle="overflow-y: auto; max-height: 60vh;">
-                    @if (_previousSessionData.TryGetValue(exercise.ExerciseId, out var previous))
-                    {
-                        <MudText Typo="Typo.h6">Previous Session:</MudText>
-                        <MudSimpleTable>
-                            <thead>
-                                <tr>
-                                    <th>Weight</th>
-                                    <th>Reps</th>
-                                    <th>Failure</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var set in previous.Sets)
-                                {
-                                    <tr>
-                                        <td>@set.Weight</td>
-                                        <td>@set.Reps</td>
-                                        <td>@(set.IsFailure ? "Yes" : "No")</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </MudSimpleTable>
-                    }
-                    else
-                    {
-                        <MudText>No previous data for this exercise.</MudText>
-                    }
-
-                    <MudText Typo="Typo.h6" Class="mt-4">Current Session:</MudText>
-
-                    <MudCheckBox T="bool" @bind-Checked="exercise.Skipped" Label="Skip this exercise" Color="Color.Warning" Class="mb-2" />
-
-                    @if (!exercise.Skipped)
-                    {
-                        @foreach (var (set, index) in exercise.Sets.Select((s, i) => (s, i)))
-                        {
-                            <div class="d-flex flex-wrap align-center mt-2">
-                                <MudTextField @bind-Value="set.Weight" Label="Weight (kg)" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
-                                <MudTextField @bind-Value="set.Reps" Label="Reps" Variant="Variant.Outlined" Margin="Margin.Dense" Type="InputType.Number" />
-                                <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                                    <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2 flex-grow-1" />
-                                </MudHidden>
-                                <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                                    <MudCheckBox T="bool" @bind-Checked="set.IsFailure" Label="To Failure" Class="ml-2" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveSet(exercise, index)" Class="ml-2" />
-                                </MudHidden>
-                            </div>
-                        }
-                        <MudButton OnClick="() => AddSet(exercise)" Variant="Variant.Filled" Class="mt-2">Add Set</MudButton>
-                    }
-
-                    <MudTextField @bind-Value="exercise.Notes" Label="Notes" Lines="3" Variant="Variant.Outlined" Class="mt-4" />
-                </MudStep>
-            }
-        </ChildContent>
-        <CompletedContent>
-            @* <MudStack Row Class="ma-3"> *@
-            <div class="d-flex flex-column align-center">
-
-                <MudIcon Icon="@Icons.Material.Filled.Done" Color="Color.Success" Size="Size.Large" />
-                <MudText Class="my-4">
-                    Congratulations! Your workout is done!
+    <div class="session-wrapper">
+        <div class="session-progress">
+            <div class="session-progress-title">
+                <MudText Typo="Typo.caption" Class="mb-4">
+                    Exercise @(_index + 1) of @_session.Exercises.Count
                 </MudText>
-                <MudText Class="my-4">You can write your notest and save all data!</MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CompleteSession" Disabled="@(_isSavingExercise || _isCanceling)" Class="my-4">
-                    @if (_isSavingExercise)
-                    {
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                    }
-                    Finish Workout
-                </MudButton>
+                @if (@_session.Exercises.Count > (_index + 1))
+                {
+                    <MudText Class="align-self-center" Style="color: var(--color-tertiary-text)">
+                        Next: @_session.Exercises.ElementAt(_index + 1).ExerciseName
+                    </MudText>
+                }
+                <MudButton Color="Color.Secondary" OnClick="CancelWorkout">Cancel</MudButton>
             </div>
-            @* </MudStack> *@
-        </CompletedContent>
-    </MudStepper>
+            <MudProgressLinear Value="@((_index + 1) / (double)_session.Exercises.Count * 100)" Class="mb-4" />
+        </div>
+        <div class="session-header">
+            <MudText Typo="Typo.h5">@_currentExercise.ExerciseName</MudText>
+            <div class="session-header-caption">
+                @if (_previousSessionData.TryGetValue(_currentExercise.ExerciseId, out var previous))
+                {
+                    <div style="display: flex; gap: 10px; flex-basis: 100%">
+                        <MudIcon Icon="@Icons.Material.Outlined.History"  />
+                        <MudText Typo="Typo.subtitle2">@previous.SessionDate.ToString("dd/MM/yyyy")</MudText>
+                    </div>
+                    <div class="session-header-caption-content" style="display: flex; gap: 8px;">
+                        @foreach (var set in previous.Sets)
+                        {
+                            <MudText Typo="Typo.caption">@($"{set.Weight}kg x {set.Reps}")</MudText>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="session-form">
+            <div class="session-form-inputs">
+                <div class="session-form-weights">
+                    <MudText Typo="Typo.caption">Weight (KG)</MudText>
+                    <MudNumericField Variant="Variant.Outlined" Placeholder="0" @bind-Value="@_weight"></MudNumericField>
+                </div>
+                <div class="session-form-reps">
+                    <MudText Typo="Typo.caption">Reps</MudText>
+                    <MudNumericField Variant="Variant.Outlined" Placeholder="0" @bind-Value="@_reps"></MudNumericField>
+                </div>
+            </div>
+            <div class="session-footer">
+                <MudButton Size="Size.Large" FullWidth Variant="Variant.Outlined" OnClick="AddSet">Add set</MudButton>
+            </div>
+        </div>
+        <div class="session-progress">
+            <div class="session-progress-header">
+                <MudText Typo="Typo.subtitle1">current sets</MudText>
+            </div>
+            <div class="session-progress-body">
+                @{
+                    int x = 1;
+                }
 
-    <MudTextField @bind-Value="_sessionNotes" Label="Session Notes" Lines="3"
-                  Variant="Variant.Outlined" Class="mt-4" Disabled="@_isSavingExercise" />
+                @foreach (var set in _currentExercise.Sets)
+                {
+                    <div class="set-item">
+                        <span class="set-item-number">@x</span>
+                        <div class="set-item-main">
+                            <span>@set.Weight</span>
+                            <span class="set-item-subtitle">kg</span>
+                            <span class="set-item-subtitle">x</span>
+                            <span>@set.Reps</span>
+                            <span class="set-item-subtitle">reps</span>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Outlined.Delete" @onclick="@(() => RemoveSet(set.Id))" />
+                    </div>
 
-    <div class="d-flex justify-end mt-4 gap-2">
-        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelWorkout" Disabled="@(_isSavingExercise || _isCanceling)" Class="ml-2">
-            @if (_isCanceling)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-            }
-            Cancel workout
-        </MudButton>
+                    x++;
+                }
+            </div>
+        </div>
+        @if (@_session.Exercises.Count == (_index + 1))
+        {
+            <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Outlined.ArrowForwardIos" OnClick="CompleteSession">Complete</MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Outlined.ArrowForwardIos" OnClick="NextStep">Next</MudButton>
+        }
     </div>
 }
 
 <style>
-    /* .mud-card-actions.mud-stepper-actions {
-                                        display: none !important;
-                                    } */
+    .session-wrapper {
+        margin: 0 auto;
+        height: 80vh;
+        overflow-x: auto;
+    }
+
+        .session-wrapper > .mud-button-root {
+            background-color: white;
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+
+        .session-wrapper .session-progress .session-progress-title {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .session-wrapper .session-progress .mud-typography-caption {
+            color: var(--color-primary-text);
+            margin-bottom: 4px
+        }
+
+        .session-wrapper .session-progress .mud-progress-linear .mud-progress-linear-bar {
+            background-color: var(--color-secondary-text);
+        }
+
+        .session-wrapper .session-header {
+            padding: 10px;
+            background-color: var(--color-tertiary-background);
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-color: var(--color-secondary-background);
+        }
+
+            .session-wrapper .session-header .session-header-caption {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: flex-end;
+                gap: 8px;
+                color: var(--color-tertiary-text);
+                margin: 8px 0;
+            }
+
+                .session-wrapper .session-header .session-header-caption .mud-icon-root {
+                    margin-bottom: 2px;
+                    font-size: 1.1rem;
+                }
+
+                .session-wrapper .session-header .session-header-caption .mud-typography-subtitle2 {
+                    font-size: .8rem;
+                }
+
+                .session-wrapper .session-header .session-header-caption .mud-typography-caption {
+                    color: var(--color-secondary-text);
+                    font-weight: 600;
+                    font-size: .8rem;
+                    border: solid 1px var(--color-secondary-text);
+                    padding: 2px 8px;
+                    border-radius: 8px;
+                }
+
+        .session-wrapper .session-form {
+            border: solid 1px var(--color-secondary-background);
+            background-color: var(--color-tertiary-background);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 0;
+            margin-bottom: 10px;
+        }
+
+            .session-wrapper .session-form .session-form-inputs {
+                display: flex;
+                flex-direction: row;
+                gap: 20px;
+            }
+
+                .session-wrapper .session-form .session-form-inputs .mud-input-outlined,
+                .session-wrapper .session-form .session-form-inputs .mud-input-outlined .mud-input-outlined-border {
+                    border: solid 1px var(--color-secondary-background);
+                    border-radius: 8px;
+                }
+
+                    .session-wrapper .session-form .session-form-inputs .mud-input-outlined:hover .mud-input-outlined-border,
+                    .session-wrapper .session-form .session-form-inputs .mud-input-outlined:active .mud-input-outlined-border,
+                    .session-wrapper .session-form .session-form-inputs .mud-input-outlined:focus-within .mud-input-outlined-border {
+                        border-color: var(--color-secondary-text);
+                    }
+
+                .session-wrapper .session-form .session-form-inputs .mud-typography-caption {
+                    color: var(--color-tertiary-text);
+                    text-transform: uppercase;
+                    font-weight: 600;
+                }
+
+                .session-wrapper .session-form .session-form-inputs .mud-input-outlined {
+                    background-color: var(--color-primary-background);
+                    margin: 0 auto;
+                }
+
+                    .session-wrapper .session-form .session-form-inputs .mud-input-outlined input {
+                        text-align: center;
+                        color: var(--color-primary-text);
+                        font-weight: 700;
+                    }
+
+            .session-wrapper .session-form .session-footer {
+                width: 80%;
+                margin: 0 auto;
+            }
+
+                .session-wrapper .session-form .session-footer .mud-button-outlined {
+                    background-color: var(--color-secondary-background);
+                    color: var(--color-primary-text);
+                }
+
+        .session-wrapper .session-progress .session-progress-header .mud-typography-subtitle1 {
+            text-transform: uppercase;
+            color: var(--color-tertiary-text);
+            font-weight: 600;
+        }
+
+        .session-wrapper .session-progress .session-progress-body .set-item {
+            border: solid 1px var(--color-secondary-background);
+            background-color: var(--color-tertiary-background);
+            border-radius: 8px;
+            padding: 18px 8px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+            .session-wrapper .session-progress .session-progress-body .set-item .set-item-subtitle {
+                color: var(--color-tertiary-text);
+                font-size: .8rem;
+                margin-right: 12px;
+            }
+
+            .session-wrapper .session-progress .session-progress-body .set-item .set-item-main {
+                flex-grow: 1;
+                font-size: 1.2rem;
+            }
+
+            .session-wrapper .session-progress .session-progress-body .set-item .set-item-number {
+                background-color: var(--color-secondary-background);
+                padding: 6px 12px;
+                border-radius: 50%;
+                color: var(--color-secondary-text);
+                font-weight: 600;
+            }
+
+            .session-wrapper .session-progress .session-progress-body .set-item .mud-icon-root {
+                color: var(--color-tertiary-text);
+            }
+
+                .session-wrapper .session-progress .session-progress-body .set-item .mud-icon-root:hover {
+                    cursor: pointer;
+                }
 </style>

@@ -1,55 +1,68 @@
-@if (_isLoading)
-{
-    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
-        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-    </MudOverlay>
-}
+<div class="create-exercise-wrapper">
 
-<MudDialog>
-    <TitleContent>
-        <MudText Typo="Typo.h6">Create Exercise</MudText>
-    </TitleContent>
-    <DialogContent>
-        <MudForm @bind-IsValid="@_success">
-            <MudTextField T="string"
-                          @bind-Value="_model.Name"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          Label="Name"
-                          Required="true"
-                          RequiredError="Name is required!"
-                          Disabled="@_isSubmitting" />
+    @if (_isLoading)
+    {
+        <MudOverlay Visible="true" DarkBackground="false" ZIndex="9999">
+            <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+        </MudOverlay>
+    }
 
-            <MudSelect T="long"
-                       @bind-Value="_model.MuscleGroupId"
-                       Variant="Variant.Outlined"
-                       Margin="Margin.Dense"
-                       Label="Muscle Group"
-                       Placeholder="Select muscle group"
-                       Required="true"
-                       RequiredError="Please select a muscle group"
-                       Disabled="@_isSubmitting">
+    <MudDialog>
+        <DialogContent>
+            <MudContainer>
+                <MudText Class="title" Typo="Typo.h5">Create new exercise</MudText>
+            </MudContainer>
 
-                <MudSelectItem Value="0L" Disabled="true">Select muscle group</MudSelectItem>
+            <MudForm @bind-IsValid="@_success">
+                <MudText>Exercise name</MudText>
+                <MudTextField T="string"
+                              Class="input-style"
+                              @bind-Value="_model.Name"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Required="true"
+                              RequiredError="Name is required!"
+                              Disabled="@_isSubmitting" />
+                <MudText>Exercise group</MudText>
+                <MudSelect T="long"
+                           Class="input-style"
+                           Adornment="Adornment.None"
+                           @bind-Value="_model.MuscleGroupId"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Required="true"
+                           RequiredError="Please select a muscle group"
+                           Disabled="@_isSubmitting">
 
-                @foreach (var group in _muscleGroups)
+                    <MudSelectItem Value="0L" Disabled="true">Select muscle group</MudSelectItem>
+
+                    @foreach (var group in _muscleGroups)
+                    {
+                        <MudSelectItem Value="@group.Id">@group.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudForm>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel" Disabled="@_isSubmitting">Cancel</MudButton>
+            <MudButton Class="save-button" Variant="Variant.Filled"
+                       Disabled="@(!_success || _isSubmitting)"
+                       OnClick="Submit">
+                @if (_isSubmitting)
                 {
-                    <MudSelectItem Value="@group.Id">@group.Name</MudSelectItem>
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                 }
-            </MudSelect>
-        </MudForm>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel" Disabled="@_isSubmitting">Cancel</MudButton>
-        <MudButton Color="Color.Primary"
-                   Variant="Variant.Filled"
-                   Disabled="@(!_success || _isSubmitting)"
-                   OnClick="Submit">
-            @if (_isSubmitting)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-            }
-            Create
-        </MudButton>
-    </DialogActions>
-</MudDialog>
+                Create
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+</div>
+<style>
+    .mud-list .mud-list-item{
+        background-color: var(--color-secondary-background); color: var(--color-tertiary-text);
+    }
+
+    .mud-list .mud-list-item.mud-list-item-disabled {
+        display: none;
+    }
+</style>

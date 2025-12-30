@@ -1,11 +1,65 @@
-﻿.mud-expand-panel.mud-panel-expanded {
-    background-color: red;
+﻿.plan-detail-page-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-.test {
-    background-color: red;
-}
+    .plan-detail-page-wrapper .mud-panel-expanded .mud-expand-panel-header {
+        background-color: #FAFAFA;
+    }
 
-::deep .mud-expand-panel-header {
-    background-color: red;
-}
+    .plan-detail-page-wrapper .float-right {
+        float: right;
+    }
+
+    .plan-detail-page-wrapper ::deep .outline-lime > .mud-input-control-input-container > .mud-input.mud-input-outlined > input:hover ~ .mud-input-outlined-border,
+    .plan-detail-page-wrapper ::deep .outline-lime > .mud-input-control-input-container > .mud-input.mud-input-outlined > input:focus ~ .mud-input-outlined-border {
+        border-color: var(--color-secondary-text);
+    }
+
+    .plan-detail-page-wrapper ::deep .foreground-lime {
+        color: var(--color-secondary-text);
+    }
+
+    .plan-detail-page-wrapper ::deep .plan-header .mud-input-root-outlined {
+        color: var(--color-primary-text);
+        font-size: 1.2rem;
+        
+    }
+
+    .plan-detail-page-wrapper ::deep .training-day-item {
+        background: var(--color-tertiary-background);
+        border: solid 1px var(--color-secondary-background);
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+        .plan-detail-page-wrapper ::deep .training-day-item .subtitle {
+            color: var(--color-tertiary-text);
+            font-size: .8rem;
+        }
+
+        .plan-detail-page-wrapper ::deep .training-day-item .button {
+            background-color: var(--color-secondary-background);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+            .plan-detail-page-wrapper ::deep .training-day-item .button .mud-icon-root {
+                font-size: 1.2rem;
+            }
+
+        .plan-detail-page-wrapper ::deep .training-day-item .arrow-button {
+            color: var(--color-primary-text);
+        }
+
+            .plan-detail-page-wrapper ::deep .training-day-item .arrow-button:hover {
+                color: var(--color-secondary-text);
+            }
+
+        .plan-detail-page-wrapper ::deep .training-day-item .delete-button {
+            color: var(--color-tertiary-text);
+        }
+
+    .plan-detail-page-wrapper ::deep .mud-typography-subtitle2 {
+        color: var(--color-tertiary-text);
+    }

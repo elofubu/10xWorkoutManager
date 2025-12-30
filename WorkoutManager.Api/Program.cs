@@ -6,7 +6,6 @@ using WorkoutManager.BusinessLogic.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using WorkoutManager.Api;
 using WorkoutManager.Api.HostedServices;
 using WorkoutManager.Api.Settings;
 

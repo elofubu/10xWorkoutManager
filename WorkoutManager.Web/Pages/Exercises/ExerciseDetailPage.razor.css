@@ -1,0 +1,56 @@
+﻿.plan-day-exercise-wrapper{
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+    .plan-day-exercise-wrapper ::deep .training-day-header{
+        border-bottom: 1px solid var(--color-secondary-background);
+    }
+
+
+.plan-day-exercise-wrapper .no-data{
+    min-height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--color-tertiary-text);
+}
+
+    .plan-day-exercise-wrapper ::deep .mud-button-root{
+        border: 2px dashed var(--color-tertiary-text);
+        padding: 12px;
+        color: var(--color-tertiary-text);
+    }
+
+        .plan-day-exercise-wrapper ::deep .mud-button-root:hover {
+            border: 2px dashed var(--color-secondary-text);
+            color: var(--color-secondary-text);
+        }
+
+    .plan-day-exercise-wrapper .training-day-item:first-child{
+        margin-top: 10px;
+    }
+
+    .plan-day-exercise-wrapper .training-day-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 10px;
+        margin-bottom: 10px;
+        background-color: var(--color-secondary-background);
+        color: var(--color-tertiary-text);
+        border: solid 1px var(--color-secondary-background);
+        border-radius: 12px;
+    }
+
+    .plan-day-exercise-wrapper .training-day-item .exercise-name{
+        flex-grow: 1;
+        color: var(--color-primary-text);
+        /*font-weight: 600;*/
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+
+        .plan-day-exercise-wrapper .training-day-item > div:first-child {
+            margin-bottom: 4px;
+        }

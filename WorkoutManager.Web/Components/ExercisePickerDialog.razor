@@ -1,64 +1,93 @@
 @using WorkoutManager.BusinessLogic.DTOs
-<MudDialog Class="overflow-hidden">
-    <TitleContent>
-        <MudText Typo="Typo.h6">Add Exercise</MudText>
-    </TitleContent>
-    <DialogContent>
-        @if (_isLoading)
-        {
-            <MudProgressLinear Color="Color.Info" Indeterminate="true" />
-        }
-        else
-        {
-            <MudTextField Margin="Margin.Dense" Variant="Variant.Outlined" T="string" Label="Search" @bind-Value="_search"
-                          DebounceInterval="300" OnDebounceIntervalElapsed="SearchExercises" Disabled="@_isSearching" />
-            <MudSelect T="long?" Margin="Margin.Dense" Variant="Variant.Outlined" Label="Muscle Group" @bind-Value="_selectedMuscleGroupId" SelectedValuesChanged="SearchExercises"
-                       Clearable="true" OnClearButtonClick="ClearFilter" Disabled="@_isSearching">
-                @foreach (var group in _muscleGroups)
-                {
-                    <MudSelectItem Value="@((long?)group.Id)">@group.Name</MudSelectItem>
-                }
-            </MudSelect>
-        }
+<div class="exercise-picker-dialog-wrapper">
 
-        @if (_isSearching)
-        {
-            <MudProgressLinear Color="Color.Info" Indeterminate="true" />
-        }
-
-        <MudList T="ExerciseDto" Style="height: 300px" Class="overflow-scroll">
-            @if (_isLoading || _isSearching)
+    <MudDialog Class="overflow-hidden">
+        <DialogContent>
+            <MudContainer Class="exercise-picker-title-wrapper">
+                <MudText Typo="Typo.h6">Select exercise</MudText>
+                <MudIcon Icon="@Icons.Material.Outlined.Close" @onclick="Cancel" />
+            </MudContainer>
+            @if (_isLoading)
             {
-                <MudListItem Class="mud-list-padding">
-                    <MudText Align="Align.Center" Color="Color.Secondary">
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                        Loading exercises...
-                    </MudText>
-                </MudListItem>
-            }
-            else if (!_exercises.Any())
-            {
-                <MudListItem Class="mud-list-padding">
-                    <MudText Align="Align.Center" Color="Color.Secondary">No exercises found</MudText>
-                </MudListItem>
+                <MudProgressLinear Color="Color.Info" Indeterminate="true" />
             }
             else
             {
-                @foreach (var exercise in _exercises)
+                <div>
+                    <MudText Typo="Typo.subtitle2" Class="label-style">SEARCH</MudText>
+                    <MudTextField Class="input-style"
+                                  Margin="Margin.Dense"
+                                  Variant="Variant.Outlined"
+                                  T="string"
+                                  @bind-Value="_search"
+                                  DebounceInterval="500"
+                                  OnDebounceIntervalElapsed="SearchExercises"
+                                  Disabled="@_isSearching" />
+                </div>
+                <div>
+                    <MudText Typo="Typo.subtitle2" Class="label-style">PICK CATEGORY</MudText>
+                    <MudSelect Class="input-style"
+                               Adornment="Adornment.None"
+                               T="long?"
+                               Margin="Margin.Dense"
+                               Variant="Variant.Outlined"
+                               @bind-Value="_selectedMuscleGroupId"
+                               SelectedValuesChanged="SearchExercises"
+                               Clearable="true"
+                               OnClearButtonClick="ClearFilter"
+                               Disabled="@_isSearching">
+                        @foreach (var group in _muscleGroups)
+                        {
+                            <MudSelectItem style="background-color: var(--color-secondary-background); color: var(--color-tertiary-text);"
+                                           Value="@((long?)group.Id)">@group.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+            }
+
+            @if (_isSearching)
+            {
+                <MudProgressLinear Color="Color.Info" Indeterminate="true" />
+            }
+
+            <MudList T="ExerciseDto">
+                @if (_isLoading || _isSearching)
                 {
-                    <MudListItem T="ExerciseDto" @onclick="() => SelectExercise(exercise)" Class="cursor-pointer">
-                        @exercise.Name
+                    <MudListItem Class="mud-list-padding">
+                        <MudText Align="Align.Center" Color="Color.Secondary">
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            Loading exercises...
+                        </MudText>
                     </MudListItem>
                 }
+                else if (!_exercises.Any())
+                {
+                    <MudListItem Class="mud-list-padding">
+                        <MudText Align="Align.Center" Color="Color.Secondary">No exercises found</MudText>
+                    </MudListItem>
+                }
+                else
+                {
+                    @foreach (var exercise in _exercises)
+                    {
+                        <MudListItem T="ExerciseDto" @onclick="() => SelectExercise(exercise)" Class="cursor-pointer">
+                            @exercise.Name
+                        </MudListItem>
+                    }
+                }
+            </MudList>
+            @if (PageCount > 1)
+            {
+                <MudPagination Count="PageCount" SelectedChanged="PageChanged" Disabled="@_isSearching" />
             }
-        </MudList>
-        @if (PageCount > 1)
-        {
-            <MudPagination Count="PageCount" SelectedChanged="PageChanged" Disabled="@_isSearching" />
-        }
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel" Disabled="@_isSearching">Cancel</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OpenCreateExerciseDialog" Disabled="@_isSearching">Create New</MudButton>
-    </DialogActions>
-</MudDialog>
+        </DialogContent>
+        <DialogActions>
+            @* <MudButton OnClick="Cancel" Disabled="@_isSearching">Cancel</MudButton> *@
+            <MudButton Class="create-button"
+                       Variant="Variant.Filled"
+                       FullWidth="true"
+                       OnClick="OpenCreateExerciseDialog"
+                       Disabled="@_isSearching">Create New</MudButton>
+        </DialogActions>
+    </MudDialog>
+</div>

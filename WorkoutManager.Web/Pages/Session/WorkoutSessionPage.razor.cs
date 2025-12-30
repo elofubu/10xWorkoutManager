@@ -22,13 +22,14 @@ namespace WorkoutManager.Web.Pages.Session
         private SessionDetailsDto? _session;
         private SessionExerciseDetailsDto? _currentExercise;
 
+        private int? _reps;
+        private decimal? _weight;
+
         private Dictionary<long, PreviousExercisePerformanceDto> _previousSessionData = new();
         private Dictionary<long, string> _exerciseNames = new();
         private string? _sessionNotes;
         private int _index;
         private bool _isLoading = true;
-        private bool _isSavingExercise = false;
-        private bool _isCanceling = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -46,12 +47,6 @@ namespace WorkoutManager.Web.Pages.Session
 
                 foreach (var exercise in _session.Exercises)
                 {
-                    //Add 3 empty sets objects
-                    while (exercise.Sets.Count < 3)
-                    {
-                        exercise.Sets.Add(new ExerciseSetDto());
-                    }
-
                     var previous = await ExerciseService.GetPreviousSessionExerciseAsync(exercise.ExerciseId, _session.TrainingDayId.Value);
                     if (previous is not null)
                     {
@@ -74,23 +69,23 @@ namespace WorkoutManager.Web.Pages.Session
 
         private string GetExerciseName(long exerciseId) => _exerciseNames.GetValueOrDefault(exerciseId, $"Exercise {exerciseId}");
 
-        private void AddSet(SessionExerciseDetailsDto exercise)
+        private void AddSet()
         {
-            exercise.Sets.Add(new ExerciseSetDto());
+            if (!_reps.HasValue) return;
+
+            _currentExercise.Sets.Add(new ExerciseSetDto { Reps = _reps.Value, Weight = _weight.HasValue ? _weight.Value : 0 });
         }
 
-        private void RemoveSet(SessionExerciseDetailsDto exercise, int setIndex)
+        private void RemoveSet(long setIndex)
         {
-            if (setIndex >= 0 && setIndex < exercise.Sets.Count)
-            {
-                exercise.Sets.RemoveAt(setIndex);
-            }
+            if (!_currentExercise.Sets.Any(s => s.Id == setIndex)) return;
+
+            var setToRemove = _currentExercise.Sets.First(s => s.Id == setIndex);
+            _currentExercise.Sets.Remove(setToRemove);
         }
 
-        private async Task NextStep(int index)
+        private async Task NextStep()
         {
-            if(index <= 0) return;
-
             _isLoading = true;
             try
             {
@@ -105,30 +100,41 @@ namespace WorkoutManager.Web.Pages.Session
             }
             finally
             {
-                _index = index;
+                _index++;
                 _isLoading = false;
                 _currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
+                _weight = 0;
+                _reps = 0;
             }
         }
 
         private async Task CompleteSession()
         {
-            _isSavingExercise = true;
+            _isLoading = true;
 
             try
             {
+                var payload = new UpdateSessionExerciseDto
+                {
+                    Notes = _currentExercise.Notes,
+                    Skipped = _currentExercise.Skipped,
+                    Sets = _currentExercise.Skipped ? new List<ExerciseSetDto>() : _currentExercise.Sets.Where(s => s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
+                };
+
+                await SessionService.UpdateSessionExerciseAsync(_session.Id, _currentExercise.Id, payload);
+
                 await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
                 NavigationManager.NavigateTo("/history");
             }
             finally
             {
-                _isSavingExercise = false;
+                _isLoading = false;
             }
         }
 
         private async Task CancelWorkout()
         {
-            _isCanceling = true;
+            _isLoading = true;
             try
             {
                 await SessionService.FinishSessionAsync(_session.Id, _session.Notes);
@@ -136,7 +142,7 @@ namespace WorkoutManager.Web.Pages.Session
             }
             catch
             {
-                _isCanceling = false;
+                _isLoading = false;
             }
         }
     }

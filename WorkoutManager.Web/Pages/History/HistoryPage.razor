@@ -1,71 +1,106 @@
 @page "/history"
 @using WorkoutManager.BusinessLogic.DTOs
+<div class="history-wrapper">
 
-<PageTitle>Workout History</PageTitle>
+    <PageTitle>Workout History</PageTitle>
 
-<MudText Typo="Typo.h4" GutterBottom="true">Workout History</MudText>
+    <MudText Typo="Typo.h4" GutterBottom="true">Workout History</MudText>
 
-@if (_isLoading)
-{
-    <MudOverlay Visible="true" DarkBackground="true">
-        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    <MudOverlay Visible="_isLoading" LightBackground="true">
+        <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
     </MudOverlay>
-}
-else if (_sessions is null || !_sessions.Any())
-{
-    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
-        <MudStack Spacing="3" AlignItems="AlignItems.Center">
-            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 3rem; color: var(--mud-palette-action-disabled);" />
-            <MudText Typo="Typo.h6" Color="Color.Secondary">No workouts completed yet</MudText>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Start a workout to see your history</MudText>
-        </MudStack>
-    </MudContainer>
-}
-else
-{
-    @if (_isPaginationLoading)
-    {
-        <MudProgressLinear Color="Color.Info" Indeterminate="true" Class="mb-4" />
-    }
 
-    <div class="d-flex flex-wrap gap-4">
-        @foreach (var session in _sessions)
+    @if (_sessions is null || !_sessions.Any())
+    {
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
+            <MudStack Spacing="3" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="font-size: 3rem; color: var(--mud-palette-action-disabled);" />
+                <MudText Typo="Typo.h6" Color="Color.Secondary">No workouts completed yet</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Start a workout to see your history</MudText>
+            </MudStack>
+        </MudContainer>
+    }
+    else
+    {
+        @if (_isPaginationLoading)
         {
-            <MudCard Class="mb-4" Style="min-width: 300px">
-                <MudCardHeader Class="justify-space-between">
-                    <div>
-                        <MudText Typo="Typo.caption" style="text-transform: uppercase" Class="">Plan name</MudText>
-                        <MudText Typo="Typo.h5">@session.PlanName</MudText>
-                    </div>
-                </MudCardHeader>
-                <MudCardContent Class="d-flex justify-space-between">
-                    <div>
-                        <MudText Typo="Typo.caption" style="text-transform: uppercase">Training day</MudText>
-                        <MudText Typo="Typo.subtitle2">@session.TrainingDayName</MudText>
-                    </div>
-                    <div class="self-start">
-                        <MudText Typo="Typo.caption" style="text-transform: uppercase">Date</MudText>
-                        <MudText Typo="Typo.subtitle2">@session.StartTime.ToString("dd-MM-yyyy")</MudText>
-                    </div>
-                    @if (session.EndTime.HasValue)
-                    {
+            <MudProgressLinear Color="Color.Info" Indeterminate="true" Class="mb-4" />
+        }
+
+        <div class="d-flex flex-wrap gap-4 justify-center">
+            @foreach (var session in _sessions)
+            {
+                <MudCard Class="mb-4" Style="min-width: 350px">
+                    <MudCardHeader Class="justify-space-between d-flex history-card-header">
                         <div>
-                            <MudText Typo="Typo.caption" style="text-transform: uppercase">Duration</MudText>
-                            <MudText Typo="Typo.subtitle2">
+                            <MudText Typo="Typo.body1">@session.PlanName</MudText>
+                            <MudText Typo="Typo.subtitle2">@session.TrainingDayName</MudText>
+                        </div>
+                        <div class="align-self-end d-flex flex-column right-column">
+                            <MudText Typo="Typo.caption" Class="d-flex gap-1 py-1">
+                                <MudIcon Size="Size.Small" Icon="@Icons.Material.Outlined.CalendarMonth" />
+                                @session.StartTime.ToString("dd/MM/yyyy")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Class="d-flex gap-1">
+                                <MudIcon Size="Size.Small" Icon="@Icons.Material.Outlined.Timelapse" />
                                 @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
                             </MudText>
                         </div>
-                    }
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton OnClick="() => NavigateToSession(session.Id)" Variant="Variant.Text" Color="Color.Primary" Disabled="@_isPaginationLoading">View details</MudButton>
-                </MudCardActions>
-            </MudCard>
-        }
-    </div>
+                    </MudCardHeader>
+                    <MudCardContent Class="d-flex justify-space-between">
+                        <div>
+                            <MudText Typo="Typo.caption" style="text-transform: uppercase">Training day</MudText>
+                            <MudText Typo="Typo.subtitle2">@session.TrainingDayName</MudText>
+                        </div>
+                        <div class="self-start">
+                            <MudText Typo="Typo.caption" style="text-transform: uppercase">Date</MudText>
+                            <MudText Typo="Typo.subtitle2">@session.StartTime.ToString("dd-MM-yyyy")</MudText>
+                        </div>
+                        @if (session.EndTime.HasValue)
+                        {
+                            <div>
+                                <MudText Typo="Typo.caption" style="text-transform: uppercase">Duration</MudText>
+                                <MudText Typo="Typo.subtitle2">
+                                    @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
+                                </MudText>
+                            </div>
+                        }
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton OnClick="() => NavigateToSession(session.Id)" Variant="Variant.Text" Color="Color.Primary" Disabled="@_isPaginationLoading">View details</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            }
+        </div>
 
-    @if (PageCount > 1)
-    {
-        <MudPagination Count="PageCount" SelectedChanged="PageChanged" Disabled="@_isPaginationLoading" Class="mt-4" />
+        @if (PageCount > 1)
+        {
+            <MudPagination Count="PageCount" SelectedChanged="PageChanged" Disabled="@_isPaginationLoading" Class="mt-4" />
+        }
     }
-}
+</div>
+
+<style>
+    .history-wrapper .mud-paper {
+        background-color: var(--color-primary-background-element);
+        border: solid 1px var(--color-secondary-background);
+        border-radius: 12px;
+        color: var(--color-primary-text);
+        padding: 4px ;
+    }
+
+    .history-wrapper .history-card-header{
+        border-bottom: 1px solid var(--color-secondary-background);
+    }
+
+    .history-wrapper .history-card-header .right-column > span{
+        color: var(--color-tertiary-text);
+        font-size: .7rem;
+    }
+    .history-wrapper .history-card-header p:first-child{
+        font-weight: 600;
+    }
+    .history-wrapper .history-card-header p:last-child{
+        color: var(--color-secondary-text);
+    }
+</style>

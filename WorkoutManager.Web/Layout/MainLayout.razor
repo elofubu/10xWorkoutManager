@@ -13,26 +13,39 @@
     <Authorized>
         <MudLayout>
             <MudAppBar>
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-                Workout Manager
+                <MudIcon Icon="material-symbols-outlined/exercise" />
+                <span class="page-title">WorkoutManager</span
                 <MudSpacer />
-                <MudText>@context.User.Identity.Name</MudText>
+                <MudText>@context.User.Identity.Name</MudText> 
                 <MudIconButton Icon="@Icons.Material.Filled.Logout" aria-label="Logout" Color="Color.Inherit" OnClick="Logout" />
             </MudAppBar>
-            <MudDrawer @bind-Open="_drawerOpen">
-                <NavMenu />
-            </MudDrawer>
-            <MudMainContent>
-                <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
-                    @Body
+            <MudMainContent Class="pb-16">
+                <MudContainer MaxWidth="MaxWidth.Large" Class="my-4 pt-4">
+                    <WorkoutManager.Web.Helpers.GLobalErrorBoundary>
+                        @Body
+                    </WorkoutManager.Web.Helpers.GLobalErrorBoundary>
                 </MudContainer>
             </MudMainContent>
+        <NavMenu />
         </MudLayout>
     </Authorized>
     <NotAuthorized>
         <WorkoutManager.Web.Components.RedirectToLogin />
     </NotAuthorized>
 </AuthorizeView>
+
+<style>
+    .mud-appbar {
+        background: var(--color-primary-background-element);
+        color: var(--color-secondary-text);
+    }
+    .page-title{
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+</style>
 
 @code {
     bool _drawerOpen = true;

@@ -1,5 +1,22 @@
+:root {
+    --color-primary-background: rgb(2 6 23);
+    --color-secondary-background: rgb(30 41 59);
+    --color-tertiary-background: rgb(15 23 42);
+    --color-secondary-background-hover: rgb(51 65 85);
+    --color-primary-background-element: rgb(15 23 42);
+    --color-secondary-text: rgb(132 204 22);
+    --color-primary-text: rgb(241, 245, 249);
+    --color-tertiary-text: rgb(100 116 139);
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+body {
+    /*background-color: hsl(222.2 84% 4.9%);*/
+    background-color: rgb(2 6 23);
+    color: var(--color-primary-text);
 }
 
 h1:focus {

@@ -58,5 +58,6 @@ namespace WorkoutManager.Web.Pages.History
         {
             NavigationManager.NavigateTo($"/history/{sessionId}");
         }
+
     }
 }

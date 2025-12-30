@@ -4,8 +4,8 @@
 @using System.ComponentModel.DataAnnotations
 @using WorkoutManager.Web.Services
 
-<MudOverlay Visible="_isLoading" DarkBackground="true" ZIndex="9999">
-    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+<MudOverlay Visible="_isLoading" LightBackground="true">
+    <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
 </MudOverlay>
 
 <MudGrid Justify="Justify.Center" Class="mt-16">

@@ -1,44 +1,46 @@
 @using WorkoutManager.BusinessLogic.DTOs
 
-<MudDialog>
-    <TitleContent>
-        <MudText Typo="Typo.h6">Create New Workout Plan</MudText>
-    </TitleContent>
+<MudDialog Class="dialog-content-style">
     <DialogContent>
-        <MudTextField Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_planName" Label="Plan Name" Required="true" Disabled="@_isSubmitting" />
-        <div class="d-flex gap-2">
-            <MudTextField Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_newDayName" Label="New Day Name" OnKeyUp="HandleDayNameKeyup" Disabled="@_isSubmitting" />
-            <MudButton Class="mr-auto" OnClick="AddTrainingDay" Disabled="@_isSubmitting">Add Day</MudButton>
+        <div class="py-4 d-flex align-center">
+            <MudIcon Class="mr-2 cursor-pointer" Icon="@Icons.Material.Outlined.ArrowBack" @onclick="Cancel" />
+            <MudText Typo="Typo.h6">Create Workout Plan</MudText>
+        </div>
+        <MudText Typo="Typo.caption" Style="color: var(--color-tertiary-text)">PLAN NAME</MudText>
+        <MudTextField Class="outline-lime text-field" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_planName" Required="true" Disabled="@_isSubmitting" />
+        <div class="d-flex flex-column mt-4">
+            <div class="d-flex flex-row justify-space-between">
+                <MudText Typo="Typo.caption" Style="color: var(--color-tertiary-text)">TRAINING DAYS</MudText>
+                <div class="d-flex align-center cursor-pointer" @onclick="AddTrainingDay" Style="color: var(--color-secondary-text)">
+                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Outlined.Add" />
+                    <MudText Class="mt-1" Style="font-weight: 600;" Typo="Typo.caption" Disabled="@_isSubmitting">ADD DAY</MudText>
+                </div>
+            </div>
+            <MudTextField Class="outline-lime text-field" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="_newDayName" OnKeyUp="HandleDayNameKeyup" Disabled="@_isSubmitting" />
         </div>
         <div class="mt-4">
             <MudText Class="py-2" Typo="Typo.subtitle2">Days list</MudText>
-            <MudList T="CreateTrainingDayDto">
+            <div>
                 @if (!_trainingDays.Any())
                 {
-                    <MudText Class="text-center ">Add some days to fill the plan.</MudText>
+                    <MudText Typo="Typo.caption">Add first day to start planning</MudText>
                 }
                 @foreach (var day in _trainingDays)
                 {
-                    <MudListItem Class="pa-1 mx-2">
-                        <MudText>@day.Name
-                            <MudIconButton Style="float: right" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveTrainingDay(day)" Disabled="@_isSubmitting" />
-                        </MudText>
-
-                    </MudListItem>
+                    <div Class="pa-4 mx-2 d-flex justify-space-between training-day-item">
+                        <MudText>@day.Name</MudText>
+                        <MudIconButton Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" OnClick="() => RemoveTrainingDay(day)" Disabled="@_isSubmitting" />
+                    </div>
                 }
-            </MudList>
+            </div>
+            <MudButton Class="mt-8 py-4"
+                       Style="background-color: var(--color-secondary-background); color: var(--color-primary-text);"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="Submit"
+                       FullWidth="true">Save training day</MudButton>
         </div>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel" Disabled="@_isSubmitting">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@_isSubmitting">
-            @if (_isSubmitting)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-            }
-            Create
-        </MudButton>
-    </DialogActions>
 </MudDialog>
 <style>
     .mud-list-style {
@@ -46,4 +48,38 @@
         border-radius: 5px;
         border: solid 1px #EEEEEE;
     }
+
+    .outline-lime > .mud-input-control-input-container > .mud-input.mud-input-outlined > input:hover ~ .mud-input-outlined-border,
+    .outline-lime > .mud-input-control-input-container > .mud-input.mud-input-outlined > input:focus ~ .mud-input-outlined-border,
+    .outline-lime > .mud-input-control-input-container > .mud-input.mud-input-outlined > input:focus-within ~ .mud-input-outlined-border {
+        border-color: var(--color-secondary-text);
+    }
+
+    .dialog-content-style {
+        width: 600px;
+        height: 100vh;
+        margin: 0 auto;
+        background-color: var(--color-primary-background);
+        color: var(--color-primary-text);
+    }
+
+    .training-day-item {
+        border: solid 1px var(--color-secondary-background);
+        border-radius: 12px;
+        padding: 10px 8px;
+    }
+
+    .text-field .mud-input {
+        color: var(--color-primary-text);
+        border-color: var(--color-primary-text);
+        font-size: 1.2rem;
+        font-weight: 500;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+       /*  .text-field .mud-input:hover {
+            border: 1px solid var(--color-primary-text);
+            border-radius: 12px;
+        } */
 </style>

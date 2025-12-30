@@ -1,65 +1,97 @@
 @page "/plans/{id:long}"
 @using WorkoutManager.BusinessLogic.DTOs
 
-<PageTitle>@($"Plan: {_plan?.Name ?? "..."}")</PageTitle>
+<div class="plan-detail-page-wrapper">
 
-@if (_isLoading)
-{
-    <MudOverlay Visible="true" DarkBackground="true">
-        <MudProgressCircular Indeterminate="true" />
+    <div class="py-4 d-flex align-center gap-2">
+        <MudIcon Class="mr-2 cursor-pointer" Icon="@Icons.Material.Outlined.ArrowBack" @onclick="@(() => NavigationManager.NavigateTo("/"))" />
+        <MudText Class="flex-grow-1" Typo="Typo.h6">Edit Workout Plan</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Class="foreground-lime" OnClick="DeletePlan" Disabled="@_isDeleting" />
+    </div>
+
+    <MudOverlay Visible="_isLoading" LightBackground="true">
+        <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
     </MudOverlay>
-}
-else if (_plan is null)
-{
-    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 300px;">
-        <MudText Color="Color.Error">Unable to load plan details. Please try again.</MudText>
-    </MudContainer>
-}
-else
-{
-    <MudGrid Justify="Justify.SpaceBetween">
-        <MudItem>
-            @if (_isEditingName)
-            {
-                <MudTextField @bind-Value="_editedPlanName" Label="Plan Name" Variant="Variant.Outlined" Disabled="@_isSavingName" />
-                <MudButton OnClick="SavePlanName" Size="Size.Small" Color="Color.Primary" Disabled="@_isSavingName">
-                    @if (_isSavingName)
-                    {
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                    }
-                    Save
-                </MudButton>
-                <MudButton OnClick="CancelEditName" Size="Size.Small" Disabled="@_isSavingName">Cancel</MudButton>
-            }
-            else
-            {
-                <MudText Typo="Typo.h4">
-                    @_plan.Name
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="StartEditingName" Disabled="@_isSavingName" />
-                </MudText>
-            }
-        </MudItem>
-        <MudItem Class="d-flex gap-2 align-center">
-            @if (_plan.TrainingDays.Any())
+
+    @if (!_isLoading)
+    {
+        <MudContainer Class="pa-0 mb-8">
+            <div class="plan-header">
+                <MudText Typo="Typo.subtitle2">PLAN NAME</MudText>
+                <div class="plan-name d-flex gap-8">
+                    <MudTextField Class="outline-lime" @bind-Value="_editedPlanName" Variant="Variant.Outlined" Disabled="@_isSavingName" />
+                </div>
+            </div>
+            @* <MudItem Class="d-flex gap-2"> *@
+            @* <MudButton Class="foreground-lime" OnClick="SavePlanName" Size="Size.Small" Disabled="@_isSavingName">
+                        @if (_isSavingName)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        Save
+                    </MudButton>
+                    <MudButton OnClick="CancelEditName" Size="Size.Small" Disabled="@_isSavingName">Cancel</MudButton> *@
+            @* @if (_isEditingName)
+                {
+                }
+                else
+                {
+                    <MudText Class="flex-grow-1" Typo="Typo.h4">@_plan.Name</MudText>
+                    <MudIconButton Class="icon-button-background" style="color: var(--color-secondary-text)" Icon="@Icons.Material.Filled.Edit" OnClick="StartEditingName" Disabled="@_isSavingName" />
+                } *@
+            @* </MudItem> *@
+            @* <MudItem Class="d-flex gap-2 align-center">
+                 @if (_plan.TrainingDays.Any())
             {
                 <MudSwitch T="bool" @bind-Value="_isEditMode" Label="Edit Mode" Color="Color.Primary" Disabled="@_isDeleting" />
             }
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeletePlan" Disabled="@_isDeleting" />
-        </MudItem>
-    </MudGrid>
 
-    <MudExpansionPanels MultiExpansion="true" Class="mt-4">
-        @foreach (var day in _plan.TrainingDays.OrderBy(d => d.Order))
-        {
-            <MudExpansionPanel>
-                <TitleContent>
-                    <div class="d-flex">
-                        <div class="d-flex flex-column flex-grow-1">
+            </MudItem> *@
+        </MudContainer>
+        <MudContainer Class="pa-0">
+            <MudText Typo="Typo.subtitle2">TRAINING DAYS</MudText>
+            <div>
+                @if (!_plan.TrainingDays.Any())
+                {
+                    <MudText Typo="Typo.caption">Add first day to start planning</MudText>
+                }
+                @foreach (var day in _plan.TrainingDays)
+                {
+                    <div Class="d-flex justify-space-between align-center mb-2 training-day-item">
+                        <div>
                             <MudText>@day.Name</MudText>
-                            <MudText Class="font-size-small mt-2">Exerices count: @(day.Exercises?.Count() ?? 0)</MudText>
+                            <MudText Class="subtitle">@day.Exercises.Count() exercises</MudText>
+
                         </div>
-                        <div class="d-flex gap-2 align-self-center mr-4">
-                            @if (day.Exercises.Any())
+                        <div>
+
+                            <MudIconButton Size="Size.Small" class="button arrow-button" Icon="material-symbols-outlined/arrow_forward_ios" OnClick="@(() => NavigationManager.NavigateTo($"/plans/{_plan.Id}/days/{day.Id}"))" />
+                            <MudIconButton Size="Size.Small" class="button delete-button" Icon="material-symbols-outlined/delete" OnClick="() => RemoveTrainingDay(day)" />
+                        </div>
+                    </div>
+                }
+            </div>
+        </MudContainer>
+        <MudContainer Class="pa-0">
+            <MudButton Class="mt-8 py-4"
+                       Style="background-color: var(--color-secondary-background); color: var(--color-primary-text);"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="SavePlan"
+                       FullWidth="true">Save plan</MudButton>
+        </MudContainer>
+        @* <MudExpansionPanels Style="max-width: 600px; margin: 0 auto;" MultiExpansion="true" Class="mt-4">
+            @foreach (var day in _plan.TrainingDays.OrderBy(d => d.Order))
+            {
+                <MudExpansionPanel>
+                    <TitleContent>
+                        <div class="d-flex">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <MudText>@day.Name</MudText>
+                                <MudText Class="font-size-small mt-2">Exerices count: @(day.Exercises?.Count() ?? 0)</MudText>
+                            </div>
+                            <div class="d-flex gap-2 align-self-center mr-4">
+                                 @if (day.Exercises.Any())
                             {
                                 <MudHidden Breakpoint="Breakpoint.MdAndUp">
                                     <MudIconButton Variant="Variant.Filled" Color="Color.Primary" Icon="@Icons.Material.Filled.PlayArrow" Class="ml-2" OnClick="() => StartWorkout(day.Id)" Disabled="@_isStartingWorkout"></MudIconButton>
@@ -75,53 +107,36 @@ else
                                 </MudHidden>
                             }
 
-                            @if (_isEditMode || day.Exercises.Count() == 0)
-                            {
-                                <MudHidden Breakpoint="Breakpoint.MdAndUp">
-                                    <MudIconButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" Icon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))" Disabled="@_isAddingExercise"></MudIconButton>
-                                </MudHidden>
-                                <MudHidden Breakpoint="Breakpoint.SmAndDown">
-                                    <MudButton Class="" Variant=" Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))" Disabled="@_isAddingExercise">
-                                        @if (_isAddingExercise)
-                                        {
-                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                                        }
-                                        Add Exercise
-                                    </MudButton>
-                                </MudHidden>
-
-                            }
-                        </div>
-                    </div>
-                </TitleContent>
-                <ChildContent>
-                    <MudList T="PlanDayExerciseDto">
-                        @foreach (var exercise in day.Exercises.OrderBy(e => e.Order))
-                        {
-                            <div class="mt-2">
-                                <MudListItem T="PlanDayExerciseDto">
-                                    @exercise.Name
-                                    @if (_isEditMode)
+                                <MudIconButton Class="" Color="Color.Secondary" Icon="@Icons.Material.Filled.Add" OnClick="@(() => AddExercise(day.Id))" Disabled="@_isAddingExercise">
+                                    @if (_isAddingExercise)
                                     {
-                                        <MudIconButton Class="float-right" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" Disabled="@(_isDeletingExercise && _deletingExerciseId == exercise.PlanDayExerciseId)" />
+                                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
                                     }
-                                </MudListItem>
+                                    Add Exercise
+                                </MudIconButton>
+
                             </div>
-                        }
-                    </MudList>
-                </ChildContent>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        <MudList T="PlanDayExerciseDto">
+                            @foreach (var exercise in day.Exercises.OrderBy(e => e.Order))
+                            {
+                                <div class="mt-2">
+                                    <MudListItem T="PlanDayExerciseDto">
+                                        @exercise.Name
+                                        @if (_isEditMode)
+                                        {
+                                            <MudIconButton Class="float-right" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="@(async () => await DeleteExercise(day.Id, exercise.PlanDayExerciseId))" Disabled="@(_isDeletingExercise && _deletingExerciseId == exercise.PlanDayExerciseId)" />
+                                        }
+                                    </MudListItem>
+                                </div>
+                            }
+                        </MudList>
+                    </ChildContent>
 
-            </MudExpansionPanel>
-        }
-    </MudExpansionPanels>
-}
-
-<style>
-    .mud-panel-expanded .mud-expand-panel-header {
-        background-color: #FAFAFA;
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels> *@
     }
-
-    .float-right {
-        float: right;
-    }
-</style>
+</div>
