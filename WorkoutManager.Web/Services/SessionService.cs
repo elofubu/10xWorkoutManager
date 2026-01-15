@@ -1,92 +1,111 @@
-using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Commands;
-using System.Net;
+using BizLogic = WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Web.Services
 {
     public class SessionService : ISessionService
     {
-        private readonly HttpClient _httpClient;
-        private readonly IAuthService _authService;
+        private readonly BizLogic.ISessionService _sessionService;
+        private readonly BizLogic.ISessionExerciseService _sessionExerciseService;
+        private readonly AuthenticationStateProvider _authStateProvider;
         private readonly ILogger<SessionService> _logger;
 
-        public SessionService(HttpClient httpClient, 
-            IAuthService authService,
+        public SessionService(
+            BizLogic.ISessionService sessionService,
+            BizLogic.ISessionExerciseService sessionExerciseService,
+            AuthenticationStateProvider authStateProvider,
             ILogger<SessionService> logger)
         {
-            _httpClient = httpClient;
-            this._authService = authService;
-            this._logger = logger;
+            _sessionService = sessionService;
+            _sessionExerciseService = sessionExerciseService;
+            _authStateProvider = authStateProvider;
+            _logger = logger;
+        }
+
+        private async Task<Guid> GetUserIdAsync()
+        {
+            var authState = await _authStateProvider.GetAuthenticationStateAsync();
+            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException("User not authenticated"));
         }
 
         public async Task<PaginatedList<SessionSummaryDto>> GetSessionHistoryAsync()
         {
-            return await _httpClient.GetFromJsonAsync<PaginatedList<SessionSummaryDto>>("api/sessions") ?? new PaginatedList<SessionSummaryDto>();
+            var userId = await GetUserIdAsync();
+            return await _sessionService.GetSessionHistoryAsync(userId);
         }
 
         public async Task<SessionDetailsDto> GetSessionDetailsAsync(long id)
         {
-            return await _httpClient.GetFromJsonAsync<SessionDetailsDto>($"api/sessions/{id}") ?? new SessionDetailsDto { Id = id };
+            var userId = await GetUserIdAsync();
+            return await _sessionService.GetSessionByIdAsync(id, userId);
         }
 
         public async Task<SessionDetailsDto> StartSessionAsync(long trainingDayId)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/sessions", new { trainingDayId });
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<SessionDetailsDto>() ?? new SessionDetailsDto();
+                var userId = await GetUserIdAsync();
+                return await _sessionService.StartSessionAsync(trainingDayId, userId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Error starting session");
+                throw;
             }
-
-            return new SessionDetailsDto();
         }
 
         public async Task UpdateSessionExerciseAsync(long sessionId, long sessionExerciseId, UpdateSessionExerciseDto payload)
         {
-            var result = await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}/exercises/{sessionExerciseId}", payload);
-
-            if (result.StatusCode.Equals(System.Net.HttpStatusCode.Forbidden))
+            try
             {
-                _logger.LogError("Response result is {statusCode}, trying to refresh token", HttpStatusCode.Forbidden);
-                await _authService.RefreshToken();
-                await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}/exercises/{sessionExerciseId}", payload);
+                var userId = await GetUserIdAsync();
+                var command = new UpdateSessionExerciseCommand
+                {
+                    Notes = payload.Notes,
+                    Skipped = payload.Skipped ?? false,
+                    Sets = payload.Sets?.Select(s => new UpdateExerciseSetDto
+                    {
+                        Weight = s.Weight,
+                        Reps = s.Reps,
+                        IsFailure = false,
+                        Order = 0
+                    }).ToList() ?? new List<UpdateExerciseSetDto>()
+                };
+                await _sessionExerciseService.UpdateSessionExerciseAsync(sessionId, sessionExerciseId, command, userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating session exercise");
+                throw;
             }
         }
 
         public async Task UpdateSessionAsync(long sessionId, UpdateSessionCommand command)
         {
-            await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}", command);
+            var userId = await GetUserIdAsync();
+            await _sessionService.UpdateSessionNotesAsync(sessionId, command.Notes, userId);
         }
 
         public async Task FinishSessionAsync(long sessionId, string? notes)
         {
-            await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}", new UpdateSessionCommand
-            {
-                Notes = notes,
-                EndTime = DateTime.UtcNow
-            });
+            var userId = await GetUserIdAsync();
+            await _sessionService.FinishSessionAsync(sessionId, notes, userId);
         }
 
         public async Task<SessionDetailsDto?> GetActiveSessionAsync()
         {
             try
             {
-                var response = await _httpClient.GetAsync("api/sessions/active");
-                if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
-                {
-                    return null;
-                }
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<SessionDetailsDto>();
+                var userId = await GetUserIdAsync();
+                return await _sessionService.GetActiveSessionAsync(userId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting active session.");
+                _logger.LogError(ex, "Error getting active session");
                 return null;
             }
         }

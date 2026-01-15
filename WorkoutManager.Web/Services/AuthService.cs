@@ -1,4 +1,4 @@
-using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Supabase;
 
 namespace WorkoutManager.Web.Services
@@ -6,9 +6,9 @@ namespace WorkoutManager.Web.Services
     public class AuthService : IAuthService
     {
         private readonly Client _supabaseClient;
-        private readonly ILocalStorageService _localStorage;
+        private readonly ProtectedLocalStorage _localStorage;
 
-        public AuthService(Client supabaseClient, ILocalStorageService localStorage)
+        public AuthService(Client supabaseClient, ProtectedLocalStorage localStorage)
         {
             _supabaseClient = supabaseClient;
             _localStorage = localStorage;
@@ -33,7 +33,7 @@ namespace WorkoutManager.Web.Services
             var session = await _supabaseClient.Auth.SignIn(email, password);
             if (session != null)
             {
-                await _localStorage.SetItemAsync("supabase_session", session);
+                await _localStorage.SetAsync("supabase_session", session);
                 return true;
             }
             return false;
@@ -68,8 +68,8 @@ namespace WorkoutManager.Web.Services
             try
             {
                 // TODO: Implement account deletion
-                await _localStorage.RemoveItemAsync("accessToken");
-                await _localStorage.RemoveItemAsync("refreshToken");
+                await _localStorage.DeleteAsync("accessToken");
+                await _localStorage.DeleteAsync("refreshToken");
                 return true;
             }
             catch
@@ -80,9 +80,15 @@ namespace WorkoutManager.Web.Services
 
         public async Task<bool> IsAuthenticatedAsync()
         {
-            var token = await _localStorage.GetItemAsync<string>("supabase_session");
-
-            return !string.IsNullOrEmpty(token);
+            try
+            {
+                var result = await _localStorage.GetAsync<string>("supabase_session");
+                return result.Success && !string.IsNullOrEmpty(result.Value);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<bool> GetSessionFromUri(Uri uri)

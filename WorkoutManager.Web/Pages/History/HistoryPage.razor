@@ -42,33 +42,40 @@
                                 @session.StartTime.ToString("dd/MM/yyyy")
                             </MudText>
                             <MudText Typo="Typo.caption" Class="d-flex gap-1">
-                                <MudIcon Size="Size.Small" Icon="@Icons.Material.Outlined.Timelapse" />
-                                @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
+                                @if (session.EndTime.HasValue)
+                                {
+                                    <MudIcon Size="Size.Small" Icon="@Icons.Material.Outlined.Timelapse" />
+                                    @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
+                                }
                             </MudText>
                         </div>
                     </MudCardHeader>
                     <MudCardContent Class="d-flex justify-space-between">
-                        <div>
-                            <MudText Typo="Typo.caption" style="text-transform: uppercase">Training day</MudText>
-                            <MudText Typo="Typo.subtitle2">@session.TrainingDayName</MudText>
+                        <div class="history-exercises-wrapper">
+                            @foreach (var exercise in session.Exercises)
+                            {
+                                <div class="history-exercise">
+                                    <div class="history-exercise-left">
+                                        <MudText Typo="Typo.body2">@exercise.ExerciseName</MudText>
+                                        <div class="history-exercise-left-sets">
+                                            @foreach (var set in exercise.Sets)
+                                            {
+                                                <MudText Typo="Typo.caption">
+                                                    @($"{HandleDecimalInWeight(set.Weight)}x{@set.Reps}")</MudText>
+                                            }
+                                        </div>
+
+                                    </div>
+                                    <div class="history-exercise-right">
+                                        <MudText Typo="Typo.caption">@($"{exercise.Sets.Count} sets")</MudText>
+                                    </div>
+                                </div>
+                            }
                         </div>
-                        <div class="self-start">
-                            <MudText Typo="Typo.caption" style="text-transform: uppercase">Date</MudText>
-                            <MudText Typo="Typo.subtitle2">@session.StartTime.ToString("dd-MM-yyyy")</MudText>
-                        </div>
-                        @if (session.EndTime.HasValue)
-                        {
-                            <div>
-                                <MudText Typo="Typo.caption" style="text-transform: uppercase">Duration</MudText>
-                                <MudText Typo="Typo.subtitle2">
-                                    @((session.EndTime.Value - session.StartTime).ToString(@"hh\:mm\:ss"))
-                                </MudText>
-                            </div>
-                        }
                     </MudCardContent>
-                    <MudCardActions>
+                    @* <MudCardActions>
                         <MudButton OnClick="() => NavigateToSession(session.Id)" Variant="Variant.Text" Color="Color.Primary" Disabled="@_isPaginationLoading">View details</MudButton>
-                    </MudCardActions>
+                    </MudCardActions> *@
                 </MudCard>
             }
         </div>
@@ -86,21 +93,57 @@
         border: solid 1px var(--color-secondary-background);
         border-radius: 12px;
         color: var(--color-primary-text);
-        padding: 4px ;
+        padding: 4px;
     }
 
-    .history-wrapper .history-card-header{
+        .history-wrapper .mud-paper .mud-card-content{
+            padding-left: 16px;
+            padding-right: 16px;
+            padding-top: 0;
+        }
+
+    .history-wrapper .history-card-header {
         border-bottom: 1px solid var(--color-secondary-background);
     }
 
-    .history-wrapper .history-card-header .right-column > span{
-        color: var(--color-tertiary-text);
-        font-size: .7rem;
+        .history-wrapper .history-card-header .right-column > span {
+            color: var(--color-fourth-text);
+            font-size: .7rem;
+        }
+
+        .history-wrapper .history-card-header p:first-child {
+            font-weight: 600;
+        }
+
+        .history-wrapper .history-card-header p:last-child {
+            color: var(--color-secondary-text);
+        }
+
+    /* exercises region */
+    .history-wrapper .history-exercises-wrapper {
+        width: 100%;
     }
-    .history-wrapper .history-card-header p:first-child{
-        font-weight: 600;
-    }
-    .history-wrapper .history-card-header p:last-child{
-        color: var(--color-secondary-text);
-    }
+
+        .history-wrapper .history-exercises-wrapper .history-exercise {
+            display: flex;
+            justify-content: space-between;
+            margin-top: .75rem;
+        }
+
+            .history-wrapper .history-exercises-wrapper .history-exercise .history-exercise-right {
+                color: var(--color-tertiary-text);
+            }
+
+            .history-wrapper .history-exercises-wrapper .history-exercise .history-exercise-left .mud-typography-caption {
+                color: var(--color-fourth-text);
+                border: solid 1px var(--color-primary-border);
+                background-color: var(--color-secondary-background);
+                padding: .2rem .5rem;
+                margin-right: 4px;
+                border-radius: 4px;
+                margin-top: 4px;
+                margin-bottom: 4px;
+                display: inline-block;
+                line-height: .9rem;
+            }
 </style>

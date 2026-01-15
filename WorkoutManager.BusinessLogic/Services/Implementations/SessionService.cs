@@ -1,12 +1,7 @@
-using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Exceptions;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
 using WorkoutManager.Data.Models;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
@@ -86,7 +81,7 @@ public class SessionService : ISessionService
     {
         var sessions = await _sessionRepository.GetSessionHistoryAsync(userId, page, pageSize);
         var sessionList = sessions.ToList();
-        var summaries = sessionList.Select(s => new SessionSummaryDto
+        var summaries = sessionList.Where(s => s.EndTime.HasValue).Select(s => new SessionSummaryDto
         {
             Id = (int)s.Id,
             PlanId = s.PlanId,
@@ -94,7 +89,25 @@ public class SessionService : ISessionService
             PlanName = s.Plan?.Name,
             TrainingDayName = s.TrainingDay?.Name,
             StartTime = s.StartTime,
-            EndTime = s.EndTime
+            EndTime = s.EndTime,
+            Notes = s.Notes,
+            Exercises = s.SessionExercises.Select(se => new SessionExerciseDetailsDto
+            {
+                Id = (int)se.Id,
+                ExerciseId = (int)se.ExerciseId,
+                Notes = se.Notes,
+                Skipped = se.Skipped,
+                Order = se.Order,
+                ExerciseName = se.Exercise?.Name,
+                Sets = se.Sets.Select(es => new ExerciseSetDto
+                {
+                    Id = (int)es.Id,
+                    Weight = es.Weight,
+                    Reps = es.Reps,
+                    IsFailure = es.IsFailure,
+                    Order = es.Order
+                }).ToList()
+            }).ToList()
         }).ToList();
 
         return new PaginatedList<SessionSummaryDto>

@@ -59,5 +59,14 @@ namespace WorkoutManager.Web.Pages.History
             NavigationManager.NavigateTo($"/history/{sessionId}");
         }
 
+        private string HandleDecimalInWeight(decimal weight)
+        {
+            if((weight % 1) == 0)
+            {
+                return Math.Round(weight).ToString();
+            }
+
+            return weight.ToString();
+        }
     }
 }

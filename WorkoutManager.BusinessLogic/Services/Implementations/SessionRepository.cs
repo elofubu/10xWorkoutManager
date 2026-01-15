@@ -93,20 +93,22 @@ public class SessionRepository : ISessionRepository
             }
         }
 
-        // Fetch related training days
-        //var trainingDayIds = response.Models.Where(s => s.TrainingDayId.HasValue).Select(s => s.TrainingDayId!.Value).Distinct().ToList();
-        //if (trainingDayIds.Any())
-        //{
-        //    var trainingDaysResponse = await _supabaseClient
-        //        .From<TrainingDay>()
-        //        .Filter("id", Supabase.Postgrest.Constants.Operator.In, trainingDayIds)
-        //        .Get();
+        // Fetch exercises for all session exercises
+        var allSessionExercises = response.Models.SelectMany(s => s.SessionExercises).ToList();
+        if (allSessionExercises.Any())
+        {
+            var exerciseIds = allSessionExercises.Select(se => se.ExerciseId).Distinct().ToList();
+            var exercisesResponse = await _supabaseClient
+                .From<Exercise>()
+                .Filter("id", Supabase.Postgrest.Constants.Operator.In, exerciseIds)
+                .Get();
 
-        //    foreach (var model in response.Models)
-        //    {
-        //        model.TrainingDay = trainingDaysResponse.Models.FirstOrDefault(td => td.Id == model.TrainingDayId);
-        //    }
-        //}
+            // Attach exercise details to session exercises
+            foreach (var sessionExercise in allSessionExercises)
+            {
+                sessionExercise.Exercise = exercisesResponse.Models.FirstOrDefault(e => e.Id == sessionExercise.ExerciseId);
+            }
+        }
 
         return response.Models;
     }

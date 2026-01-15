@@ -10,6 +10,7 @@ public class SessionSummaryDto
     public string? Notes { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime? EndTime { get; set; }
+    public List<SessionExerciseDetailsDto> Exercises { get; set; } = new();
 }
 
 public class SessionDetailsDto

@@ -1,21 +1,32 @@
-using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
 using WorkoutManager.BusinessLogic.DTOs;
+using BizLogic = WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Web.Services;
 
 public class MuscleGroupService : IMuscleGroupService
 {
-    private readonly HttpClient _httpClient;
+    private readonly BizLogic.IMuscleGroupService _muscleGroupService;
+    private readonly AuthenticationStateProvider _authStateProvider;
 
-    public MuscleGroupService(HttpClient httpClient)
+    public MuscleGroupService(
+        BizLogic.IMuscleGroupService muscleGroupService,
+        AuthenticationStateProvider authStateProvider)
     {
-        _httpClient = httpClient;
+        _muscleGroupService = muscleGroupService;
+        _authStateProvider = authStateProvider;
+    }
+
+    private async Task<Guid> GetUserIdAsync()
+    {
+        var authState = await _authStateProvider.GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException("User not authenticated"));
     }
 
     public async Task<IEnumerable<MuscleGroupDto>> GetMuscleGroupsAsync()
     {
-        return await _httpClient.GetFromJsonAsync<IEnumerable<MuscleGroupDto>>("api/musclegroups")
-            ?? Enumerable.Empty<MuscleGroupDto>();
+        return await _muscleGroupService.GetAllMuscleGroupsAsync();
     }
 }
-

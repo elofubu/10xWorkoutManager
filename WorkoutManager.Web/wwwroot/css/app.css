@@ -6,7 +6,9 @@
     --color-primary-background-element: rgb(15 23 42);
     --color-secondary-text: rgb(132 204 22);
     --color-primary-text: rgb(241, 245, 249);
-    --color-tertiary-text: rgb(100 116 139);
+    --color-tertiary-text: rgb(100, 116, 139);
+    --color-fourth-text: rgb(148, 163, 184);
+    --color-primary-border: rgb(51, 65, 85);
 }
 
 html, body {
