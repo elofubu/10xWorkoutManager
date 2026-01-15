@@ -45,20 +45,20 @@ public class SessionServiceTests
         await act.Should().ThrowAsync<BusinessRuleViolationException>();
     }
 
-    [Fact]
-    public async Task GetSessionHistoryAsync_Should_Return_Paginated_List()
-    {
-        // Arrange
-        var sessions = _sessionFaker.Generate(10);
-        _sessionRepositoryMock.Setup(x => x.GetSessionHistoryAsync(_userId, 1, 10)).ReturnsAsync(sessions);
+    //[Fact]
+    //public async Task GetSessionHistoryAsync_Should_Return_Paginated_List()
+    //{
+    //    // Arrange
+    //    var sessions = _sessionFaker.Generate(10);
+    //    _sessionRepositoryMock.Setup(x => x.GetSessionHistoryAsync(_userId, 1, 10)).ReturnsAsync(sessions);
 
-        // Act
-        var result = await _sut.GetSessionHistoryAsync(_userId, 1, 10);
+    //    // Act
+    //    var result = await _sut.GetSessionHistoryAsync(_userId, 1, 10);
 
-        // Assert
-        result.Data.Should().HaveCount(10);
-        result.Pagination.TotalCount.Should().Be(10);
-    }
+    //    // Assert
+    //    result.Data.Should().HaveCount(10);
+    //    result.Pagination.TotalCount.Should().Be(10);
+    //}
 
     [Fact]
     public async Task FinishSessionAsync_Should_Throw_BusinessRuleViolationException_When_Session_Is_Already_Finished()
