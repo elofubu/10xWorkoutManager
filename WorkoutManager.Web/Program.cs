@@ -21,7 +21,12 @@ builder.Services.AddDataProtection()
 
 // Add Blazor Server services
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    .AddHubOptions(options =>
+    {
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(180);
+        options.KeepAliveInterval = TimeSpan.FromSeconds(90);
+    });
 
 // Authentication
 builder.Services.AddAuthorizationCore();

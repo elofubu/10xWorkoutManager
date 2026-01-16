@@ -37,6 +37,8 @@ namespace WorkoutManager.Web.Pages.Session
 
         protected override async Task OnInitializedAsync()
         {
+            if (_session is not null) return;
+
             _session = await SessionService.GetSessionDetailsAsync(SessionId);
 
             if (_session is null)
@@ -179,6 +181,12 @@ namespace WorkoutManager.Web.Pages.Session
 
         private async Task RestoreStateFromLocalStorageAsync()
         {
+            // Session must be loaded first
+            if (_session?.Exercises == null)
+            {
+                return;
+            }
+
             var savedState = await StateService.LoadStateAsync();
 
             // No saved state or session mismatch - nothing to restore
@@ -193,7 +201,7 @@ namespace WorkoutManager.Web.Pages.Session
             }
 
             // Find the exercise that was being worked on
-            var savedExercise = _session?.Exercises?.FirstOrDefault(e => e.Id == savedState.CurrentExerciseId);
+            var savedExercise = _session.Exercises.FirstOrDefault(e => e.Id == savedState.CurrentExerciseId);
 
             // Exercise not found in current session (shouldn't happen, but safety check)
             if (savedExercise == null)
@@ -204,7 +212,7 @@ namespace WorkoutManager.Web.Pages.Session
 
             // Check if this exercise already has saved sets in the backend
             // If it does, it means the data was saved elsewhere - ignore localStorage
-            if (savedExercise.Sets.Any())
+            if (savedExercise.Sets?.Any() == true)
             {
                 // Data already saved to backend, localStorage is stale
                 await StateService.ClearStateAsync();
@@ -213,10 +221,14 @@ namespace WorkoutManager.Web.Pages.Session
 
             // Exercise has no saved sets - restore in-progress data from localStorage
             _index = savedState.CurrentIndex;
-            _currentExercise = _session.Exercises.OrderBy(e => e.Order).ElementAt(_index);
-            _currentExercise.Sets = savedState.UnsavedSets;
-            _reps = savedState.InputReps;
-            _weight = savedState.InputWeight;
+            var exercises = _session.Exercises.OrderBy(e => e.Order).ToList();
+            if (_index >= 0 && _index < exercises.Count)
+            {
+                _currentExercise = exercises[_index];
+                _currentExercise.Sets = savedState.UnsavedSets ?? new List<ExerciseSetDto>();
+                _reps = savedState.InputReps;
+                _weight = savedState.InputWeight;
+            }
         }
 
         private async Task SaveStateToLocalStorageAsync()
