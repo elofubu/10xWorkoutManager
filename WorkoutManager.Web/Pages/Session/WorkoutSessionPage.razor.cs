@@ -193,7 +193,7 @@ namespace WorkoutManager.Web.Pages.Session
             }
 
             // Find the exercise that was being worked on
-            var savedExercise = _session!.Exercises.FirstOrDefault(e => e.Id == savedState.CurrentExerciseId);
+            var savedExercise = _session?.Exercises?.FirstOrDefault(e => e.Id == savedState.CurrentExerciseId);
 
             // Exercise not found in current session (shouldn't happen, but safety check)
             if (savedExercise == null)
