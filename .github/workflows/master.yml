@@ -22,12 +22,17 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: WorkoutManager.Web Secrets Variables Substitution
+        # WASM reads config from wwwroot/appsettings.json, not the project-root file, and
+        # only ever gets the anon key — never Supabase.Secret. That stays server-side, used
+        # only by WorkoutManager.Api's own substitution step (added in Phase 5).
         uses: microsoft/variable-substitution@v1
         with:
-          files: "WorkoutManager.Web/appsettings.json"
+          files: "WorkoutManager.Web/wwwroot/appsettings.json"
         env:
           Supabase.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          Supabase.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
+          Supabase.AnonKey: ${{ secrets.SUPABASESETTINGS_ANONKEY }}
+          # TODO (Phase 5): set once WorkoutManager.Api is deployed
+          ApiUrl: ${{ secrets.API_URL }}
 
       - name: Tests Secrets Variables Substitution
         uses: microsoft/variable-substitution@v1
@@ -72,12 +77,16 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: WorkoutManager.Web PRD Secrets Variables Substitution
+        # Scoped to wwwroot/appsettings.json specifically (was "**/appsettings.json", which
+        # would have also matched appsettings.Testing.json etc. under the published output).
         uses: microsoft/variable-substitution@v1
         with:
-          files: "**/appsettings.json"
+          files: "wwwroot/appsettings.json"
         env:
           Supabase.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          Supabase.Secret: ${{ secrets.SUPABASESETTINGS_SECRET_API }}
+          Supabase.AnonKey: ${{ secrets.SUPABASESETTINGS_ANONKEY }}
+          # TODO (Phase 5): set once WorkoutManager.Api is deployed
+          ApiUrl: ${{ secrets.API_URL }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
