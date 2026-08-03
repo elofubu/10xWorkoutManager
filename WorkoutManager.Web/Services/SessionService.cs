@@ -109,5 +109,19 @@ namespace WorkoutManager.Web.Services
                 return null;
             }
         }
+
+        public async Task DeleteSessionAsync(long sessionId)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                await _sessionService.DeleteSessionAsync(sessionId, userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting session {SessionId}", sessionId);
+                throw;
+            }
+        }
     }
 }

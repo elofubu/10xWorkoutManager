@@ -210,4 +210,12 @@ public class SessionRepository : ISessionRepository
 
         return response.Models.FirstOrDefault();
     }
+
+    public async Task DeleteSessionAsync(long sessionId)
+    {
+        await _supabaseClient
+            .From<Session>()
+            .Where(s => s.Id == sessionId)
+            .Delete();
+    }
 }

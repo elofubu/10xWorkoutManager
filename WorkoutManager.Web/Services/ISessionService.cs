@@ -12,5 +12,6 @@ namespace WorkoutManager.Web.Services
         Task UpdateSessionAsync(long sessionId, UpdateSessionCommand command);
         Task FinishSessionAsync(long sessionId, string? notes);
         Task<SessionDetailsDto?> GetActiveSessionAsync();
+        Task DeleteSessionAsync(long sessionId);
     }
 }
