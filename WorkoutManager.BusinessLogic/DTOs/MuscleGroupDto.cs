@@ -1,7 +1,3 @@
-namespace WorkoutManager.BusinessLogic.DTOs;
-
-public class MuscleGroupDto
-{
-    public long Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-}
+// Moved to WorkoutManager.Contracts/DTOs/MuscleGroupDto.cs (same namespace, so no
+// consumer needed changes). File left empty rather than deleted — file deletion isn't
+// available in this workspace.

@@ -1,92 +1,88 @@
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
+using System.Net;
+using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Commands;
-using BizLogic = WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Web.Services
 {
     public class WorkoutPlanService : IWorkoutPlanService
     {
-        private readonly BizLogic.IWorkoutPlanService _workoutPlanService;
-        private readonly BizLogic.IPlanExerciseService _planExerciseService;
-        private readonly AuthenticationStateProvider _authStateProvider;
+        private readonly HttpClient _httpClient;
 
-        public WorkoutPlanService(
-            BizLogic.IWorkoutPlanService workoutPlanService,
-            BizLogic.IPlanExerciseService planExerciseService,
-            AuthenticationStateProvider authStateProvider)
+        public WorkoutPlanService(HttpClient httpClient)
         {
-            _workoutPlanService = workoutPlanService;
-            _planExerciseService = planExerciseService;
-            _authStateProvider = authStateProvider;
-        }
-
-        private async Task<Guid> GetUserIdAsync()
-        {
-            var authState = await _authStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException("User not authenticated"));
+            _httpClient = httpClient;
         }
 
         public async Task<PaginatedList<WorkoutPlanDto>> GetWorkoutPlansAsync()
         {
-            var userId = await GetUserIdAsync();
-            return await _workoutPlanService.GetWorkoutPlansAsync(userId);
+            var result = await _httpClient.GetFromJsonAsync<PaginatedList<WorkoutPlanDto>>("api/workoutplans");
+            return result ?? new PaginatedList<WorkoutPlanDto>();
         }
 
         public async Task<WorkoutPlanDetailDto?> GetWorkoutPlanByIdAsync(long id)
         {
-            var userId = await GetUserIdAsync();
-            return await _workoutPlanService.GetWorkoutPlanByIdAsync(id, userId);
+            var response = await _httpClient.GetAsync($"api/workoutplans/{id}");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<WorkoutPlanDetailDto>();
         }
 
         public async Task CreateWorkoutPlanAsync(CreateWorkoutPlanDto newPlan)
         {
-            var userId = await GetUserIdAsync();
             var trainingDays = newPlan.TrainingDays?.Select(td => new CreateTrainingDayCommand(td.Name, td.Order)).ToList()
                 ?? new List<CreateTrainingDayCommand>();
             var command = new CreateWorkoutPlanCommand(newPlan.Name, trainingDays);
-            await _workoutPlanService.CreateWorkoutPlanAsync(command, userId);
+            var response = await _httpClient.PostAsJsonAsync("api/workoutplans", command);
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task UpdateWorkoutPlanAsync(long id, UpdateWorkoutPlanDto plan)
         {
-            var userId = await GetUserIdAsync();
             var payload = new UpdateWorkoutPlanPayload(plan.Name, plan.TrainingDays);
-            await _workoutPlanService.UpdateWorkoutPlanAsync(id, payload, userId);
+            var response = await _httpClient.PutAsJsonAsync($"api/workoutplans/{id}", payload);
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteWorkoutPlanAsync(long id)
         {
-            var userId = await GetUserIdAsync();
-            await _workoutPlanService.DeleteWorkoutPlanAsync(id, userId);
+            var response = await _httpClient.DeleteAsync($"api/workoutplans/{id}");
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task AddExerciseToTrainingDayAsync(long planId, long dayId, AddExerciseToTrainingDayCommand exercise)
         {
-            var userId = await GetUserIdAsync();
-            await _planExerciseService.AddExerciseToDayAsync(planId, dayId, exercise, userId);
+            var response = await _httpClient.PostAsJsonAsync($"api/workout-plans/{planId}/training-days/{dayId}/exercises", exercise);
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task RemoveExerciseFromTrainingDayAsync(long planId, long trainingDayId, long planDayExerciseId)
         {
-            var userId = await GetUserIdAsync();
-            await _planExerciseService.RemoveExerciseFromDayAsync(planId, trainingDayId, planDayExerciseId, userId);
+            var response = await _httpClient.DeleteAsync($"api/workout-plans/{planId}/training-days/{trainingDayId}/exercises/{planDayExerciseId}");
+            response.EnsureSuccessStatusCode();
         }
 
-        public async Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises)
+        public Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises)
         {
-            var userId = await GetUserIdAsync();
-            await _planExerciseService.ReorderExercisesAsync(planId, dayId, exercises, userId);
+            // WorkoutManager.Api has no route for this yet (PlanDayExercisesController only
+            // exposes Add/Remove). Was reachable in-process before this migration via
+            // IPlanExerciseService.ReorderExercisesAsync directly; needs a matching Api
+            // endpoint (e.g. PUT api/workout-plans/{planId}/training-days/{dayId}/exercises/reorder)
+            // before this works again.
+            throw new NotImplementedException(
+                "Reordering exercises within a training day requires a new WorkoutManager.Api endpoint — not yet added.");
         }
 
-        public async Task ReorderTrainingDaysAsync(long planId, List<UpdateTrainingDayOrderCommand> days)
+        public Task ReorderTrainingDaysAsync(long planId, List<UpdateTrainingDayOrderCommand> days)
         {
-            var userId = await GetUserIdAsync();
-            // This method doesn't exist in IPlanExerciseService - it should be in IWorkoutPlanService
-            var payload = new UpdateWorkoutPlanPayload(string.Empty, days);
-            // Note: This may need adjustment based on actual business logic requirements
+            // Was already a no-op before this migration (see git history) — the BusinessLogic
+            // method this needs doesn't exist on IWorkoutPlanService either. Left unimplemented,
+            // same as before, but explicit now instead of silently doing nothing.
+            throw new NotImplementedException(
+                "Reordering training days requires business logic + an Api endpoint — neither exists yet.");
         }
     }
 }

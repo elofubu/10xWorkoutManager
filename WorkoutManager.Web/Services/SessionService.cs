@@ -1,55 +1,42 @@
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
+using System.Net;
+using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.BusinessLogic.Commands;
-using BizLogic = WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Web.Services
 {
     public class SessionService : ISessionService
     {
-        private readonly BizLogic.ISessionService _sessionService;
-        private readonly BizLogic.ISessionExerciseService _sessionExerciseService;
-        private readonly AuthenticationStateProvider _authStateProvider;
+        private readonly HttpClient _httpClient;
         private readonly ILogger<SessionService> _logger;
 
-        public SessionService(
-            BizLogic.ISessionService sessionService,
-            BizLogic.ISessionExerciseService sessionExerciseService,
-            AuthenticationStateProvider authStateProvider,
-            ILogger<SessionService> logger)
+        public SessionService(HttpClient httpClient, ILogger<SessionService> logger)
         {
-            _sessionService = sessionService;
-            _sessionExerciseService = sessionExerciseService;
-            _authStateProvider = authStateProvider;
+            _httpClient = httpClient;
             _logger = logger;
-        }
-
-        private async Task<Guid> GetUserIdAsync()
-        {
-            var authState = await _authStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException("User not authenticated"));
         }
 
         public async Task<PaginatedList<SessionSummaryDto>> GetSessionHistoryAsync()
         {
-            var userId = await GetUserIdAsync();
-            return await _sessionService.GetSessionHistoryAsync(userId);
+            var result = await _httpClient.GetFromJsonAsync<PaginatedList<SessionSummaryDto>>("api/sessions");
+            return result ?? new PaginatedList<SessionSummaryDto>();
         }
 
         public async Task<SessionDetailsDto> GetSessionDetailsAsync(long id)
         {
-            var userId = await GetUserIdAsync();
-            return await _sessionService.GetSessionByIdAsync(id, userId);
+            var result = await _httpClient.GetFromJsonAsync<SessionDetailsDto>($"api/sessions/{id}");
+            return result ?? throw new InvalidOperationException($"Api returned an empty response for session {id}.");
         }
 
         public async Task<SessionDetailsDto> StartSessionAsync(long trainingDayId)
         {
             try
             {
-                var userId = await GetUserIdAsync();
-                return await _sessionService.StartSessionAsync(trainingDayId, userId);
+                var command = new StartSessionCommand { TrainingDayId = (int)trainingDayId };
+                var response = await _httpClient.PostAsJsonAsync("api/sessions", command);
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadFromJsonAsync<SessionDetailsDto>();
+                return result ?? throw new InvalidOperationException("Api returned an empty response for StartSession.");
             }
             catch (Exception ex)
             {
@@ -62,7 +49,6 @@ namespace WorkoutManager.Web.Services
         {
             try
             {
-                var userId = await GetUserIdAsync();
                 var command = new UpdateSessionExerciseCommand
                 {
                     Notes = payload.Notes,
@@ -75,7 +61,8 @@ namespace WorkoutManager.Web.Services
                         Order = 0
                     }).ToList() ?? new List<UpdateExerciseSetDto>()
                 };
-                await _sessionExerciseService.UpdateSessionExerciseAsync(sessionId, sessionExerciseId, command, userId);
+                var response = await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}/exercises/{sessionExerciseId}", command);
+                response.EnsureSuccessStatusCode();
             }
             catch (Exception ex)
             {
@@ -86,22 +73,29 @@ namespace WorkoutManager.Web.Services
 
         public async Task UpdateSessionAsync(long sessionId, UpdateSessionCommand command)
         {
-            var userId = await GetUserIdAsync();
-            await _sessionService.UpdateSessionNotesAsync(sessionId, command.Notes, userId);
+            var response = await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}", command);
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task FinishSessionAsync(long sessionId, string? notes)
         {
-            var userId = await GetUserIdAsync();
-            await _sessionService.FinishSessionAsync(sessionId, notes, userId);
+            // The Api's PUT api/sessions/{id} branches on EndTime: set -> finish, unset -> just update notes.
+            var command = new UpdateSessionCommand { Notes = notes, EndTime = DateTime.UtcNow };
+            var response = await _httpClient.PutAsJsonAsync($"api/sessions/{sessionId}", command);
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task<SessionDetailsDto?> GetActiveSessionAsync()
         {
             try
             {
-                var userId = await GetUserIdAsync();
-                return await _sessionService.GetActiveSessionAsync(userId);
+                var response = await _httpClient.GetAsync("api/sessions/active");
+                if (response.StatusCode == HttpStatusCode.NoContent)
+                {
+                    return null;
+                }
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<SessionDetailsDto>();
             }
             catch (Exception ex)
             {
@@ -114,8 +108,10 @@ namespace WorkoutManager.Web.Services
         {
             try
             {
-                var userId = await GetUserIdAsync();
-                await _sessionService.DeleteSessionAsync(sessionId, userId);
+                // NOTE: requires WorkoutManager.Api to expose DELETE api/sessions/{id} — see
+                // the Api-side addition made alongside this Phase 4 change.
+                var response = await _httpClient.DeleteAsync($"api/sessions/{sessionId}");
+                response.EnsureSuccessStatusCode();
             }
             catch (Exception ex)
             {

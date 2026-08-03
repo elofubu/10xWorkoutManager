@@ -18,10 +18,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazoredSessionStorage();
 
-// HTTP client for WorkoutManager.Api
-// TODO (Phase 4): wrap with an AuthorizationMessageHandler that attaches the Supabase JWT
-builder.Services.AddHttpClient("ApiHttpClient", client =>
-    client.BaseAddress = new Uri(builder.Configuration["ApiUrl"] ?? builder.HostEnvironment.BaseAddress));
+// HTTP client for WorkoutManager.Api — every request gets the Supabase access token attached
+var apiUrl = builder.Configuration["ApiUrl"] ?? builder.HostEnvironment.BaseAddress;
+if (!apiUrl.EndsWith('/')) apiUrl += "/"; // relative request URIs (e.g. "api/exercises") need a trailing slash on the base
+
+builder.Services.AddTransient<AuthorizationMessageHandler>();
+builder.Services.AddHttpClient("ApiHttpClient", client => client.BaseAddress = new Uri(apiUrl))
+    .AddHttpMessageHandler<AuthorizationMessageHandler>();
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiHttpClient"));
 
@@ -44,12 +47,7 @@ builder.Services.AddScoped(sp =>
     return new Client(supabaseUrl, supabaseAnonKey, options);
 });
 
-// NOTE: BusinessLogic service/repository registrations removed — that project talks to
-// Supabase with the secret key and cannot be referenced from WASM. The application services
-// below currently still call into BusinessLogic types and will not compile until Phase 4
-// rewrites them to call WorkoutManager.Api over HTTP instead.
-
-// Application services (Phase 4 will rewrite these to call WorkoutManager.Api over HTTP)
+// Application services — call WorkoutManager.Api over HTTP (see AuthorizationMessageHandler above)
 builder.Services.AddScoped<WorkoutManager.Web.Services.IWorkoutPlanService, WorkoutManager.Web.Services.WorkoutPlanService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.ISessionService, WorkoutManager.Web.Services.SessionService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.IExerciseService, WorkoutManager.Web.Services.ExerciseService>();

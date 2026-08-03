@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WorkoutManager.Data\WorkoutManager.Data.csproj" />
+    <ProjectReference Include="..\WorkoutManager.Contracts\WorkoutManager.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

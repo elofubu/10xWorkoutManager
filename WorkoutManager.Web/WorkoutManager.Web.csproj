@@ -18,8 +18,10 @@
     <PackageReference Include="Supabase" Version="1.1.1" />
   </ItemGroup>
 
-  <!-- Phase 4 (TODO): reference a shared WorkoutManager.Contracts project (DTOs only) here
-       instead of WorkoutManager.BusinessLogic. The BusinessLogic project talks to Supabase
-       with the secret/service-role key and must never ship inside the WASM bundle. -->
+  <ItemGroup>
+    <!-- DTOs/Commands only — never WorkoutManager.BusinessLogic, which talks to Supabase
+         with the secret/service-role key and must not ship inside the WASM bundle. -->
+    <ProjectReference Include="..\WorkoutManager.Contracts\WorkoutManager.Contracts.csproj" />
+  </ItemGroup>
 
 </Project>

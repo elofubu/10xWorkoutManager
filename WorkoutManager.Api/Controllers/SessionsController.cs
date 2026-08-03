@@ -115,6 +115,26 @@ public class SessionsController : ControllerBase
         }
     }
 
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> DeleteSession(long id)
+    {
+        try
+        {
+            var userId = _userContext.GetCurrentUserId();
+            await _sessionService.DeleteSessionAsync(id, userId);
+            return NoContent();
+        }
+        catch (NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something unexpected happened deleting session {SessionId}.", id);
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
     [HttpPut("{id:long}")]
     public async Task<IActionResult> UpdateSession(long id, [FromBody] UpdateSessionCommand command)
     {
