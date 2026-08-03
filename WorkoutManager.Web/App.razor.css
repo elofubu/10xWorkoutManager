@@ -1,4 +1,2 @@
-﻿#components-reconnect-modal {
-    background-color: var(--color-primary-background) !important;
-    color: var(--color-fourth-text) !important;
-}
+﻿/* Dead: was styling Blazor Server's #components-reconnect-modal, which doesn't exist in WASM.
+   Left empty rather than deleted (file deletion isn't available in this workspace). */

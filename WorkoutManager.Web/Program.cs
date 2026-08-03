@@ -1,65 +1,53 @@
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using WorkoutManager.Web;
 using WorkoutManager.Web.Components;
 using WorkoutManager.Web.Services;
 using Supabase;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// Configure Data Protection with persistent keys
-var keysDirectory = new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtectionKeys"));
-if (!keysDirectory.Exists)
-{
-    keysDirectory.Create();
-}
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(keysDirectory)
-    .SetApplicationName("WorkoutManager");
+// Browser-native storage (replaces Blazor Server's ProtectedLocalStorage/ProtectedSessionStorage — Phase 3)
+builder.Services.AddBlazoredLocalStorage();
 
-// Add Blazor Server services
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddHubOptions(options =>
-    {
-        options.ClientTimeoutInterval = TimeSpan.FromSeconds(180);
-        options.KeepAliveInterval = TimeSpan.FromSeconds(90);
-    });
+// HTTP client for WorkoutManager.Api
+// TODO (Phase 4): wrap with an AuthorizationMessageHandler that attaches the Supabase JWT
+builder.Services.AddHttpClient("ApiHttpClient", client =>
+    client.BaseAddress = new Uri(builder.Configuration["ApiUrl"] ?? builder.HostEnvironment.BaseAddress));
+builder.Services.AddScoped(sp =>
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiHttpClient"));
 
 // Authentication
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, SupabaseAuthenticationStateProvider>();
 
-// Supabase client for data access
-builder.Services.AddScoped(_ =>
+// Supabase client — runs client-side for Auth only. Anon key is safe to ship in WASM;
+// the secret/service-role key stays server-side in WorkoutManager.Api.
+builder.Services.AddScoped(sp =>
 {
-    var supabaseUrl = builder.Configuration["Supabase:Url"];
-    var supabaseSecret = builder.Configuration["Supabase:Secret"];
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var supabaseUrl = configuration["Supabase:Url"];
+    var supabaseAnonKey = configuration["Supabase:AnonKey"];
     var options = new SupabaseOptions
     {
         AutoConnectRealtime = false
     };
-    return new Client(supabaseUrl, supabaseSecret, options);
+    return new Client(supabaseUrl, supabaseAnonKey, options);
 });
 
-// Register Business Logic Services (repositories and core services)
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IMuscleGroupService, WorkoutManager.BusinessLogic.Services.Implementations.MuscleGroupService>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IMuscleGroupRepository, WorkoutManager.BusinessLogic.Services.Implementations.MuscleGroupRepository>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IExerciseService, WorkoutManager.BusinessLogic.Services.Implementations.ExerciseService>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IExerciseRepository, WorkoutManager.BusinessLogic.Services.Implementations.ExerciseRepository>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IWorkoutPlanService, WorkoutManager.BusinessLogic.Services.Implementations.WorkoutPlanService>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IWorkoutPlanRepository, WorkoutManager.BusinessLogic.Services.Implementations.WorkoutPlanRepository>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IPlanExerciseService, WorkoutManager.BusinessLogic.Services.Implementations.PlanExerciseService>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.IPlanExerciseRepository, WorkoutManager.BusinessLogic.Services.Implementations.PlanExerciseRepository>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.ISessionService, WorkoutManager.BusinessLogic.Services.Implementations.SessionService>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.ISessionRepository, WorkoutManager.BusinessLogic.Services.Implementations.SessionRepository>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.ISessionExerciseService, WorkoutManager.BusinessLogic.Services.Implementations.SessionExerciseService>();
-builder.Services.AddScoped<WorkoutManager.BusinessLogic.Services.Interfaces.ISessionExerciseRepository, WorkoutManager.BusinessLogic.Services.Implementations.SessionExerciseRepository>();
+// NOTE: BusinessLogic service/repository registrations removed — that project talks to
+// Supabase with the secret key and cannot be referenced from WASM. The application services
+// below currently still call into BusinessLogic types and will not compile until Phase 4
+// rewrites them to call WorkoutManager.Api over HTTP instead.
 
-// Application services (wrappers that extract userId and call business logic)
+// Application services (Phase 4 will rewrite these to call WorkoutManager.Api over HTTP)
 builder.Services.AddScoped<WorkoutManager.Web.Services.IWorkoutPlanService, WorkoutManager.Web.Services.WorkoutPlanService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.ISessionService, WorkoutManager.Web.Services.SessionService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.IExerciseService, WorkoutManager.Web.Services.ExerciseService>();
@@ -70,20 +58,4 @@ builder.Services.AddScoped<IWorkoutSessionStateService, WorkoutSessionStateServi
 // MudBlazor
 builder.Services.AddMudServices();
 
-var app = builder.Build();
-
-// Configure middleware
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
-}
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseAntiforgery();
-
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-app.Run();
+await builder.Build().RunAsync();
