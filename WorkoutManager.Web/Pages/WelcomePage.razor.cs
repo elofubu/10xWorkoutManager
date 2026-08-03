@@ -1,5 +1,5 @@
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using MudBlazor;
 using WorkoutManager.Web.Components;
 using WorkoutManager.Web.Services;
@@ -19,7 +19,7 @@ public partial class WelcomePage
     private IWorkoutPlanService WorkoutPlanService { get; set; } = default!;
 
     [Inject]
-    private ProtectedLocalStorage LocalStorage { get; set; } = default!;
+    private ILocalStorageService LocalStorage { get; set; } = default!;
 
     private async Task CreateFirstPlan()
     {
@@ -29,14 +29,14 @@ public partial class WelcomePage
         if (result is not null && !result.Canceled && result.Data is CreateWorkoutPlanDto newPlan)
         {
             await WorkoutPlanService.CreateWorkoutPlanAsync(newPlan);
-            await LocalStorage.SetAsync("hasSeenWelcome", true);
+            await LocalStorage.SetItemAsync("hasSeenWelcome", true);
             NavigationManager.NavigateTo("/");
         }
     }
 
     private async Task SkipWelcome()
     {
-        await LocalStorage.SetAsync("hasSeenWelcome", true);
+        await LocalStorage.SetItemAsync("hasSeenWelcome", true);
         NavigationManager.NavigateTo("/");
     }
 }

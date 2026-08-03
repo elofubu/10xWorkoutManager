@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -13,8 +14,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Browser-native storage (replaces Blazor Server's ProtectedLocalStorage/ProtectedSessionStorage — Phase 3)
+// Browser-native storage (replaces Blazor Server's ProtectedLocalStorage/ProtectedSessionStorage)
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredSessionStorage();
 
 // HTTP client for WorkoutManager.Api
 // TODO (Phase 4): wrap with an AuthorizationMessageHandler that attaches the Supabase JWT

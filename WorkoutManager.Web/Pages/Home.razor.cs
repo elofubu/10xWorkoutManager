@@ -1,5 +1,5 @@
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using MudBlazor;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.Web.Components;
@@ -22,7 +22,7 @@ public partial class Home
     private IAuthService AuthService { get; set; } = default!;
 
     [Inject]
-    private ProtectedLocalStorage LocalStorage { get; set; } = default!;
+    private ILocalStorageService LocalStorage { get; set; } = default!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
@@ -52,8 +52,7 @@ public partial class Home
         {
             try
             {
-                var result = await LocalStorage.GetAsync<bool>("hasSeenWelcome");
-                var hasSeenWelcome = result.Success && result.Value;
+                var hasSeenWelcome = await LocalStorage.GetItemAsync<bool>("hasSeenWelcome");
                 var isAuthenticated = await AuthService.IsAuthenticatedAsync();
 
                 if (isAuthenticated && !hasSeenWelcome)

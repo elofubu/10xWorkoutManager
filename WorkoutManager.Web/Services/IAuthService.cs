@@ -1,5 +1,3 @@
-using WorkoutManager.BusinessLogic.DTOs;
-
 namespace WorkoutManager.Web.Services;
 
 public interface IAuthService

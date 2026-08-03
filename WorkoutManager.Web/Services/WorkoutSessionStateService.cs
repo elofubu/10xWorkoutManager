@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Blazored.SessionStorage;
 using WorkoutManager.Web.Helpers;
 
 namespace WorkoutManager.Web.Services
@@ -6,9 +6,9 @@ namespace WorkoutManager.Web.Services
     public class WorkoutSessionStateService : IWorkoutSessionStateService
     {
         private const string STORAGE_KEY = "workoutSessionState";
-        private readonly ProtectedSessionStorage _sessionStorage;
+        private readonly ISessionStorageService _sessionStorage;
 
-        public WorkoutSessionStateService(ProtectedSessionStorage sessionStorage)
+        public WorkoutSessionStateService(ISessionStorageService sessionStorage)
         {
             _sessionStorage = sessionStorage;
         }
@@ -16,15 +16,14 @@ namespace WorkoutManager.Web.Services
         public async Task SaveStateAsync(WorkoutSessionState state)
         {
             state.Timestamp = DateTime.UtcNow;
-            await _sessionStorage.SetAsync(STORAGE_KEY, state);
+            await _sessionStorage.SetItemAsync(STORAGE_KEY, state);
         }
 
         public async Task<WorkoutSessionState?> LoadStateAsync()
         {
             try
             {
-                var result = await _sessionStorage.GetAsync<WorkoutSessionState>(STORAGE_KEY);
-                return result.Success ? result.Value : null;
+                return await _sessionStorage.GetItemAsync<WorkoutSessionState>(STORAGE_KEY);
             }
             catch
             {
@@ -36,7 +35,7 @@ namespace WorkoutManager.Web.Services
 
         public async Task ClearStateAsync()
         {
-            await _sessionStorage.DeleteAsync(STORAGE_KEY);
+            await _sessionStorage.RemoveItemAsync(STORAGE_KEY);
         }
     }
 }

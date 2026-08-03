@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Blazored.LocalStorage;
 using Supabase;
 
 namespace WorkoutManager.Web.Services
@@ -6,9 +6,9 @@ namespace WorkoutManager.Web.Services
     public class AuthService : IAuthService
     {
         private readonly Client _supabaseClient;
-        private readonly ProtectedLocalStorage _localStorage;
+        private readonly ILocalStorageService _localStorage;
 
-        public AuthService(Client supabaseClient, ProtectedLocalStorage localStorage)
+        public AuthService(Client supabaseClient, ILocalStorageService localStorage)
         {
             _supabaseClient = supabaseClient;
             _localStorage = localStorage;
@@ -33,7 +33,7 @@ namespace WorkoutManager.Web.Services
             var session = await _supabaseClient.Auth.SignIn(email, password);
             if (session != null)
             {
-                await _localStorage.SetAsync("supabase_session", session);
+                await _localStorage.SetItemAsync("supabase_session", session);
                 return true;
             }
             return false;
@@ -68,8 +68,8 @@ namespace WorkoutManager.Web.Services
             try
             {
                 // TODO: Implement account deletion
-                await _localStorage.DeleteAsync("accessToken");
-                await _localStorage.DeleteAsync("refreshToken");
+                await _localStorage.RemoveItemAsync("accessToken");
+                await _localStorage.RemoveItemAsync("refreshToken");
                 return true;
             }
             catch
@@ -82,8 +82,12 @@ namespace WorkoutManager.Web.Services
         {
             try
             {
-                var result = await _localStorage.GetAsync<string>("supabase_session");
-                return result.Success && !string.IsNullOrEmpty(result.Value);
+                // NOTE: preserved as-is from the Blazor Server version — this reads the
+                // "supabase_session" key as a string, but LoginAsync stores a Session object
+                // under that key, so this looks like a pre-existing bug rather than something
+                // introduced by the storage-mechanism swap. Flagging, not fixing, in Phase 3.
+                var value = await _localStorage.GetItemAsync<string>("supabase_session");
+                return !string.IsNullOrEmpty(value);
             }
             catch
             {

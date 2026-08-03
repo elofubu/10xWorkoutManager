@@ -1,6 +1,6 @@
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Supabase.Gotrue;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,11 +11,11 @@ namespace WorkoutManager.Web.Services
 {
     public class SupabaseAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly ProtectedLocalStorage _localStorage;
+        private readonly ILocalStorageService _localStorage;
         private readonly Supabase.Client _supabaseClient;
         private readonly NavigationManager _navigationManager;
 
-        public SupabaseAuthenticationStateProvider(ProtectedLocalStorage localStorage, Supabase.Client supabaseClient, NavigationManager navigationManager)
+        public SupabaseAuthenticationStateProvider(ILocalStorageService localStorage, Supabase.Client supabaseClient, NavigationManager navigationManager)
         {
             _localStorage = localStorage;
             _supabaseClient = supabaseClient;
@@ -33,12 +33,12 @@ namespace WorkoutManager.Web.Services
                     var session = _supabaseClient.Auth.CurrentSession;
                     if (session != null)
                     {
-                        _ = _localStorage.SetAsync("supabase_session", session);
+                        _ = _localStorage.SetItemAsync("supabase_session", session);
                     }
                 }
                 else if (state == AuthState.SignedOut)
                 {
-                    _ = _localStorage.DeleteAsync("supabase_session");
+                    _ = _localStorage.RemoveItemAsync("supabase_session");
                 }
 
                 NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
@@ -49,18 +49,16 @@ namespace WorkoutManager.Web.Services
         {
             try
             {
-                var result = await _localStorage.GetAsync<Session>("supabase_session");
+                var session = await _localStorage.GetItemAsync<Session>("supabase_session");
 
-                if (!result.Success || result.Value == null)
+                if (session == null)
                 {
                     return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
                 }
 
-                var session = result.Value;
-
                 if (session.AccessToken == null || session.ExpiresAt() <= DateTime.UtcNow)
                 {
-                    await _localStorage.DeleteAsync("supabase_session");
+                    await _localStorage.RemoveItemAsync("supabase_session");
                     return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
                 }
 
