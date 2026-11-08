@@ -1,11 +1,11 @@
 using FluentValidation;
-using Supabase;
+using Microsoft.EntityFrameworkCore;
+using WorkoutManager.Data;
 using WorkoutManager.Api.Services;
 using WorkoutManager.BusinessLogic.Services.Implementations;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using WorkoutManager.Api.HostedServices;
 using WorkoutManager.Api.Settings;
 
@@ -18,19 +18,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
 builder.Configuration.AddUserSecrets<Program>();
-
-// Configure Supabase
-var supabaseSettings = new SupabaseSettings();
-builder.Configuration.GetSection(SupabaseSettings.SectionName).Bind(supabaseSettings);
-
-builder.Services.AddScoped(_ =>
-{
-    var options = new SupabaseOptions
-    {
-        AutoConnectRealtime = false
-    };
-    return new Client(supabaseSettings.Url, supabaseSettings.Secret, options);
-});
+builder.Services.AddDbContext<WorkoutManagerDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("WorkoutManagerDb"),
+        sql => sql.EnableRetryOnFailure()));
 
 // Register Business Logic Services
 builder.Services.AddScoped<IMuscleGroupService, MuscleGroupService>();
@@ -64,24 +55,24 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-var jwtBearerSettings = new JwtBearerSettings();
-builder.Configuration.GetSection(JwtBearerSettings.SectionName).Bind(jwtBearerSettings);
+// Microsoft Entra External ID: tokens are validated against the tenant's OIDC metadata
+// (signing keys are discovered from the Authority), so there is no shared secret to configure.
+var entraSettings = new EntraExternalIdSettings();
+builder.Configuration.GetSection(EntraExternalIdSettings.SectionName).Bind(entraSettings);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = supabaseSettings.Url;
-        options.Audience = jwtBearerSettings.Audience;
-        options.RequireHttpsMetadata = jwtBearerSettings.RequireHttpsMetadata;
+        options.Authority = entraSettings.Authority;
+        options.Audience = entraSettings.Audience;
+        // Keep claim names as issued ("oid", "email") rather than remapping to legacy URIs.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = jwtBearerSettings.ValidateIssuer,
-            ValidateAudience = jwtBearerSettings.ValidateAudience,
-            ValidateLifetime = jwtBearerSettings.ValidateLifetime,
-            ValidateIssuerSigningKey = jwtBearerSettings.ValidateIssuerSigningKey,
-            ValidIssuer = jwtBearerSettings.ValidIssuer,
-            ValidAudience = jwtBearerSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtBearerSettings.IssuerSigningKey))
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true
         };
     });
 

@@ -23,14 +23,15 @@ jobs:
 
       - name: WorkoutManager.Web Secrets Variables Substitution
         # WASM reads config from wwwroot/appsettings.json, not the project-root file, and
-        # only ever gets the anon key — never Supabase.Secret. That stays server-side, used
-        # only by WorkoutManager.Api's own substitution step (added in Phase 5).
+        # only gets public Entra client settings (no secrets). The Api's DB connection string stays
+        # server-side, used only by WorkoutManager.Api's own substitution step.
         uses: microsoft/variable-substitution@v1
         with:
           files: "WorkoutManager.Web/wwwroot/appsettings.json"
         env:
-          Supabase.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          Supabase.AnonKey: ${{ secrets.SUPABASESETTINGS_ANONKEY }}
+          EntraExternalId.Authority: ${{ secrets.ENTRA_WEB_AUTHORITY }}
+          EntraExternalId.ClientId: ${{ secrets.ENTRA_WEB_CLIENT_ID }}
+          EntraExternalId.ApiScope: ${{ secrets.ENTRA_API_SCOPE }}
           # TODO (Phase 5): set once WorkoutManager.Api is deployed
           ApiUrl: ${{ secrets.API_URL }}
 
@@ -39,11 +40,7 @@ jobs:
         with:
           files: "**/appsettings.Testing.json"
         env:
-          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
-          SupabaseSettings.TestUserId: ${{ secrets.SUPABASESETTINGS_TESTUSERID }}
-          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          JwtBearerSettings.Key: ${{ secrets.JWTBEARERSETTINGS_KEY }}
-          ConnectionStrings.DefaultConnection: ${{ secrets.CONNECTIONSTRINGS_DEFAULTCONNECTION }}
+          ConnectionStrings.WorkoutManagerDb: ${{ secrets.CONNECTIONSTRINGS_WORKOUTMANAGERDB }}
 
       - name: Run Unit and Integration Tests
         run: |
@@ -87,8 +84,9 @@ jobs:
         with:
           files: "wwwroot/appsettings.json"
         env:
-          Supabase.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          Supabase.AnonKey: ${{ secrets.SUPABASESETTINGS_ANONKEY }}
+          EntraExternalId.Authority: ${{ secrets.ENTRA_WEB_AUTHORITY }}
+          EntraExternalId.ClientId: ${{ secrets.ENTRA_WEB_CLIENT_ID }}
+          EntraExternalId.ApiScope: ${{ secrets.ENTRA_API_SCOPE }}
           ApiUrl: ${{ secrets.API_URL }}
 
       # Static Web Apps deploys via its own deployment token, not the AZURE_CREDENTIALS
@@ -125,9 +123,9 @@ jobs:
         with:
           files: "appsettings.json"
         env:
-          SupabaseSettings.Url: ${{ secrets.SUPABASESETTINGS_URL }}
-          SupabaseSettings.Secret: ${{ secrets.SUPABASESETTINGS_SECRET }}
-          JwtBearerSettings.IssuerSigningKey: ${{ secrets.JWTBEARERSETTINGS_KEY }}
+          EntraExternalId.Authority: ${{ secrets.ENTRA_AUTHORITY }}
+          EntraExternalId.Audience: ${{ secrets.ENTRA_API_CLIENT_ID }}
+          ConnectionStrings.WorkoutManagerDb: ${{ secrets.CONNECTIONSTRINGS_WORKOUTMANAGERDB_PROD }}
 
       # TODO: app-name is a placeholder — set to whatever you name the App Service you create
       # for the Api (see Phase 5 notes). Needs its own resource; the Web app no longer runs

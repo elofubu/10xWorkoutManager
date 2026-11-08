@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.DTOs;
@@ -11,12 +11,10 @@ namespace WorkoutManager.Api.Tests.Controllers;
 [Collection("Integration Tests")]
 public class MuscleGroupsControllerTests : BaseIntegrationTest
 {
-    private readonly Client _supabaseClient;
 
     public MuscleGroupsControllerTests(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture)
         : base(factory, databaseFixture)
     {
-        _supabaseClient = factory.Services.GetRequiredService<Client>();
     }
 
     [Fact]
@@ -36,8 +34,8 @@ public class MuscleGroupsControllerTests : BaseIntegrationTest
     public async Task GetMuscleGroupById_Should_Return_Muscle_Group_When_It_Exists()
     {
         // Arrange
-        var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
-        var muscleGroupIds = muscleGroups.Models.Select(mg => mg.Id).ToList();
+        var muscleGroups = await Db.MuscleGroups.AsNoTracking().ToListAsync();
+        var muscleGroupIds = muscleGroups.Select(mg => mg.Id).ToList();
         muscleGroupIds.Should().NotBeEmpty();
         var testMuscleGroupId = muscleGroupIds.First();
 

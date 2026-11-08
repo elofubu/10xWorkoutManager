@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.Commands;
@@ -12,10 +12,8 @@ namespace WorkoutManager.Api.Tests.Controllers;
 [Collection("Integration Tests")]
 public class WorkoutPlansControllerTests : BaseIntegrationTest
 {
-    private readonly Client _supabaseClient;
     public WorkoutPlansControllerTests(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture) : base(factory, databaseFixture)
     {
-        _supabaseClient = factory.Services.GetRequiredService<Client>();
     }
 
     [Fact]
@@ -70,8 +68,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         // Arrange
         Authenticate();
         var plan = TestDataGenerator.WorkoutPlanFaker(UserId).Generate();
-        var inserted = await _supabaseClient.From<WorkoutPlan>().Insert(plan);
-        var planId = inserted.Models.First().Id;
+        Db.WorkoutPlans.Add(plan); await Db.SaveChangesAsync();
+        var planId = plan.Id;
 
         // Act
         var response = await HttpClient.GetAsync($"/api/workoutplans/{planId}");
@@ -90,7 +88,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         // Arrange
         Authenticate();
         var plans = TestDataGenerator.WorkoutPlanFaker(UserId).Generate(5);
-        await _supabaseClient.From<WorkoutPlan>().Insert(plans);
+        Db.WorkoutPlans.AddRange(plans); await Db.SaveChangesAsync();
 
         // Act
         var response = await HttpClient.GetAsync("/api/workoutplans?page=1&pageSize=3");
@@ -111,8 +109,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         // Arrange
         Authenticate();
         var plan = TestDataGenerator.WorkoutPlanFaker(UserId).Generate();
-        var inserted = await _supabaseClient.From<WorkoutPlan>().Insert(plan);
-        var planId = inserted.Models.First().Id;
+        Db.WorkoutPlans.Add(plan); await Db.SaveChangesAsync();
+        var planId = plan.Id;
 
         // Act
         var response = await HttpClient.DeleteAsync($"/api/workoutplans/{planId}");
@@ -130,8 +128,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         // Arrange
         Authenticate();
         var plan = TestDataGenerator.WorkoutPlanFaker(UserId).Generate();
-        var inserted = await _supabaseClient.From<WorkoutPlan>().Insert(plan);
-        var planId = inserted.Models.First().Id;
+        Db.WorkoutPlans.Add(plan); await Db.SaveChangesAsync();
+        var planId = plan.Id;
 
         var updatePayload = new UpdateWorkoutPlanPayload("Updated Name", new List<UpdateTrainingDayOrderCommand>());
 
@@ -141,7 +139,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var updatedPlanResponse = await _supabaseClient.From<WorkoutPlan>().Filter("id", Supabase.Postgrest.Constants.Operator.Equals, planId).Single();
+        var updatedPlanResponse = await Db.WorkoutPlans.AsNoTracking().SingleAsync(p => p.Id == planId);
         updatedPlanResponse.Should().NotBeNull();
         updatedPlanResponse.Name.Should().Be("Updated Name");
     }
@@ -220,18 +218,13 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
         var getPlanResponse = await HttpClient.GetAsync($"/api/workoutplans/{createdPlan!.Id}");
         var planDetails = await getPlanResponse.Content.ReadFromJsonAsync<WorkoutPlanDetailDto>();
 
-        // Get the actual training day from the database to ensure we have the correct ID
-        var trainingDaysResponse = await _supabaseClient
-            .From<TrainingDay>()
-            .Filter("plan_id", Supabase.Postgrest.Constants.Operator.Equals, createdPlan.Id)
-            .Get();
+        var firstTrainingDay = await Db.TrainingDays.AsNoTracking().FirstAsync(td => td.PlanId == createdPlan.Id);
 
-        var firstTrainingDay = trainingDaysResponse.Models.First();
 
         // Add exercises to the training day
-        var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
-        var chestMuscleGroup = muscleGroups.Models.FirstOrDefault() ??
-            (await _supabaseClient.From<MuscleGroup>().Insert(new MuscleGroup { Name = "Chest" })).Models.First();
+        var muscleGroups = await Db.MuscleGroups.AsNoTracking().ToListAsync();
+        var chestMuscleGroup = muscleGroups.FirstOrDefault() ??
+            await AddMuscleGroupAsync("Chest");
 
         var exercises = new List<Exercise>
         {
@@ -239,7 +232,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
             new Exercise { UserId = null, MuscleGroupId = chestMuscleGroup.Id, Name = "Incline Press" }
         };
 
-        var insertedExercises = (await _supabaseClient.From<Exercise>().Insert(exercises)).Models;
+        Db.Exercises.AddRange(exercises); await Db.SaveChangesAsync();
+        var insertedExercises = exercises;
 
         // Add exercises to training day via direct database insertion
         var planDayExercises = insertedExercises.Select((ex, idx) => new PlanDayExercise
@@ -249,7 +243,7 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
             Order = (short)(idx + 1)
         }).ToList();
 
-        await _supabaseClient.From<PlanDayExercise>().Upsert(planDayExercises);
+        Db.PlanDayExercises.AddRange(planDayExercises); await Db.SaveChangesAsync();
 
         // Act - Get the plan again to verify exercises are in the nested query
         var updatedPlanResponse = await HttpClient.GetAsync($"/api/workoutplans/{createdPlan.Id}");
@@ -295,8 +289,8 @@ public class WorkoutPlansControllerTests : BaseIntegrationTest
     //    var plan = await createResponse.Content.ReadFromJsonAsync<CreatedWorkoutPlanDto>();
 
     //    // Add different numbers of exercises to each training day
-    //    var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
-    //    var muscleGroup = muscleGroups.Models.FirstOrDefault() ??
+    //    var muscleGroups = await Db.MuscleGroups.AsNoTracking().ToListAsync();
+    //    var muscleGroup = muscleGroups.FirstOrDefault() ??
     //        (await _supabaseClient.From<MuscleGroup>().Insert(new MuscleGroup { Name = "General" })).Models.First();
 
     //    // Create exercises

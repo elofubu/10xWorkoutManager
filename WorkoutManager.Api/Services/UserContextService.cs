@@ -4,6 +4,10 @@ namespace WorkoutManager.Api.Services;
 
 public class UserContextService : IUserContextService
 {
+    // Entra External ID puts the stable per-user identifier in "oid" (object ID).
+    private const string ObjectIdClaim = "oid";
+    private const string ObjectIdClaimLegacy = "http://schemas.microsoft.com/identity/claims/objectidentifier";
+
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public UserContextService(IHttpContextAccessor httpContextAccessor)
@@ -13,20 +17,23 @@ public class UserContextService : IUserContextService
 
     public Guid GetCurrentUserId()
     {
-        var userId = _httpContextAccessor.HttpContext?.User?
-            .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var user = _httpContextAccessor.HttpContext?.User;
+        var userId = user?.FindFirst(ObjectIdClaim)?.Value
+                     ?? user?.FindFirst(ObjectIdClaimLegacy)?.Value;
 
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsed))
         {
-            throw new InvalidOperationException("User ID not found in token.");
+            throw new InvalidOperationException("User ID (oid claim) not found in token.");
         }
 
-        return Guid.Parse(userId);
+        return parsed;
     }
 
     public string? GetCurrentUserEmail()
     {
-        return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+        var user = _httpContextAccessor.HttpContext?.User;
+        return user?.FindFirst("email")?.Value
+               ?? user?.FindFirst(ClaimTypes.Email)?.Value
+               ?? user?.FindFirst("preferred_username")?.Value;
     }
 }
-

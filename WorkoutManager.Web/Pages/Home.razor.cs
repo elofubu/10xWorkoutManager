@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.Web.Components;
@@ -19,7 +20,7 @@ public partial class Home
     private IDialogService DialogService { get; set; } = default!;
 
     [Inject]
-    private IAuthService AuthService { get; set; } = default!;
+    private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
     [Inject]
     private ILocalStorageService LocalStorage { get; set; } = default!;
@@ -53,7 +54,8 @@ public partial class Home
             try
             {
                 var hasSeenWelcome = await LocalStorage.GetItemAsync<bool>("hasSeenWelcome");
-                var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                var isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
 
                 if (isAuthenticated && !hasSeenWelcome)
                 {

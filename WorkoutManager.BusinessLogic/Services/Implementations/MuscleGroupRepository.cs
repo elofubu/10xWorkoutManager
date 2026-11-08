@@ -1,34 +1,26 @@
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
+using WorkoutManager.Data;
 using WorkoutManager.Data.Models;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
 public class MuscleGroupRepository : IMuscleGroupRepository
 {
-    private readonly Client _supabaseClient;
+    private readonly WorkoutManagerDbContext _db;
 
-    public MuscleGroupRepository(Client supabaseClient)
+    public MuscleGroupRepository(WorkoutManagerDbContext db)
     {
-        _supabaseClient = supabaseClient;
+        _db = db;
     }
 
     public async Task<IEnumerable<MuscleGroup>> GetAllAsync()
     {
-        var response = await _supabaseClient
-            .From<MuscleGroup>()
-            .Get();
-
-        return response.Models;
+        return await _db.MuscleGroups.AsNoTracking().OrderBy(mg => mg.Id).ToListAsync();
     }
 
     public async Task<MuscleGroup?> GetByIdAsync(long id)
     {
-        var response = await _supabaseClient
-            .From<MuscleGroup>()
-            .Where(mg => mg.Id == id)
-            .Single();
-
-        return response;
+        return await _db.MuscleGroups.AsNoTracking().FirstOrDefaultAsync(mg => mg.Id == id);
     }
 }

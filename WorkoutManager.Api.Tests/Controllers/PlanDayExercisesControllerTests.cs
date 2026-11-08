@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.Commands;
@@ -12,12 +12,10 @@ namespace WorkoutManager.Api.Tests.Controllers;
 [Collection("Integration Tests")]
 public class PlanDayExercisesControllerTests : BaseIntegrationTest
 {
-    private readonly Client _supabaseClient;
 
     public PlanDayExercisesControllerTests(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture)
         : base(factory, databaseFixture)
     {
-        _supabaseClient = factory.Services.GetRequiredService<Client>();
     }
 
     #region Helper Methods
@@ -42,12 +40,12 @@ public class PlanDayExercisesControllerTests : BaseIntegrationTest
 
     private async Task<int> CreateTestExerciseAsync()
     {
-        var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
-        var muscleGroupIds = muscleGroups.Models.Select(mg => mg.Id).ToList();
+        var muscleGroups = await Db.MuscleGroups.AsNoTracking().ToListAsync();
+        var muscleGroupIds = muscleGroups.Select(mg => mg.Id).ToList();
 
         var exercises = TestDataGenerator.ExerciseFaker(UserId, muscleGroupIds).Generate(1);
-        var inserted = await _supabaseClient.From<Exercise>().Insert(exercises);
-        return (int)inserted.Models.First().Id;
+        Db.Exercises.AddRange(exercises); await Db.SaveChangesAsync();
+        return (int)exercises.First().Id;
     }
 
     #endregion

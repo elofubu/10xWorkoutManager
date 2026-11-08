@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
+using Microsoft.Data.SqlClient;
 using Respawn;
 using Respawn.Graph;
 
@@ -12,13 +12,13 @@ namespace WorkoutManager.Api.Tests;
 /// </summary>
 public class IntegrationTestDatabaseFixture : IAsyncLifetime
 {
-    private NpgsqlConnection _connection = null!;
+    private SqlConnection _connection = null!;
     private Respawner _respawner = null!;
     private string _connectionString = null!;
     private readonly object _lock = new object();
     private bool _isInitialized = false;
 
-    public NpgsqlConnection Connection => _connection;
+    public SqlConnection Connection => _connection;
     public Respawner Respawner => _respawner;
 
     /// <summary>
@@ -73,14 +73,14 @@ public class IntegrationTestDatabaseFixture : IAsyncLifetime
             return;
         }
 
-        _connection = new NpgsqlConnection(_connectionString);
+        _connection = new SqlConnection(_connectionString);
         await _connection.OpenAsync();
 
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
-            DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = new[] { "public" },
-            TablesToIgnore = new Table[] { new Table("muscle_groups") }
+            DbAdapter = DbAdapter.SqlServer,
+            SchemasToInclude = new[] { "dbo" },
+            TablesToIgnore = new Table[] { new Table("muscle_groups"), new Table("__EFMigrationsHistory") }
         });
     }
 

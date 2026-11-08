@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using WorkoutManager.Api.Services;
 using Microsoft.AspNetCore.Http;
 using WorkoutManager.Api.Tests.Settings;
+using WorkoutManager.Data;
+using WorkoutManager.Data.Models;
 
 namespace WorkoutManager.Api.Tests;
 
@@ -70,22 +72,37 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
     private readonly IntegrationTestWebAppFactory _factory;
     private readonly IConfiguration _configuration;
     private readonly IntegrationTestDatabaseFixture _databaseFixture;
-    private readonly SupabaseSettings _supabaseSettings;
+    private readonly TestSettings _testSettings;
+
+    private readonly IServiceScope _dbScope;
 
     protected HttpClient HttpClient { get; }
+
+    /// <summary>Direct database access for arranging and asserting test data.</summary>
+    protected WorkoutManagerDbContext Db { get; }
 
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture)
     {
         _factory = factory;
         _databaseFixture = databaseFixture;
         _configuration = factory.Services.GetRequiredService<IConfiguration>();
-        _supabaseSettings = _configuration.GetSection(SupabaseSettings.SectionName).Get<SupabaseSettings>()
-            ?? throw new InvalidOperationException("Failed to load Supabase settings from configuration.");
+        _testSettings = _configuration.GetSection(TestSettings.SectionName).Get<TestSettings>()
+            ?? throw new InvalidOperationException("Failed to load test settings from configuration.");
 
         HttpClient = _factory.CreateClient();
+        _dbScope = factory.Services.CreateScope();
+        Db = _dbScope.ServiceProvider.GetRequiredService<WorkoutManagerDbContext>();
     }
 
-    protected Guid UserId => _supabaseSettings.TestUserId;
+    protected Guid UserId => _testSettings.TestUserId;
+
+    protected async Task<MuscleGroup> AddMuscleGroupAsync(string name)
+    {
+        var muscleGroup = new MuscleGroup { Name = name };
+        Db.MuscleGroups.Add(muscleGroup);
+        await Db.SaveChangesAsync();
+        return muscleGroup;
+    }
 
     protected void Authenticate()
     {
@@ -105,8 +122,8 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, _supabaseSettings.TestUserId.ToString()),
-            new Claim("user_id", _supabaseSettings.TestUserId.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, _testSettings.TestUserId.ToString()),
+            new Claim("user_id", _testSettings.TestUserId.ToString()),
         };
 
         var token = new JwtSecurityToken(
@@ -122,7 +139,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
     public async Task InitializeAsync()
     {
         // Initialize the database fixture with connection string on first run
-        var connectionString = _configuration.GetConnectionString("DefaultConnection");
+        var connectionString = _configuration.GetConnectionString("WorkoutManagerDb");
         if (!string.IsNullOrEmpty(connectionString))
         {
             _databaseFixture.Initialize(connectionString);
@@ -147,6 +164,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        _dbScope.Dispose();
         // Database cleanup is handled by IntegrationTestDatabaseFixture after all tests complete
         // This method is kept for IAsyncLifetime contract compliance
         await Task.CompletedTask;

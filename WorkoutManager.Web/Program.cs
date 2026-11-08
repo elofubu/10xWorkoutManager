@@ -7,7 +7,6 @@ using MudBlazor.Services;
 using WorkoutManager.Web;
 using WorkoutManager.Web.Components;
 using WorkoutManager.Web.Services;
-using Supabase;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -18,40 +17,34 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazoredSessionStorage();
 
-// HTTP client for WorkoutManager.Api — every request gets the Supabase access token attached
+// HTTP client for WorkoutManager.Api — every request gets the Entra access token attached
 var apiUrl = builder.Configuration["ApiUrl"] ?? builder.HostEnvironment.BaseAddress;
 if (!apiUrl.EndsWith('/')) apiUrl += "/"; // relative request URIs (e.g. "api/exercises") need a trailing slash on the base
 
-builder.Services.AddTransient<AuthorizationMessageHandler>();
+builder.Services.AddTransient<ApiAuthorizationMessageHandler>();
 builder.Services.AddHttpClient("ApiHttpClient", client => client.BaseAddress = new Uri(apiUrl))
-    .AddHttpMessageHandler<AuthorizationMessageHandler>();
+    .AddHttpMessageHandler<ApiAuthorizationMessageHandler>();
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiHttpClient"));
 
 // Authentication
-builder.Services.AddAuthorizationCore();
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<AuthenticationStateProvider, SupabaseAuthenticationStateProvider>();
-
-// Supabase client — runs client-side for Auth only. Anon key is safe to ship in WASM;
-// the secret/service-role key stays server-side in WorkoutManager.Api.
-builder.Services.AddScoped(sp =>
+// Microsoft Entra External ID via MSAL (redirect flow). Registers the AuthenticationStateProvider
+// and authorization services; nothing secret is involved — this is a public client.
+builder.Services.AddMsalAuthentication(options =>
 {
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    var supabaseUrl = configuration["Supabase:Url"];
-    var supabaseAnonKey = configuration["Supabase:AnonKey"];
-    var options = new SupabaseOptions
+    builder.Configuration.Bind("EntraExternalId", options.ProviderOptions.Authentication);
+
+    var apiScope = builder.Configuration["EntraExternalId:ApiScope"];
+    if (!string.IsNullOrWhiteSpace(apiScope))
     {
-        AutoConnectRealtime = false
-    };
-    return new Client(supabaseUrl, supabaseAnonKey, options);
+        options.ProviderOptions.DefaultAccessTokenScopes.Add(apiScope);
+    }
 });
 
-// Application services — call WorkoutManager.Api over HTTP (see AuthorizationMessageHandler above)
+// Application services — call WorkoutManager.Api over HTTP (see ApiAuthorizationMessageHandler above)
 builder.Services.AddScoped<WorkoutManager.Web.Services.IWorkoutPlanService, WorkoutManager.Web.Services.WorkoutPlanService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.ISessionService, WorkoutManager.Web.Services.SessionService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.IExerciseService, WorkoutManager.Web.Services.ExerciseService>();
-builder.Services.AddScoped<WorkoutManager.Web.Services.IAuthService, WorkoutManager.Web.Services.AuthService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.IMuscleGroupService, WorkoutManager.Web.Services.MuscleGroupService>();
 builder.Services.AddScoped<IWorkoutSessionStateService, WorkoutSessionStateService>();
 
