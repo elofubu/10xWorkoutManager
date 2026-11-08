@@ -30,8 +30,9 @@ public class DatabaseSeeder : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while applying database migrations.");
-            return;
+            // Fail fast: running against a missing/outdated schema only produces confusing errors later.
+            _logger.LogCritical(ex, "An error occurred while applying database migrations.");
+            throw;
         }
 
         await SeedMuscleGroupsAsync(db, cancellationToken);
