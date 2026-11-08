@@ -41,7 +41,7 @@ Placeholders are in `WorkoutManager.Api/appsettings.json` and `WorkoutManager.We
 ## 4. GitHub secrets
 
 Authority formats differ: Api uses the tenant **ID** (`https://<sub>.ciamlogin.com/<tenant-id>/v2.0`),
-Web uses the tenant **domain** (`https://<sub>.ciamlogin.com/<sub>.onmicrosoft.com/v2.0`).
+Web uses the tenant **domain** with no `/v2.0` (`https://<sub>.ciamlogin.com/<sub>.onmicrosoft.com`; MSAL adds `/v2.0` itself).
 
 - [ ] `ENTRA_AUTHORITY` — Api issuer (tenant ID form)
 - [ ] `ENTRA_API_CLIENT_ID` — Api app registration client ID (token audience)
