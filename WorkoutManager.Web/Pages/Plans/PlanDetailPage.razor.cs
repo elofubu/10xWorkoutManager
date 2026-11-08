@@ -239,7 +239,7 @@ public partial class PlanDetailPage
             }
         }
     }
-    
+
     //TODO remove from database
     private void RemoveTrainingDay(TrainingDayDto day)
     {

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Supabase;
 using System.Text;
 using WorkoutManager.Api.Services;
 using WorkoutManager.Api.Tests.Settings;
@@ -28,27 +27,6 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices((builderContext, services) =>
         {
-            var supabaseSettings = new SupabaseSettings();
-            builderContext.Configuration.GetSection(SupabaseSettings.SectionName).Bind(supabaseSettings);
-            services.Configure<SupabaseSettings>((configure) =>
-            {
-                configure = supabaseSettings;
-            });
-
-            services.Remove(services.SingleOrDefault(s => s.ServiceType == typeof(Client)));
-
-            services.AddSingleton(provider =>
-            {
-                var options = new Supabase.SupabaseOptions
-                {
-                    AutoRefreshToken = false,
-                    AutoConnectRealtime = false,
-                };
-
-                var client = new Client(supabaseSettings.Url, supabaseSettings.Secret, options);
-                return client;
-            });
-
             services.AddSingleton<IUserContextService, TestUserContextService>();
 
             // Override JWT configuration for tests to accept test-generated tokens

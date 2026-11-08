@@ -84,14 +84,20 @@
                 }
             </div>
         </div>
-        @if (@_session.Exercises.Count == (_index + 1))
-        {
-            <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Outlined.ArrowForwardIos" OnClick="CompleteSession">Complete</MudButton>
-        }
-        else
-        {
-            <MudButton Variant="Variant.Filled" FullWidth EndIcon="@Icons.Material.Outlined.ArrowForwardIos" OnClick="NextStep">Next</MudButton>
-        }
+        <div class="session-navigation">
+            @if (_index > 0)
+            {
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.ArrowBackIos" OnClick="PreviousStep">Back</MudButton>
+            }
+            @if (@_session.Exercises.Count == (_index + 1))
+            {
+                <MudButton Variant="Variant.Filled" Class="flex-grow-1" EndIcon="@Icons.Material.Outlined.ArrowForwardIos" OnClick="CompleteSession">Complete</MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled" Class="flex-grow-1" EndIcon="@Icons.Material.Outlined.ArrowForwardIos" OnClick="NextStep">Next</MudButton>
+            }
+        </div>
     </div>
 }
 
@@ -259,4 +265,20 @@
                 .session-wrapper .session-progress .session-progress-body .set-item .mud-icon-root:hover {
                     cursor: pointer;
                 }
+
+        .session-wrapper .session-navigation {
+            display: flex;
+            gap: 10px;
+        }
+
+            .session-wrapper .session-navigation .mud-button-root {
+                background-color: white;
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+
+            .session-wrapper .session-navigation .mud-button-outlined {
+                background-color: var(--color-secondary-background);
+                color: var(--color-primary-text);
+            }
 </style>

@@ -6,4 +6,3 @@ public interface IMuscleGroupService
 {
     Task<IEnumerable<MuscleGroupDto>> GetMuscleGroupsAsync();
 }
-

@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.DTOs;
@@ -11,11 +11,9 @@ namespace WorkoutManager.Api.Tests.Controllers;
 [Collection("Integration Tests")]
 public class ExercisesControllerTests : BaseIntegrationTest
 {
-    private readonly Client _supabaseClient;
 
     public ExercisesControllerTests(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture) : base(factory, databaseFixture)
     {
-        _supabaseClient = factory.Services.GetRequiredService<Client>();
     }
 
     [Fact]
@@ -44,11 +42,11 @@ public class ExercisesControllerTests : BaseIntegrationTest
     public async Task Get_Exercises_Should_Return_Only_User_Owned_Exercises()
     {
         // Arrange
-        var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
-        var muscleGroupIds = muscleGroups.Models.Select(mg => mg.Id).ToList();
+        var muscleGroups = await Db.MuscleGroups.AsNoTracking().ToListAsync();
+        var muscleGroupIds = muscleGroups.Select(mg => mg.Id).ToList();
 
         var userExercises = TestDataGenerator.ExerciseFaker(UserId, muscleGroupIds).Generate(3);
-        await _supabaseClient.From<Exercise>().Insert(userExercises);
+        Db.Exercises.AddRange(userExercises); await Db.SaveChangesAsync();
 
         Authenticate();
 
@@ -71,8 +69,8 @@ public class ExercisesControllerTests : BaseIntegrationTest
         // Arrange
         Authenticate();
 
-        var muscleGroups = await _supabaseClient.From<MuscleGroup>().Get();
-        var muscleGroupId = muscleGroups.Models.First().Id;
+        var muscleGroups = await Db.MuscleGroups.AsNoTracking().ToListAsync();
+        var muscleGroupId = muscleGroups.First().Id;
 
         // Create shared exercises (user_id IS NULL)
         var sharedExercises = new List<Exercise>
@@ -80,14 +78,14 @@ public class ExercisesControllerTests : BaseIntegrationTest
             new Exercise { UserId = null, MuscleGroupId = muscleGroupId, Name = "Bench Press (Shared)" },
             new Exercise { UserId = null, MuscleGroupId = muscleGroupId, Name = "Squat (Shared)" }
         };
-        await _supabaseClient.From<Exercise>().Insert(sharedExercises);
+        Db.Exercises.AddRange(sharedExercises); await Db.SaveChangesAsync();
 
         // Create user-specific exercises
         var userExercises = new List<Exercise>
         {
             new Exercise { UserId = UserId, MuscleGroupId = muscleGroupId, Name = "Custom Bench" }
         };
-        await _supabaseClient.From<Exercise>().Insert(userExercises);
+        Db.Exercises.AddRange(userExercises); await Db.SaveChangesAsync();
 
         // Act - Get exercises (should use single OR query)
         var response = await HttpClient.GetAsync("/api/exercises?pageSize=1000");

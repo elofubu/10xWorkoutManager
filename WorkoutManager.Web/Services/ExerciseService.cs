@@ -1,51 +1,55 @@
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Security.Claims;
+using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.DTOs;
-using BizLogic = WorkoutManager.BusinessLogic.Services.Interfaces;
 
 namespace WorkoutManager.Web.Services
 {
     public class ExerciseService : IExerciseService
     {
-        private readonly BizLogic.IExerciseService _exerciseService;
-        private readonly AuthenticationStateProvider _authStateProvider;
+        private readonly HttpClient _httpClient;
 
-        public ExerciseService(
-            BizLogic.IExerciseService exerciseService,
-            AuthenticationStateProvider authStateProvider)
+        public ExerciseService(HttpClient httpClient)
         {
-            _exerciseService = exerciseService;
-            _authStateProvider = authStateProvider;
-        }
-
-        private async Task<Guid> GetUserIdAsync()
-        {
-            var authState = await _authStateProvider.GetAuthenticationStateAsync();
-            var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException("User not authenticated"));
+            _httpClient = httpClient;
         }
 
         public async Task<PaginatedList<ExerciseDto>> GetExercisesAsync(string? search = null, long? muscleGroupId = null, int page = 1)
         {
-            var userId = await GetUserIdAsync();
-            return await _exerciseService.GetExercisesAsync(userId, search, muscleGroupId, page);
+            var queryParams = new List<string> { $"page={page}" };
+            if (!string.IsNullOrEmpty(search)) queryParams.Add($"search={Uri.EscapeDataString(search)}");
+            if (muscleGroupId.HasValue) queryParams.Add($"muscleGroupId={muscleGroupId.Value}");
+
+            var result = await _httpClient.GetFromJsonAsync<PaginatedList<ExerciseDto>>($"api/exercises?{string.Join("&", queryParams)}");
+            return result ?? new PaginatedList<ExerciseDto>();
         }
 
         public async Task<ExerciseDto> CreateExerciseAsync(CreateExerciseDto newExercise)
         {
-            var userId = await GetUserIdAsync();
-            return await _exerciseService.CreateExerciseAsync(newExercise, userId);
+            var response = await _httpClient.PostAsJsonAsync("api/exercises", newExercise);
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ExerciseDto>();
+            return result ?? throw new InvalidOperationException("Api returned an empty response for CreateExercise.");
         }
 
         public async Task<PreviousExercisePerformanceDto?> GetPreviousSessionExerciseAsync(long exerciseId, long trainingDayId)
         {
-            var userId = await GetUserIdAsync();
-            return await _exerciseService.GetLastPerformanceAsync(exerciseId, userId, trainingDayId);
+            var response = await _httpClient.GetAsync($"api/exercises/{trainingDayId}/{exerciseId}/previous-session");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<PreviousExercisePerformanceDto>();
         }
 
         public async Task<ExerciseDto?> GetExerciseByIdAsync(long exerciseId)
         {
-            return await _exerciseService.GetExerciseByIdAsync(exerciseId);
+            var response = await _httpClient.GetAsync($"api/exercises/{exerciseId}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<ExerciseDto>();
         }
     }
 }

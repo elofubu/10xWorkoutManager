@@ -1,7 +1,8 @@
 namespace WorkoutManager.Api.HostedServices;
 
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using WorkoutManager.Api.Data;
+using WorkoutManager.Data;
 using WorkoutManager.Data.Models;
 
 public class DatabaseSeeder : IHostedService
@@ -20,29 +21,36 @@ public class DatabaseSeeder : IHostedService
         _logger.LogInformation("Database seeder is starting.");
 
         using var scope = _serviceProvider.CreateScope();
-        var supabase = scope.ServiceProvider.GetRequiredService<Supabase.Client>();
-        await SeedDataAsync(supabase, cancellationToken);
+        var db = scope.ServiceProvider.GetRequiredService<WorkoutManagerDbContext>();
 
+        try
+        {
+            // Applies pending EF Core migrations, creating the schema on a fresh database.
+            await db.Database.MigrateAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Fail fast: running against a missing/outdated schema only produces confusing errors later.
+            _logger.LogCritical(ex, "An error occurred while applying database migrations.");
+            throw;
+        }
+
+        await SeedMuscleGroupsAsync(db, cancellationToken);
+        await SeedExercisesAsync(db, cancellationToken);
 
         _logger.LogInformation("Database seeder has finished.");
     }
 
-    private async Task SeedDataAsync(Supabase.Client supabase, CancellationToken cancellationToken)
-    {
-        await SeedMuscleGroupsAsync(supabase, cancellationToken);
-        await SeedExercisesAsync(supabase, cancellationToken);
-    }
-
-    private async Task SeedMuscleGroupsAsync(Supabase.Client supabase, CancellationToken cancellationToken)
+    private async Task SeedMuscleGroupsAsync(WorkoutManagerDbContext db, CancellationToken cancellationToken)
     {
         try
         {
-            var muscleGroupsCountResponse = await supabase.From<MuscleGroup>().Count(Supabase.Postgrest.Constants.CountType.Exact, cancellationToken);
-            if (muscleGroupsCountResponse == 0)
+            if (!await db.MuscleGroups.AnyAsync(cancellationToken))
             {
                 _logger.LogInformation("Seeding muscle groups...");
                 var muscleGroupsToSeed = SeedData.MuscleGroups.ToList();
-                await supabase.From<MuscleGroup>().Insert(muscleGroupsToSeed, cancellationToken: cancellationToken);
+                db.MuscleGroups.AddRange(muscleGroupsToSeed);
+                await db.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation("{Count} muscle groups seeded.", muscleGroupsToSeed.Count);
             }
             else
@@ -56,16 +64,15 @@ public class DatabaseSeeder : IHostedService
         }
     }
 
-    private async Task SeedExercisesAsync(Supabase.Client supabase, CancellationToken cancellationToken)
+    private async Task SeedExercisesAsync(WorkoutManagerDbContext db, CancellationToken cancellationToken)
     {
         try
         {
-            var exercisesCountResponse = await supabase.From<Exercise>().Where(e => e.UserId == null).Count(Supabase.Postgrest.Constants.CountType.Exact, cancellationToken);
-            if (exercisesCountResponse == 0)
+            if (!await db.Exercises.AnyAsync(e => e.UserId == null, cancellationToken))
             {
                 _logger.LogInformation("Seeding predefined exercises...");
-                var muscleGroups = (await supabase.From<MuscleGroup>().Get(cancellationToken)).Models;
-                var muscleGroupMap = muscleGroups.ToDictionary(mg => mg.Name, mg => mg.Id);
+                var muscleGroupMap = await db.MuscleGroups
+                    .ToDictionaryAsync(mg => mg.Name, mg => mg.Id, cancellationToken);
 
                 var exercisesToSeed = SeedData.Exercises
                                               .Select(e => new Exercise
@@ -75,7 +82,8 @@ public class DatabaseSeeder : IHostedService
                                               })
                                               .ToList();
 
-                await supabase.From<Exercise>().Insert(exercisesToSeed, cancellationToken: cancellationToken);
+                db.Exercises.AddRange(exercisesToSeed);
+                await db.SaveChangesAsync(cancellationToken);
                 _logger.LogInformation("{Count} predefined exercises seeded.", exercisesToSeed.Count);
             }
             else

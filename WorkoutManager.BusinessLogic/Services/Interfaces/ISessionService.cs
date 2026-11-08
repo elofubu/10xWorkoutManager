@@ -16,5 +16,6 @@ public interface ISessionService
     Task FinishSessionAsync(long sessionId, string? notes, Guid userId);
     Task<bool> HasActiveSessionAsync(Guid userId);
     Task<SessionDetailsDto?> GetActiveSessionAsync(Guid userId);
+    Task DeleteSessionAsync(long sessionId, Guid userId);
 }
 

@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Http.Json;
 using WorkoutManager.BusinessLogic.Commands;
@@ -12,12 +12,10 @@ namespace WorkoutManager.Api.Tests.Controllers;
 [Collection("Integration Tests")]
 public class SessionsControllerTests : BaseIntegrationTest
 {
-    private readonly Client _supabaseClient;
 
     public SessionsControllerTests(IntegrationTestWebAppFactory factory, IntegrationTestDatabaseFixture databaseFixture)
         : base(factory, databaseFixture)
     {
-        _supabaseClient = factory.Services.GetRequiredService<Client>();
     }
 
     #region Authentication & Authorization Tests

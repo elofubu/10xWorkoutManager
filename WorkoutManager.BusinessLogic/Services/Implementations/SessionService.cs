@@ -203,5 +203,16 @@ public class SessionService : ISessionService
 
         return await GetSessionByIdAsync((int)activeSession.Id, userId);
     }
+
+    public async Task DeleteSessionAsync(long sessionId, Guid userId)
+    {
+        var session = await _sessionRepository.GetSessionByIdAsync(sessionId, userId);
+        if (session == null)
+        {
+            throw new NotFoundException("Session", sessionId);
+        }
+
+        await _sessionRepository.DeleteSessionAsync(sessionId);
+    }
 }
 

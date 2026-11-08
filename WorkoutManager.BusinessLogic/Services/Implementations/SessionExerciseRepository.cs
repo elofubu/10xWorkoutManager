@@ -1,79 +1,61 @@
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
+using WorkoutManager.Data;
 using WorkoutManager.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
 public class SessionExerciseRepository : ISessionExerciseRepository
 {
-    private readonly Client _supabaseClient;
+    private readonly WorkoutManagerDbContext _db;
 
-    public SessionExerciseRepository(Client supabaseClient)
+    public SessionExerciseRepository(WorkoutManagerDbContext db)
     {
-        _supabaseClient = supabaseClient;
+        _db = db;
     }
 
     public async Task<Session?> GetSessionByIdAndUserIdAsync(long sessionId, Guid userId)
     {
-        return await _supabaseClient
-            .From<Session>()
-            .Where(s => s.Id == sessionId && s.UserId == userId)
-            .Single();
+        return await _db.Sessions.FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);
     }
 
     public async Task<SessionExercise?> GetSessionExerciseByIdAndSessionIdAsync(long sessionExerciseId, long sessionId)
     {
-        return await _supabaseClient
-            .From<SessionExercise>()
-            .Where(se => se.Id == sessionExerciseId && se.SessionId == sessionId)
-            .Single();
+        return await _db.SessionExercises
+            .FirstOrDefaultAsync(se => se.Id == sessionExerciseId && se.SessionId == sessionId);
     }
 
     public async Task<SessionExercise?> GetSessionExerciseWithSessionAsync(long sessionExerciseId, Guid userId)
     {
-        var sessionExercise = await _supabaseClient
-            .From<SessionExercise>()
-            .Where(se => se.Id == sessionExerciseId)
-            .Single();
-
-        if (sessionExercise == null) return null;
-
-        var session = await GetSessionByIdAndUserIdAsync(sessionExercise.SessionId, userId);
-        if (session == null) return null;
-
-        sessionExercise.Session = session;
-        return sessionExercise;
+        return await _db.SessionExercises
+            .Include(se => se.Session)
+            .FirstOrDefaultAsync(se => se.Id == sessionExerciseId && se.Session!.UserId == userId);
     }
 
     public async Task UpdateSessionExerciseAsync(SessionExercise sessionExercise)
     {
-        await _supabaseClient
-            .From<SessionExercise>()
-            .Update(sessionExercise);
+        if (_db.Entry(sessionExercise).State == EntityState.Detached)
+        {
+            _db.Entry(sessionExercise).State = EntityState.Modified;
+        }
+        await _db.SaveChangesAsync();
     }
 
     public async Task DeleteSetsForSessionExerciseAsync(long sessionExerciseId)
     {
-        await _supabaseClient
-            .From<ExerciseSet>()
-            .Where(es => es.SessionExerciseId == sessionExerciseId)
-            .Delete();
+        await _db.ExerciseSets.Where(es => es.SessionExerciseId == sessionExerciseId).ExecuteDeleteAsync();
     }
 
     public async Task<IEnumerable<ExerciseSet>> AddSetsToSessionExerciseAsync(long sessionExerciseId, IEnumerable<ExerciseSet> sets)
     {
-        var createdSets = new List<ExerciseSet>();
-        foreach (var exerciseSet in sets)
+        var created = sets.ToList();
+        foreach (var set in created)
         {
-            var response = await _supabaseClient
-                .From<ExerciseSet>()
-                .Insert(exerciseSet);
-            createdSets.Add(response.Models[0]);
+            set.SessionExerciseId = sessionExerciseId;
         }
-        return createdSets;
+
+        _db.ExerciseSets.AddRange(created);
+        await _db.SaveChangesAsync();
+        return created;
     }
 }

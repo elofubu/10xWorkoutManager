@@ -7,9 +7,6 @@ namespace WorkoutManager.Web.Pages.History
     public partial class HistoryPage
     {
         [Inject]
-        private NavigationManager NavigationManager { get; set; } = default!;
-
-        [Inject]
         private ISessionService SessionService { get; set; } = default!;
 
         private IEnumerable<SessionSummaryDto> _sessions = new List<SessionSummaryDto>();
@@ -54,15 +51,27 @@ namespace WorkoutManager.Web.Pages.History
             }
         }
 
-        private void NavigateToSession(long sessionId)
+        private async Task DeleteSession(long sessionId)
         {
-            NavigationManager.NavigateTo($"/history/{sessionId}");
+            await SessionService.DeleteSessionAsync(sessionId);
+            _sessions = _sessions.Where(s => s.Id != sessionId).ToList();
+            StateHasChanged();
         }
+
+        // private void NavigateToSession(long sessionId)
+        // {
+        //     NavigationManager.NavigateTo($"/history/{sessionId}");
+        // }
 
         private string HandleDecimalInWeight(decimal weight)
         {
-            if((weight % 1) == 0)
+            if ((weight % 1) == 0)
             {
+                if (weight % 10 == 0)
+                {
+                    return Math.Round(weight).ToString("F0");
+                }
+
                 return Math.Round(weight).ToString();
             }
 

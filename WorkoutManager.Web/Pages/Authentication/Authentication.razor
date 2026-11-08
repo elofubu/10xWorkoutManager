@@ -1,0 +1,13 @@
+@page "/authentication/{action}"
+@layout EmptyLayout
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@* MSAL handles login, login-callback, logout, logout-callback, etc. via redirect to the
+   Entra External ID hosted sign-in / sign-up page. EmptyLayout is required: MainLayout
+   redirects unauthenticated users to login, which would loop on these routes. *@
+<RemoteAuthenticatorView Action="@Action" />
+
+@code {
+    [Parameter]
+    public string? Action { get; set; }
+}

@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
-@inject IAuthService AuthService
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using WorkoutManager.Web.Services
 
 <MudThemeProvider />
@@ -55,13 +55,9 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    private async Task Logout()
+    private void Logout()
     {
-        await AuthService.LogoutAsync();
-        ((SupabaseAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserAuthenticationStateChanged();
-        NavigationManager.NavigateTo("/authentication/login");
+        // MSAL clears its session and redirects through /authentication/logout-callback.
+        NavigationManager.NavigateToLogout("authentication/logout");
     }
-
-    [Inject]
-    private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 }

@@ -133,6 +133,16 @@ namespace WorkoutManager.Web.Pages.Session
             }
         }
 
+        private void PreviousStep()
+        {
+            if (_index <= 0) return;
+
+            _index--;
+            _currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
+            _weight = 0;
+            _reps = 0;
+        }
+
         private async Task CompleteSession()
         {
             _isLoading = true;

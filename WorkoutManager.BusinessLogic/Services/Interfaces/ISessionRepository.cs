@@ -19,4 +19,5 @@ public interface ISessionRepository
     Task<IEnumerable<SessionExercise>> GetSessionExercisesWithSetsAsync(long sessionId);
     Task UpdateSessionAsync(Session session);
     Task<Session?> GetActiveSessionAsync(Guid userId);
+    Task DeleteSessionAsync(long sessionId);
 }

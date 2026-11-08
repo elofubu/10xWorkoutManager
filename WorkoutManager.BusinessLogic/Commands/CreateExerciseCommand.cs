@@ -1,7 +1,3 @@
-namespace WorkoutManager.BusinessLogic.Commands;
-
-public class CreateExerciseCommand
-{
-    public string Name { get; set; } = string.Empty;
-    public int MuscleGroupId { get; set; }
-}
+// Moved to WorkoutManager.Contracts/Commands/CreateExerciseCommand.cs (same namespace, so
+// no consumer needed changes). File left empty rather than deleted — file deletion isn't
+// available in this workspace.

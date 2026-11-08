@@ -1,129 +1,95 @@
-using Supabase;
+using Microsoft.EntityFrameworkCore;
 using WorkoutManager.BusinessLogic.Commands;
 using WorkoutManager.BusinessLogic.Services.Interfaces;
+using WorkoutManager.Data;
 using WorkoutManager.Data.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
 
 namespace WorkoutManager.BusinessLogic.Services.Implementations;
 
 public class WorkoutPlanRepository : IWorkoutPlanRepository
 {
-    private readonly Client _supabaseClient;
+    private readonly WorkoutManagerDbContext _db;
 
-    public WorkoutPlanRepository(Client supabaseClient)
+    public WorkoutPlanRepository(WorkoutManagerDbContext db)
     {
-        _supabaseClient = supabaseClient;
+        _db = db;
     }
 
     public async Task<IEnumerable<WorkoutPlan>> GetWorkoutPlansAsync(Guid userId)
     {
-        var response = await _supabaseClient
-            .From<WorkoutPlan>()
+        return await _db.WorkoutPlans
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(wp => wp.TrainingDays.OrderBy(td => td.Order)).ThenInclude(td => td.Exercises)
             .Where(wp => wp.UserId == userId)
-            .Order("created_at", Supabase.Postgrest.Constants.Ordering.Descending)
-            .Get();
-
-        return response.Models;
+            .OrderByDescending(wp => wp.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<WorkoutPlan?> GetWorkoutPlanByIdAsync(long planId, Guid userId)
     {
-        return await _supabaseClient
-            .From<WorkoutPlan>()
-            .Where(wp => wp.Id == planId)
-            .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
-            .Single();
+        return await _db.WorkoutPlans.FirstOrDefaultAsync(wp => wp.Id == planId && wp.UserId == userId);
     }
 
     public async Task<WorkoutPlan> CreateWorkoutPlanAsync(WorkoutPlan plan, IEnumerable<CreateTrainingDayCommand> trainingDays)
     {
-        var planResponse = await _supabaseClient
-            .From<WorkoutPlan>()
-            .Insert(plan);
-        var createdPlan = planResponse.Models.First();
-
-        var tradiningDaysList = new List<TrainingDay>();
-
         foreach (var dayCommand in trainingDays)
         {
-            var trainingDay = new TrainingDay
+            plan.TrainingDays.Add(new TrainingDay
             {
-                PlanId = createdPlan.Id,
                 Name = dayCommand.Name,
                 Order = (short)dayCommand.Order
-            };
-
-            var trainingDayModel = await _supabaseClient.From<TrainingDay>().Insert(trainingDay);
-
-            if (trainingDayModel.Model is not null)
-                tradiningDaysList.Add(trainingDayModel.Model);
+            });
         }
 
-        //createdPlan.TrainingDays = tradiningDaysList;
-
-        return createdPlan;
+        _db.WorkoutPlans.Add(plan);
+        await _db.SaveChangesAsync();
+        return plan;
     }
 
     public async Task UpdateWorkoutPlanAsync(WorkoutPlan plan, IEnumerable<UpdateTrainingDayOrderCommand> trainingDays)
     {
-        await _supabaseClient
-            .From<WorkoutPlan>()
-            .Update(plan);
-
-        foreach (var dayUpdate in trainingDays)
+        if (_db.Entry(plan).State == EntityState.Detached)
         {
-            var day = await _supabaseClient
-                .From<TrainingDay>()
-                .Where(td => td.Id == dayUpdate.Id && td.PlanId == plan.Id)
-                .Single();
+            _db.Entry(plan).State = EntityState.Modified;
+        }
 
+        var updates = trainingDays.ToList();
+        var ids = updates.Select(u => u.Id).ToList();
+        var days = await _db.TrainingDays
+            .Where(td => td.PlanId == plan.Id && ids.Contains(td.Id))
+            .ToListAsync();
+
+        foreach (var update in updates)
+        {
+            var day = days.FirstOrDefault(d => d.Id == update.Id);
             if (day != null)
             {
-                day.Order = (short)dayUpdate.Order;
-                await _supabaseClient.From<TrainingDay>().Update(day);
+                day.Order = (short)update.Order;
             }
         }
+
+        await _db.SaveChangesAsync();
     }
 
     public async Task DeleteWorkoutPlanAsync(long planId)
     {
-        await _supabaseClient
-            .From<WorkoutPlan>()
-            .Where(wp => wp.Id == planId)
-            .Delete();
+        await _db.WorkoutPlans.Where(wp => wp.Id == planId).ExecuteDeleteAsync();
     }
 
     public async Task<bool> IsPlanLockedAsync(long planId, Guid userId)
     {
-        var activeSessionsResponse = await _supabaseClient
-            .From<Session>()
-            .Filter("plan_id", Supabase.Postgrest.Constants.Operator.Equals, planId)
-            .Filter("user_id", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
-            .Filter<DateTime?>("end_time", Supabase.Postgrest.Constants.Operator.Is, null)
-            .Get();
-        return activeSessionsResponse.Models.Any();
+        return await _db.Sessions.AnyAsync(s => s.PlanId == planId && s.UserId == userId && s.EndTime == null);
     }
 
     public async Task<IEnumerable<TrainingDay>> GetTrainingDaysWithExercisesAsync(long planId)
     {
-        // Fetch training days with both Exercise relations and PlanDayExercise (for order preservation)
-        var trainingDaysResponse = await _supabaseClient
-            .From<TrainingDay>()
-            //.Select("*, plan_day_exercises!training_day_id(*)")
-            //.Select("*, plan_day_exercises(*, exercises(*))")
-            //.Select("*, exercises(*), plan_day_exercises(*, exercises(*))")
-            .Filter("plan_id", Supabase.Postgrest.Constants.Operator.Equals, planId)
-            .Order("order", Supabase.Postgrest.Constants.Ordering.Ascending)
-            .Get();
-
-        var trainingDays = trainingDaysResponse.Models.ToList();
-
-        if (!trainingDays.Any())
-            return trainingDays;
-
-        return trainingDays;
+        return await _db.TrainingDays
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(td => td.PlanDayExercises.OrderBy(pde => pde.Order)).ThenInclude(pde => pde.Exercise)
+            .Where(td => td.PlanId == planId)
+            .OrderBy(td => td.Order)
+            .ToListAsync();
     }
 }

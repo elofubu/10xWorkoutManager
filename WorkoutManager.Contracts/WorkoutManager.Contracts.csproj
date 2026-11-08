@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Plain DTOs and Commands only — no dependency on Data/Supabase/BusinessLogic.
+       Referenced by WorkoutManager.Web (WASM, must never see the Supabase secret key)
+       and by WorkoutManager.BusinessLogic (server-side, via project reference below). -->
+
+</Project>

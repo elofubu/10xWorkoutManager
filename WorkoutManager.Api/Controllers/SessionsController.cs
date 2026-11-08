@@ -18,7 +18,7 @@ public class SessionsController : ControllerBase
     private readonly IUserContextService _userContext;
     private readonly ILogger<SessionsController> _logger;
 
-    public SessionsController(ISessionService sessionService, 
+    public SessionsController(ISessionService sessionService,
         IUserContextService userContext,
         ILogger<SessionsController> logger)
     {
@@ -115,6 +115,26 @@ public class SessionsController : ControllerBase
         }
     }
 
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> DeleteSession(long id)
+    {
+        try
+        {
+            var userId = _userContext.GetCurrentUserId();
+            await _sessionService.DeleteSessionAsync(id, userId);
+            return NoContent();
+        }
+        catch (NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Something unexpected happened deleting session {SessionId}.", id);
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
     [HttpPut("{id:long}")]
     public async Task<IActionResult> UpdateSession(long id, [FromBody] UpdateSessionCommand command)
     {
@@ -143,7 +163,7 @@ public class SessionsController : ControllerBase
             _logger.LogError($"Updating session returns bussines rule valuation exception. {command}");
             return Conflict(new { error = ex.Message });
         }
-        catch(BusinessLogic.Exceptions.UnauthorizedAccessException ex)
+        catch (BusinessLogic.Exceptions.UnauthorizedAccessException ex)
         {
             _logger.LogError($"Updating session returns unaauthorized exception. {command}");
             return Unauthorized(ex.Message);
