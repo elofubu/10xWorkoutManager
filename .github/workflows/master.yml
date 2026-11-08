@@ -132,7 +132,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "workout-manager-api-fhg4cbftgwcvc0g5"
+          app-name: "workout-manager-api"
           package: .
 
       - name: Logout from Azure

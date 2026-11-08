@@ -33,7 +33,7 @@ no enterprise/work tenant needed.
 
 Placeholders are in `WorkoutManager.Api/appsettings.json` and `WorkoutManager.Web/wwwroot/appsettings.json`.
 
-- [ ] `.github/workflows/master.yml` → `deploy_api` job: set (done: `workout-manager-api-fhg4cbftgwcvc0g5`).
+- [ ] `.github/workflows/master.yml` → `deploy_api` job: set (done: `workout-manager-api`; the service principal behind `AZURE_CREDENTIALS` needs Contributor on this App Service).
 - [ ] Local dev, Api: `dotnet user-secrets set "ConnectionStrings:WorkoutManagerDb" "<azure sql connection string>"`
       plus `EntraExternalId:Authority` and `EntraExternalId:Audience` (in `WorkoutManager.Api`).
 - [ ] Local dev, Web: edit `wwwroot/appsettings.json` (or a local override) with the values below.
