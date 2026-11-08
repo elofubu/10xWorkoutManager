@@ -18,7 +18,7 @@ public class SessionsController : ControllerBase
     private readonly IUserContextService _userContext;
     private readonly ILogger<SessionsController> _logger;
 
-    public SessionsController(ISessionService sessionService, 
+    public SessionsController(ISessionService sessionService,
         IUserContextService userContext,
         ILogger<SessionsController> logger)
     {
@@ -163,7 +163,7 @@ public class SessionsController : ControllerBase
             _logger.LogError($"Updating session returns bussines rule valuation exception. {command}");
             return Conflict(new { error = ex.Message });
         }
-        catch(BusinessLogic.Exceptions.UnauthorizedAccessException ex)
+        catch (BusinessLogic.Exceptions.UnauthorizedAccessException ex)
         {
             _logger.LogError($"Updating session returns unaauthorized exception. {command}");
             return Unauthorized(ex.Message);

@@ -7,12 +7,12 @@ namespace WorkoutManager.Web.Helpers
     {
         public GLobalErrorBoundary()
         {
-            
+
         }
 
         protected override async Task OnErrorAsync(Exception exception)
         {
-             await base.OnErrorAsync(exception);
+            await base.OnErrorAsync(exception);
         }
     }
 }
