@@ -73,6 +73,11 @@
                             }
                         </div>
                     </MudCardContent>
+                    <MudCardActions Class="justify-end pt-0">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" aria-label="Delete workout"
+                                       OnClick="@(async () => await DeleteSession(session.Id))"
+                                       Disabled="@(_deletingSessionId == session.Id)" />
+                    </MudCardActions>
                     @* <MudCardActions>
                         <MudButton OnClick="() => NavigateToSession(session.Id)" Variant="Variant.Text" Color="Color.Primary" Disabled="@_isPaginationLoading">View details</MudButton>
                     </MudCardActions> *@
