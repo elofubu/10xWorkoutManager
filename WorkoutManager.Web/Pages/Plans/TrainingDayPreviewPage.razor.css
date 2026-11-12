@@ -1,0 +1,112 @@
+.day-preview-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.day-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 12px;
+    border-bottom: 1px solid var(--color-secondary-background);
+    margin-bottom: 16px;
+}
+
+    .day-preview-header .day-preview-title {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .day-preview-header ::deep .plan-name {
+        display: block;
+        color: var(--color-tertiary-text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .day-preview-header ::deep .day-name {
+        color: var(--color-primary-text);
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .day-preview-header ::deep .mud-icon-button {
+        color: var(--color-secondary-text);
+    }
+
+.day-preview-wrapper ::deep .section-label {
+    color: var(--color-tertiary-text);
+    margin-bottom: 8px;
+}
+
+.exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.exercise-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 12px;
+    background-color: var(--color-tertiary-background);
+    border: solid 1px var(--color-secondary-background);
+    border-radius: 12px;
+}
+
+    .exercise-item .exercise-number {
+        flex-shrink: 0;
+        min-width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: var(--color-secondary-background);
+        color: var(--color-secondary-text);
+        font-weight: 600;
+    }
+
+    .exercise-item .exercise-name {
+        flex: 1;
+        min-width: 0;
+        color: var(--color-primary-text);
+        font-size: 1rem;
+    }
+
+.no-data {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-tertiary-text);
+}
+
+/* Stays reachable just above the bottom navigation while scrolling a long list. */
+.day-preview-actions {
+    position: sticky;
+    bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 8px);
+    z-index: 5;
+    margin-top: 16px;
+    padding: 12px 0 4px;
+    background: linear-gradient(to top, var(--color-primary-background) 70%, transparent);
+}
+
+    .day-preview-actions ::deep .mud-button-root {
+        background-color: var(--color-secondary-text);
+        color: var(--color-primary-background);
+        font-weight: 600;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+        .day-preview-actions ::deep .mud-button-root:disabled {
+            background-color: var(--color-secondary-background);
+            color: var(--color-tertiary-text);
+        }
