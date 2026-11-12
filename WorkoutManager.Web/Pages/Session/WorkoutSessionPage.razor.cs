@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using WorkoutManager.BusinessLogic.DTOs;
 using MudBlazor;
 using WorkoutManager.Web.Services;
+using WorkoutManager.Web.Components;
 using WorkoutManager.Web.Helpers;
 
 namespace WorkoutManager.Web.Pages.Session
@@ -22,6 +23,12 @@ namespace WorkoutManager.Web.Pages.Session
 
         [Inject]
         private IWorkoutSessionStateService StateService { get; set; } = default!;
+
+        [Inject]
+        private IDialogService DialogService { get; set; } = default!;
+
+        [Inject]
+        private ISnackbar Snackbar { get; set; } = default!;
 
         private SessionDetailsDto? _session;
         private SessionExerciseDetailsDto? _currentExercise;
@@ -173,10 +180,27 @@ namespace WorkoutManager.Web.Pages.Session
 
         private async Task CancelWorkout()
         {
+            var parameters = new DialogParameters
+            {
+                { nameof(ConfirmationDialog.Title), "Discard Workout" },
+                { nameof(ConfirmationDialog.ContentText), "Discard this workout? Everything you logged in it will be deleted and it won't appear in your history." },
+                { nameof(ConfirmationDialog.ConfirmButtonText), "Discard" }
+            };
+
+            var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Discard Workout", parameters);
+            var result = await dialog.Result;
+
+            if (result is null || result.Canceled)
+            {
+                return;
+            }
+
             _isLoading = true;
             try
             {
-                await SessionService.FinishSessionAsync(_session.Id, _session.Notes);
+                // Delete the session (its exercises and sets are removed with it) instead of
+                // finishing it, so a cancelled workout never shows up in the history.
+                await SessionService.DeleteSessionAsync(_session!.Id);
 
                 // Clear localStorage when cancelling workout
                 await StateService.ClearStateAsync();
@@ -185,6 +209,7 @@ namespace WorkoutManager.Web.Pages.Session
             }
             catch
             {
+                Snackbar.Add("Failed to discard the workout", Severity.Error);
                 _isLoading = false;
             }
         }

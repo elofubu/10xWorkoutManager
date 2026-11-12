@@ -127,9 +127,7 @@ jobs:
           EntraExternalId.Audience: ${{ secrets.ENTRA_API_CLIENT_ID }}
           ConnectionStrings.WorkoutManagerDb: ${{ secrets.CONNECTIONSTRINGS_WORKOUTMANAGERDB_PROD }}
 
-      # TODO: app-name is a placeholder — set to whatever you name the App Service you create
-      # for the Api (see Phase 5 notes). Needs its own resource; the Web app no longer runs
-      # on App Service at all now that it's moved to Static Web Apps above.
+      # App Service for WorkoutManager.Api (the Web app is on Static Web Apps).
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2

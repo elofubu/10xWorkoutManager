@@ -33,7 +33,7 @@ no enterprise/work tenant needed.
 
 Placeholders are in `WorkoutManager.Api/appsettings.json` and `WorkoutManager.Web/wwwroot/appsettings.json`.
 
-- [ ] `.github/workflows/master.yml` → `deploy_api` job: replace `app-name: "workout-manager-api"` with the real name.
+- [ ] `.github/workflows/master.yml` → `deploy_api` job: set (done: `workout-manager-api`; the service principal behind `AZURE_CREDENTIALS` needs Contributor on this App Service).
 - [ ] Local dev, Api: `dotnet user-secrets set "ConnectionStrings:WorkoutManagerDb" "<azure sql connection string>"`
       plus `EntraExternalId:Authority` and `EntraExternalId:Audience` (in `WorkoutManager.Api`).
 - [ ] Local dev, Web: edit `wwwroot/appsettings.json` (or a local override) with the values below.
@@ -41,7 +41,7 @@ Placeholders are in `WorkoutManager.Api/appsettings.json` and `WorkoutManager.We
 ## 4. GitHub secrets
 
 Authority formats differ: Api uses the tenant **ID** (`https://<sub>.ciamlogin.com/<tenant-id>/v2.0`),
-Web uses the tenant **domain** (`https://<sub>.ciamlogin.com/<sub>.onmicrosoft.com/v2.0`).
+Web uses the tenant **domain** with no `/v2.0` (`https://<sub>.ciamlogin.com/<sub>.onmicrosoft.com`; MSAL adds `/v2.0` itself).
 
 - [ ] `ENTRA_AUTHORITY` — Api issuer (tenant ID form)
 - [ ] `ENTRA_API_CLIENT_ID` — Api app registration client ID (token audience)

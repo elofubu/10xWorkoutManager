@@ -18,16 +18,25 @@
         </MudContainer>
         <MudContainer Class="pa-0">
             @{
-                var x = 1;
+                var orderedExercises = _trainingDay.Exercises.OrderBy(e => e.Order).ToList();
             }
-            @foreach (var exercise in _trainingDay.Exercises)
+            @for (var i = 0; i < orderedExercises.Count; i++)
             {
+                var index = i;
+                var exercise = orderedExercises[index];
                 <div class="training-day-item">
-                    <div>@x</div>
+                    <div>@(index + 1)</div>
                     <div class="exercise-name">@exercise.Name</div>
-                    <MudIcon Icon="material-symbols-outlined/delete" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowUpward" aria-label="Move up" Size="Size.Small"
+                                   OnClick="@(async () => await MoveExercise(orderedExercises, index, -1))"
+                                   Disabled="@(_isBusy || index == 0)" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.ArrowDownward" aria-label="Move down" Size="Size.Small"
+                                   OnClick="@(async () => await MoveExercise(orderedExercises, index, 1))"
+                                   Disabled="@(_isBusy || index == orderedExercises.Count - 1)" />
+                    <MudIconButton Icon="material-symbols-outlined/delete" aria-label="Remove exercise" Size="Size.Small"
+                                   OnClick="@(async () => await RemoveExercise(exercise.PlanDayExerciseId))"
+                                   Disabled="@(_isBusy || _deletingExerciseId == exercise.PlanDayExerciseId)" />
                 </div>
-                x++;
             }
 
             @if (_trainingDay.Exercises == null || !_trainingDay.Exercises.Any())
@@ -64,6 +73,75 @@
     private TrainingDayDto _trainingDay = default!;
 
     private bool _isLoading = true;
+    private long? _deletingExerciseId;
+    private bool _isBusy;
+
+    private async Task MoveExercise(List<PlanDayExerciseDto> ordered, int index, int direction)
+    {
+        var target = index + direction;
+        if (_isBusy || target < 0 || target >= ordered.Count)
+        {
+            return;
+        }
+
+        // Swap the two neighbours, then renumber the whole list 1..n so orders stay unique
+        // (removing exercises leaves gaps, and older data may contain duplicates).
+        var reordered = ordered.ToList();
+        (reordered[index], reordered[target]) = (reordered[target], reordered[index]);
+
+        var commands = reordered
+            .Select((e, i) => new ReorderExerciseCommand(e.PlanDayExerciseId, i + 1))
+            .ToList();
+
+        _isBusy = true;
+        try
+        {
+            await WorkoutPlanService.ReorderExercisesAsync(PlanId, DayId, commands);
+            await LoadPlan();
+        }
+        catch
+        {
+            Snackbar.Add("Failed to change the exercise order", Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task RemoveExercise(long planDayExerciseId)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmationDialog.Title), "Remove Exercise" },
+            { nameof(ConfirmationDialog.ContentText), "Are you sure you want to remove this exercise?" },
+            { nameof(ConfirmationDialog.ConfirmButtonText), "Remove" }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Remove Exercise", parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        _deletingExerciseId = planDayExerciseId;
+        try
+        {
+            await WorkoutPlanService.RemoveExerciseFromTrainingDayAsync(PlanId, DayId, planDayExerciseId);
+            await LoadPlan();
+            Snackbar.Add("Exercise removed successfully", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Failed to remove exercise", Severity.Error);
+        }
+        finally
+        {
+            _deletingExerciseId = null;
+        }
+    }
 
 
     protected override async Task OnInitializedAsync()

@@ -65,15 +65,10 @@ namespace WorkoutManager.Web.Services
             response.EnsureSuccessStatusCode();
         }
 
-        public Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises)
+        public async Task ReorderExercisesAsync(long planId, long dayId, List<ReorderExerciseCommand> exercises)
         {
-            // WorkoutManager.Api has no route for this yet (PlanDayExercisesController only
-            // exposes Add/Remove). Was reachable in-process before this migration via
-            // IPlanExerciseService.ReorderExercisesAsync directly; needs a matching Api
-            // endpoint (e.g. PUT api/workout-plans/{planId}/training-days/{dayId}/exercises/reorder)
-            // before this works again.
-            throw new NotImplementedException(
-                "Reordering exercises within a training day requires a new WorkoutManager.Api endpoint — not yet added.");
+            var response = await _httpClient.PutAsJsonAsync($"api/workout-plans/{planId}/training-days/{dayId}/exercises/reorder", exercises);
+            response.EnsureSuccessStatusCode();
         }
 
         public Task ReorderTrainingDaysAsync(long planId, List<UpdateTrainingDayOrderCommand> days)

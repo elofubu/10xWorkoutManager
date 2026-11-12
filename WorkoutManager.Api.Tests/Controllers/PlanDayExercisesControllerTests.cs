@@ -339,4 +339,92 @@ public class PlanDayExercisesControllerTests : BaseIntegrationTest
     }
 
     #endregion
+
+    #region PUT /api/workout-plans/{planId}/training-days/{dayId}/exercises/reorder Tests
+
+    [Fact]
+    public async Task ReorderExercises_Should_Change_The_Order_Of_Exercises()
+    {
+        // Arrange
+        Authenticate();
+
+        var (plan, trainingDayId) = await CreateTestPlanWithTrainingDayAsync();
+        var addedIds = new List<long>();
+        for (var order = 1; order <= 3; order++)
+        {
+            var exerciseId = await CreateTestExerciseAsync();
+            var addResponse = await HttpClient.PostAsJsonAsync(
+                $"/api/workout-plans/{plan.Id}/training-days/{trainingDayId}/exercises",
+                new AddExerciseToTrainingDayCommand { ExerciseId = exerciseId, Order = order });
+            addResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+            var added = await addResponse.Content.ReadFromJsonAsync<CreatedPlanDayExerciseDto>();
+            addedIds.Add(added!.Id);
+        }
+
+        // Act - move the last exercise to the top
+        var reorder = new List<ReorderExerciseCommand>
+        {
+            new(addedIds[2], 1),
+            new(addedIds[0], 2),
+            new(addedIds[1], 3)
+        };
+        var response = await HttpClient.PutAsJsonAsync(
+            $"/api/workout-plans/{plan.Id}/training-days/{trainingDayId}/exercises/reorder", reorder);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var getResponse = await HttpClient.GetAsync($"/api/workoutplans/{plan.Id}");
+        var details = await getResponse.Content.ReadFromJsonAsync<WorkoutPlanDetailDto>();
+        var day = details!.TrainingDays.Single(d => d.Id == trainingDayId);
+        day.Exercises.Select(e => e.PlanDayExerciseId)
+            .Should().Equal(addedIds[2], addedIds[0], addedIds[1]);
+    }
+
+    [Fact]
+    public async Task ReorderExercises_Should_Return_NotFound_When_Plan_Does_Not_Exist()
+    {
+        // Arrange
+        Authenticate();
+
+        // Act
+        var response = await HttpClient.PutAsJsonAsync(
+            "/api/workout-plans/99999/training-days/1/exercises/reorder",
+            new List<ReorderExerciseCommand> { new(1, 1) });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task ReorderExercises_Should_Return_BadRequest_For_Empty_Or_Duplicate_Ids()
+    {
+        // Arrange
+        Authenticate();
+
+        // Act
+        var empty = await HttpClient.PutAsJsonAsync(
+            "/api/workout-plans/1/training-days/1/exercises/reorder", new List<ReorderExerciseCommand>());
+        var duplicate = await HttpClient.PutAsJsonAsync(
+            "/api/workout-plans/1/training-days/1/exercises/reorder",
+            new List<ReorderExerciseCommand> { new(5, 1), new(5, 2) });
+
+        // Assert
+        empty.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        duplicate.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReorderExercises_Should_Return_Unauthorized_When_No_Token_Is_Provided()
+    {
+        // Act
+        var response = await HttpClient.PutAsJsonAsync(
+            "/api/workout-plans/1/training-days/1/exercises/reorder",
+            new List<ReorderExerciseCommand> { new(1, 1) });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    #endregion
 }

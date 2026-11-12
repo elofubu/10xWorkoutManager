@@ -53,6 +53,42 @@ public class PlanDayExercisesController : ControllerBase
         }
     }
 
+    [HttpPut("reorder")]
+    public async Task<IActionResult> ReorderExercises(
+        long planId,
+        long dayId,
+        [FromBody] List<ReorderExerciseCommand> exercises)
+    {
+        if (exercises == null || exercises.Count == 0)
+        {
+            return BadRequest(new { error = "At least one exercise is required." });
+        }
+
+        if (exercises.Any(e => e.Order < 0) || exercises.Select(e => e.Id).Distinct().Count() != exercises.Count)
+        {
+            return BadRequest(new { error = "Exercise ids must be unique and orders must not be negative." });
+        }
+
+        try
+        {
+            var userId = _userContext.GetCurrentUserId();
+            await _planExerciseService.ReorderExercisesAsync(planId, dayId, exercises, userId);
+            return NoContent();
+        }
+        catch (NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (BusinessRuleViolationException ex)
+        {
+            return StatusCode(403, new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
     [HttpDelete("{planDayExerciseId:long}")]
     public async Task<IActionResult> RemoveExerciseFromTrainingDay(long planId, long dayId, long planDayExerciseId)
     {
