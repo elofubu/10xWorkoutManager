@@ -92,6 +92,14 @@ namespace WorkoutManager.Web.Pages.Session
 
         private string GetExerciseName(long exerciseId) => _exerciseNames.GetValueOrDefault(exerciseId, $"Exercise {exerciseId}");
 
+        // Numeric keyboards on phones: decimal pad for weight, plain number pad for reps.
+        private readonly InputMode _weightInputMode = InputMode.@decimal;
+        private readonly InputMode _repsInputMode = InputMode.numeric;
+
+        private void AdjustWeight(decimal delta) => _weight = Math.Max(0, (_weight ?? 0) + delta);
+
+        private void AdjustReps(int delta) => _reps = Math.Max(0, (_reps ?? 0) + delta);
+
         private async Task AddSet()
         {
             if (!_reps.HasValue) return;

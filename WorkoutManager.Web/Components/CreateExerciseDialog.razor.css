@@ -1,6 +1,7 @@
 ﻿.create-exercise-wrapper {
     background-color: var(--color-primary-background);
     height: 99vh;
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;

@@ -30,7 +30,7 @@
         <div class="d-flex flex-wrap gap-4 justify-center">
             @foreach (var session in _sessions)
             {
-                <MudCard Class="mb-4" Style="min-width: 350px">
+                <MudCard Class="mb-4" Style="width: 100%; max-width: 480px">
                     <MudCardHeader Class="justify-space-between d-flex history-card-header">
                         <div>
                             <MudText Typo="Typo.body1">@session.PlanName</MudText>

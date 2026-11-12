@@ -11,17 +11,17 @@
     <div class="session-wrapper">
         <div class="session-progress">
             <div class="session-progress-title">
-                <MudText Typo="Typo.caption" Class="mb-4">
+                <MudText Typo="Typo.caption">
                     Exercise @(_index + 1) of @_session.Exercises.Count
                 </MudText>
-                @if (@_session.Exercises.Count > (_index + 1))
-                {
-                    <MudText Class="align-self-center" Style="color: var(--color-tertiary-text)">
-                        Next: @_session.Exercises.ElementAt(_index + 1).ExerciseName
-                    </MudText>
-                }
                 <MudButton Color="Color.Secondary" OnClick="CancelWorkout">Cancel</MudButton>
             </div>
+            @if (@_session.Exercises.Count > (_index + 1))
+            {
+                <MudText Class="session-next" Typo="Typo.body2">
+                    Next: @_session.Exercises.ElementAt(_index + 1).ExerciseName
+                </MudText>
+            }
             <MudProgressLinear Value="@((_index + 1) / (double)_session.Exercises.Count * 100)" Class="mb-4" />
         </div>
         <div class="session-header">
@@ -44,13 +44,27 @@
         </div>
         <div class="session-form">
             <div class="session-form-inputs">
-                <div class="session-form-weights">
+                <div class="session-field session-form-weights">
                     <MudText Typo="Typo.caption">Weight (KG)</MudText>
-                    <MudNumericField Variant="Variant.Outlined" Placeholder="0" @bind-Value="@_weight"></MudNumericField>
+                    <div class="session-stepper">
+                        <MudIconButton Icon="@Icons.Material.Filled.Remove" aria-label="Decrease weight" Variant="Variant.Filled"
+                                       OnClick="@(() => AdjustWeight(-2.5m))" />
+                        <MudNumericField Variant="Variant.Outlined" Placeholder="0" @bind-Value="@_weight"
+                                         HideSpinButtons="true" InputMode="_weightInputMode"></MudNumericField>
+                        <MudIconButton Icon="@Icons.Material.Filled.Add" aria-label="Increase weight" Variant="Variant.Filled"
+                                       OnClick="@(() => AdjustWeight(2.5m))" />
+                    </div>
                 </div>
-                <div class="session-form-reps">
+                <div class="session-field session-form-reps">
                     <MudText Typo="Typo.caption">Reps</MudText>
-                    <MudNumericField Variant="Variant.Outlined" Placeholder="0" @bind-Value="@_reps"></MudNumericField>
+                    <div class="session-stepper">
+                        <MudIconButton Icon="@Icons.Material.Filled.Remove" aria-label="Decrease reps" Variant="Variant.Filled"
+                                       OnClick="@(() => AdjustReps(-1))" />
+                        <MudNumericField Variant="Variant.Outlined" Placeholder="0" @bind-Value="@_reps"
+                                         HideSpinButtons="true" InputMode="_repsInputMode"></MudNumericField>
+                        <MudIconButton Icon="@Icons.Material.Filled.Add" aria-label="Increase reps" Variant="Variant.Filled"
+                                       OnClick="@(() => AdjustReps(1))" />
+                    </div>
                 </div>
             </div>
             <div class="session-footer">
@@ -77,7 +91,7 @@
                             <span>@set.Reps</span>
                             <span class="set-item-subtitle">reps</span>
                         </div>
-                        <MudIcon Icon="@Icons.Material.Outlined.Delete" @onclick="@(() => RemoveSet(set.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.Delete" aria-label="Remove set" OnClick="@(() => RemoveSet(set.Id))" />
                     </div>
 
                     x++;
@@ -104,8 +118,7 @@
 <style>
     .session-wrapper {
         margin: 0 auto;
-        height: 80vh;
-        overflow-x: auto;
+        max-width: 600px;
     }
 
         .session-wrapper > .mud-button-root {
@@ -117,6 +130,15 @@
         .session-wrapper .session-progress .session-progress-title {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-wrapper .session-progress .session-next {
+            color: var(--color-tertiary-text);
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .session-wrapper .session-progress .mud-typography-caption {
@@ -179,9 +201,43 @@
 
             .session-wrapper .session-form .session-form-inputs {
                 display: flex;
-                flex-direction: row;
-                gap: 20px;
+                flex-direction: column;
+                gap: 16px;
+                width: 100%;
+                padding: 0 16px;
+                box-sizing: border-box;
             }
+
+            .session-wrapper .session-form .session-field {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            /* [-] [value] [+] — big thumb-friendly steppers instead of the tiny native spinners */
+            .session-wrapper .session-form .session-stepper {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .session-wrapper .session-form .session-stepper > .mud-input-control {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .session-wrapper .session-form .session-stepper .mud-icon-button {
+                    width: 56px;
+                    height: 56px;
+                    flex-shrink: 0;
+                    border-radius: 12px;
+                    background-color: var(--color-secondary-background);
+                    color: var(--color-secondary-text);
+                }
+
+                .session-wrapper .session-form .session-stepper .mud-input-outlined input {
+                    font-size: 1.4rem;
+                }
 
                 .session-wrapper .session-form .session-form-inputs .mud-input-outlined,
                 .session-wrapper .session-form .session-form-inputs .mud-input-outlined .mud-input-outlined-border {
@@ -213,8 +269,9 @@
                     }
 
             .session-wrapper .session-form .session-footer {
-                width: 80%;
-                margin: 0 auto;
+                width: 100%;
+                padding: 0 16px;
+                box-sizing: border-box;
             }
 
                 .session-wrapper .session-form .session-footer .mud-button-outlined {
@@ -266,9 +323,15 @@
                     cursor: pointer;
                 }
 
+        /* Back / Next / Complete stay reachable just above the bottom navigation while scrolling. */
         .session-wrapper .session-navigation {
             display: flex;
             gap: 10px;
+            position: sticky;
+            bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 8px);
+            z-index: 5;
+            padding: 12px 0 4px;
+            background: linear-gradient(to top, var(--color-primary-background) 70%, transparent);
         }
 
             .session-wrapper .session-navigation .mud-button-root {

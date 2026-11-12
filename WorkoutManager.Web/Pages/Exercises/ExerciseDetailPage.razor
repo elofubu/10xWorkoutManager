@@ -13,7 +13,7 @@
     @if (!_isLoading)
     {
         <MudContainer Class="px-0 py-2 d-flex align-center gap-2 training-day-header">
-            <MudIcon Class="mr-2 cursor-pointer" Icon="@Icons.Material.Outlined.ArrowBack" @onclick="@(() => NavigationManager.NavigateTo($"/plans/{PlanId}"))" />
+            <MudIconButton Class="mr-2" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="Back" OnClick="@(() => NavigationManager.NavigateTo($"/plans/{PlanId}"))" />
             <MudText Class="flex-grow-1" Typo="Typo.h6">@_trainingDay.Name</MudText>
         </MudContainer>
         <MudContainer Class="pa-0">
@@ -46,7 +46,7 @@
                 </div>
             }
         </MudContainer>
-        <MudButton StartIcon="@Icons.Material.Outlined.Add" FullWidth=true OnClick="AddExercise">Add exercise</MudButton>
+        <MudButton Class="add-exercise-button" StartIcon="@Icons.Material.Outlined.Add" FullWidth=true OnClick="AddExercise">Add exercise</MudButton>
     }
 </div>
 
