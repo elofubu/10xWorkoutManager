@@ -4,7 +4,7 @@
 <div class="plan-detail-page-wrapper">
 
     <div class="py-4 d-flex align-center gap-2">
-        <MudIcon Class="mr-2 cursor-pointer" Icon="@Icons.Material.Outlined.ArrowBack" @onclick="@(() => NavigationManager.NavigateTo("/"))" />
+        <MudIconButton Class="mr-2" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="Back" OnClick="@(() => NavigationManager.NavigateTo("/"))" />
         <MudText Class="flex-grow-1" Typo="Typo.h6">Edit Workout Plan</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Delete" Class="foreground-lime" OnClick="DeletePlan" Disabled="@_isDeleting" />
     </div>

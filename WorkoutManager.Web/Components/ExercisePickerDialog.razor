@@ -5,7 +5,7 @@
         <DialogContent>
             <MudContainer Class="exercise-picker-title-wrapper">
                 <MudText Typo="Typo.h6">Select exercise</MudText>
-                <MudIcon Icon="@Icons.Material.Outlined.Close" @onclick="Cancel" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" aria-label="Close" OnClick="Cancel" />
             </MudContainer>
             @if (_isLoading)
             {

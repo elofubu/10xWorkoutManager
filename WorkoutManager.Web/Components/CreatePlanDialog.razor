@@ -3,7 +3,7 @@
 <MudDialog Class="dialog-content-style">
     <DialogContent>
         <div class="py-4 d-flex align-center">
-            <MudIcon Class="mr-2 cursor-pointer" Icon="@Icons.Material.Outlined.ArrowBack" @onclick="Cancel" />
+            <MudIconButton Class="mr-2" Icon="@Icons.Material.Outlined.ArrowBack" aria-label="Back" OnClick="Cancel" />
             <MudText Typo="Typo.h6">Create Workout Plan</MudText>
         </div>
         <MudText Typo="Typo.caption" Style="color: var(--color-tertiary-text)">PLAN NAME</MudText>
@@ -11,7 +11,7 @@
         <div class="d-flex flex-column mt-4">
             <div class="d-flex flex-row justify-space-between">
                 <MudText Typo="Typo.caption" Style="color: var(--color-tertiary-text)">TRAINING DAYS</MudText>
-                <div class="d-flex align-center cursor-pointer" @onclick="AddTrainingDay" Style="color: var(--color-secondary-text)">
+                <div class="d-flex align-center cursor-pointer px-2 py-2" role="button" @onclick="AddTrainingDay" Style="color: var(--color-secondary-text)">
                     <MudIcon Size="Size.Small" Icon="@Icons.Material.Outlined.Add" />
                     <MudText Class="mt-1" Style="font-weight: 600;" Typo="Typo.caption" Disabled="@_isSubmitting">ADD DAY</MudText>
                 </div>
@@ -56,9 +56,12 @@
     }
 
     .dialog-content-style {
-        width: 600px;
+        width: 100%;
+        max-width: 600px;
         height: 100vh;
+        height: 100dvh;
         margin: 0 auto;
+        overflow-y: auto;
         background-color: var(--color-primary-background);
         color: var(--color-primary-text);
     }

@@ -16,8 +16,8 @@
         .plans-content-wrapper .plans-content-header .plans-content-button {
             color: var(--color-secondary-text);
             background-color: var(--color-secondary-background);
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             display: flex;
             justify-content: center;
             align-items: center;

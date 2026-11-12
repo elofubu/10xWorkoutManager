@@ -30,7 +30,7 @@
         background: var(--color-tertiary-background);
         border: solid 1px var(--color-secondary-background);
         border-radius: 8px;
-        padding: 20px;
+        padding: 14px 12px;
     }
 
         .plan-detail-page-wrapper ::deep .training-day-item .subtitle {

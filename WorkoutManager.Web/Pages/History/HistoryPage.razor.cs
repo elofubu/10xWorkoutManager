@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using WorkoutManager.Web.Components;
 using WorkoutManager.BusinessLogic.DTOs;
 using WorkoutManager.Web.Services;
 
@@ -8,6 +10,14 @@ namespace WorkoutManager.Web.Pages.History
     {
         [Inject]
         private ISessionService SessionService { get; set; } = default!;
+
+        [Inject]
+        private IDialogService DialogService { get; set; } = default!;
+
+        [Inject]
+        private ISnackbar Snackbar { get; set; } = default!;
+
+        private long? _deletingSessionId;
 
         private IEnumerable<SessionSummaryDto> _sessions = new List<SessionSummaryDto>();
         private PaginationInfo _pagination = new();
@@ -53,9 +63,36 @@ namespace WorkoutManager.Web.Pages.History
 
         private async Task DeleteSession(long sessionId)
         {
-            await SessionService.DeleteSessionAsync(sessionId);
-            _sessions = _sessions.Where(s => s.Id != sessionId).ToList();
-            StateHasChanged();
+            var parameters = new DialogParameters
+            {
+                { nameof(ConfirmationDialog.Title), "Delete Workout" },
+                { nameof(ConfirmationDialog.ContentText), "Delete this workout from your history? This cannot be undone." },
+                { nameof(ConfirmationDialog.ConfirmButtonText), "Delete" }
+            };
+
+            var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Delete Workout", parameters);
+            var result = await dialog.Result;
+
+            if (result is null || result.Canceled)
+            {
+                return;
+            }
+
+            _deletingSessionId = sessionId;
+            try
+            {
+                await SessionService.DeleteSessionAsync(sessionId);
+                _sessions = _sessions.Where(s => s.Id != sessionId).ToList();
+                Snackbar.Add("Workout deleted", Severity.Success);
+            }
+            catch
+            {
+                Snackbar.Add("Failed to delete the workout", Severity.Error);
+            }
+            finally
+            {
+                _deletingSessionId = null;
+            }
         }
 
         // private void NavigateToSession(long sessionId)

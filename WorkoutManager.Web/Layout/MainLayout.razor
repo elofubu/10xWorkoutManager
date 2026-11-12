@@ -14,12 +14,12 @@
         <MudLayout>
             <MudAppBar>
                 <MudIcon Icon="material-symbols-outlined/exercise" />
-                <span class="page-title">WorkoutManager</span
+                <span class="page-title">WorkoutManager</span>
                 <MudSpacer />
-                <MudText>@context.User.Identity.Name</MudText> 
+                <MudText Class="app-user-name">@context.User.Identity?.Name</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Logout" aria-label="Logout" Color="Color.Inherit" OnClick="Logout" />
             </MudAppBar>
-            <MudMainContent Class="pb-16">
+            <MudMainContent Class="app-main">
                 <MudContainer MaxWidth="MaxWidth.Large" Class="my-4 pt-4">
                     <WorkoutManager.Web.Helpers.GLobalErrorBoundary>
                         @Body
@@ -39,7 +39,23 @@
         background: var(--color-primary-background-element);
         color: var(--color-secondary-text);
     }
+    .mud-appbar .mud-toolbar {
+        padding-left: 12px;
+        padding-right: 4px;
+        gap: 4px;
+    }
+
+    .app-user-name {
+        min-width: 0;
+        max-width: 38vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: .85rem;
+    }
+
     .page-title{
+        white-space: nowrap;
         color: white;
         font-size: 1.2rem;
         font-weight: 600;

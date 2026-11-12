@@ -1,5 +1,6 @@
 ﻿.exercise-picker-dialog-wrapper{
     height: 100vh;
+    height: 100dvh;
     background-color: var(--color-primary-background);
 }
 
@@ -17,6 +18,7 @@
         overflow-y: auto;
         overflow-x: hidden;
         max-height: 50vh;
+        max-height: 50dvh;
     }
 
     .exercise-picker-dialog-wrapper ::deep .mud-list .mud-list-item {

@@ -40,3 +40,51 @@ a {
 .align-self-center{
 
 }
+
+/* ---------- Mobile-first layout ---------- */
+:root {
+    --bottom-nav-height: 72px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Keep page content clear of the fixed bottom navigation and the phone's gesture bar. */
+.app-main {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 16px) !important;
+}
+
+/* Comfortable touch targets on touch devices. */
+@media (pointer: coarse) {
+    .mud-icon-button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .mud-button-root:not(.mud-icon-button) {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 600px) {
+    .mud-typography-h4 {
+        font-size: 1.75rem;
+        line-height: 1.2;
+    }
+
+    .mud-typography-h5 {
+        font-size: 1.35rem;
+    }
+
+    .mud-container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
