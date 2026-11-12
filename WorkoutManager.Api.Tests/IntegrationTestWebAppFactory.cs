@@ -27,6 +27,9 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices((builderContext, services) =>
         {
+            // The tests delete all data: never let the host start against a non-test database.
+            TestDatabaseGuard.EnsureIsTestDatabase(builderContext.Configuration.GetConnectionString("WorkoutManagerDb"));
+
             services.AddSingleton<IUserContextService, TestUserContextService>();
 
             // Override JWT configuration for tests to accept test-generated tokens
