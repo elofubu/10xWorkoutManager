@@ -5,7 +5,10 @@
       "/_framework/*",
       "/_content/*",
       "/css/*",
-      "*.{png,ico,svg,jpg,gif,js,css,json,dll,wasm,blat,dat,webcil,br,gz,map}"
+      "*.{png,ico,svg,jpg,gif,js,css,json,webmanifest,dll,wasm,blat,dat,webcil,br,gz,map}"
     ]
+  },
+  "mimeTypes": {
+    ".webmanifest": "application/manifest+json"
   }
 }

@@ -73,6 +73,8 @@ public class IntegrationTestDatabaseFixture : IAsyncLifetime
             return;
         }
 
+        TestDatabaseGuard.EnsureIsTestDatabase(_connectionString);
+
         _connection = new SqlConnection(_connectionString);
         await _connection.OpenAsync();
 
