@@ -59,7 +59,7 @@ public class ExerciseRepository : IExerciseRepository
             .Select(s => new
             {
                 s.StartTime,
-                s.Notes,
+                ExerciseNotes = s.SessionExercises.Where(se => se.ExerciseId == exerciseId).Select(se => se.Notes).FirstOrDefault(),
                 Sets = s.SessionExercises
                     .Where(se => se.ExerciseId == exerciseId)
                     .SelectMany(se => se.Sets)
@@ -79,7 +79,7 @@ public class ExerciseRepository : IExerciseRepository
         return new PreviousExercisePerformanceDto
         {
             SessionDate = session.StartTime,
-            Notes = session.Notes,
+            Notes = session.ExerciseNotes,
             Sets = session.Sets
         };
     }

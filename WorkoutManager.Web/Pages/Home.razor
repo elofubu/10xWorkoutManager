@@ -141,8 +141,25 @@ else
 
         .training-card .mud-card-content .training-day-button {
             background-color: var(--color-secondary-text);
+            color: var(--color-tertiary-background);
             width: 52px;
             height: 52px;
             border-radius: 12px;
+        }
+
+        /* Day letter as a slate tile matching the start button, instead of MudBlazor's grey circle. */
+        .training-card .mud-card-content .training-day-avatar {
+            background-color: var(--color-secondary-background);
+            color: var(--color-secondary-text);
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .training-card .mud-card-header .mud-icon-button {
+            color: var(--color-fourth-text);
         }
 </style>

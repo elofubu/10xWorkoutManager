@@ -1,0 +1,172 @@
+@using WorkoutManager.BusinessLogic.DTOs
+
+@* One exercise of a running workout: name, last time's sets and note, weight/reps steppers, "Add set",
+   the logged sets and today's note. The session page shows one of these for the current exercise and a
+   second one for an exercise pinned next to it (superset / combined sets). *@
+<section class="log-panel @(Pinned ? "log-panel-pinned" : "")">
+    <div class="log-panel-head">
+        @if (Pinned)
+        {
+            <span class="pinned-label">Superset</span>
+        }
+        <div class="log-panel-title">
+            <MudText Typo="Typo.h5">@Exercise.ExerciseName</MudText>
+            @HeaderActions
+        </div>
+        @if (Previous is not null)
+        {
+            <div class="log-prev">
+                <span class="log-prev-date">
+                    <MudIcon Icon="@Icons.Material.Outlined.History" Size="Size.Small" />
+                    @Previous.SessionDate.ToString("dd.MM")
+                </span>
+                @* Tapping last time's set copies it into the inputs. *@
+                @foreach (var set in Previous.Sets)
+                {
+                    <button type="button" class="log-prev-set" aria-label="@($"Use {Kg(set.Weight)} kg for {set.Reps} reps")"
+                            @onclick="@(() => UsePreviousAsync(set))">
+                        @FormatSet(set.Weight, set.Reps)
+                    </button>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Previous.Notes))
+            {
+                <p class="log-prev-note">
+                    <MudIcon Icon="@Icons.Material.Outlined.StickyNote2" Size="Size.Small" />
+                    <span>@Previous.Notes</span>
+                </p>
+            }
+        }
+    </div>
+
+    <div class="log-card">
+        <div class="log-field">
+            <label class="log-field-label" for="@_weightId">Weight <span>kg</span></label>
+            <div class="session-stepper">
+                <MudIconButton Icon="@Icons.Material.Filled.Remove" aria-label="Decrease weight"
+                               OnClick="@(() => AdjustWeightAsync(-2.5m))" />
+                <MudNumericField Variant="Variant.Outlined" Placeholder="0" Value="Weight" ValueChanged="WeightChanged"
+                                 HideSpinButtons="true" InputMode="_weightInputMode" UserAttributes="@(new() { ["id"] = _weightId })" />
+                <MudIconButton Icon="@Icons.Material.Filled.Add" aria-label="Increase weight"
+                               OnClick="@(() => AdjustWeightAsync(2.5m))" />
+            </div>
+        </div>
+        <div class="log-field">
+            <label class="log-field-label" for="@_repsId">Reps</label>
+            <div class="session-stepper">
+                <MudIconButton Icon="@Icons.Material.Filled.Remove" aria-label="Decrease reps"
+                               OnClick="@(() => AdjustRepsAsync(-1))" />
+                <MudNumericField Variant="Variant.Outlined" Placeholder="0" Value="Reps" ValueChanged="RepsChanged"
+                                 HideSpinButtons="true" InputMode="_repsInputMode" UserAttributes="@(new() { ["id"] = _repsId })" />
+                <MudIconButton Icon="@Icons.Material.Filled.Add" aria-label="Increase reps"
+                               OnClick="@(() => AdjustRepsAsync(1))" />
+            </div>
+        </div>
+
+        <MudButton Class="log-add" FullWidth Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add" Disabled="@(Reps is not > 0)" OnClick="OnAddSet">Add set</MudButton>
+
+        @if (Exercise.Sets.Count > 0)
+        {
+            <ol class="log-sets">
+                @for (var i = 0; i < Exercise.Sets.Count; i++)
+                {
+                    var set = Exercise.Sets[i];
+                    <li class="set-item">
+                        <span class="set-item-number">@(i + 1)</span>
+                        <span class="set-item-main">
+                            <strong>@Kg(set.Weight)</strong><small>kg</small>
+                            <span class="set-item-times">×</span>
+                            <strong>@set.Reps</strong><small>reps</small>
+                        </span>
+                        <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" aria-label="Remove set"
+                                       OnClick="@(() => OnRemoveSet.InvokeAsync(set))" />
+                    </li>
+                }
+            </ol>
+        }
+
+        @if (_noteOpen || !string.IsNullOrEmpty(Exercise.Notes))
+        {
+            <MudTextField T="string" Class="log-note" Variant="Variant.Outlined" Label="Note" Lines="2" AutoGrow
+                          MaxLength="1000" Immediate="true" Value="Exercise.Notes" ValueChanged="OnNotesChanged"
+                          Placeholder="How did it feel? Seat height, grip…" />
+        }
+        else
+        {
+            <MudButton Class="log-note-toggle" Variant="Variant.Text" Size="Size.Small"
+                       StartIcon="@Icons.Material.Outlined.EditNote" OnClick="@(() => _noteOpen = true)">Add note</MudButton>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public SessionExerciseDetailsDto Exercise { get; set; } = default!;
+
+    [Parameter]
+    public PreviousExercisePerformanceDto? Previous { get; set; }
+
+    /// <summary>Marks this panel as the exercise pinned next to the current one.</summary>
+    [Parameter]
+    public bool Pinned { get; set; }
+
+    [Parameter]
+    public decimal? Weight { get; set; }
+
+    [Parameter]
+    public EventCallback<decimal?> WeightChanged { get; set; }
+
+    [Parameter]
+    public int? Reps { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> RepsChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnAddSet { get; set; }
+
+    [Parameter]
+    public EventCallback<ExerciseSetDto> OnRemoveSet { get; set; }
+
+    /// <summary>Today's note for this exercise was edited; the page stores it on the exercise.</summary>
+    [Parameter]
+    public EventCallback<string?> OnNotesChanged { get; set; }
+
+    /// <summary>Optional buttons shown next to the exercise name (for example "Unpin").</summary>
+    [Parameter]
+    public RenderFragment? HeaderActions { get; set; }
+
+    // Numeric keyboards on phones: decimal pad for weight, plain number pad for reps.
+    private readonly InputMode _weightInputMode = InputMode.@decimal;
+    private readonly InputMode _repsInputMode = InputMode.numeric;
+
+    private readonly string _weightId = $"weight-{Guid.NewGuid():N}";
+    private readonly string _repsId = $"reps-{Guid.NewGuid():N}";
+    private bool _noteOpen;
+    private long _noteForExerciseId;
+
+    protected override void OnParametersSet()
+    {
+        // A new exercise starts with its note collapsed (unless it already has one).
+        if (_noteForExerciseId != Exercise.Id)
+        {
+            _noteForExerciseId = Exercise.Id;
+            _noteOpen = false;
+        }
+    }
+
+    private static string Kg(decimal weight) => weight.ToString("0.##");
+
+    private static string FormatSet(decimal weight, int reps) => weight == 0 ? $"{reps} reps" : $"{Kg(weight)}×{reps}";
+
+    private Task AdjustWeightAsync(decimal delta) => WeightChanged.InvokeAsync(Math.Max(0, (Weight ?? 0) + delta));
+
+    private Task AdjustRepsAsync(int delta) => RepsChanged.InvokeAsync(Math.Max(0, (Reps ?? 0) + delta));
+
+    private async Task UsePreviousAsync(PreviousExerciseSetDto set)
+    {
+        await WeightChanged.InvokeAsync(set.Weight);
+        await RepsChanged.InvokeAsync(set.Reps);
+    }
+}

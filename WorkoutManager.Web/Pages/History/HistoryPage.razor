@@ -56,15 +56,26 @@
                             {
                                 <div class="history-exercise">
                                     <div class="history-exercise-left">
-                                        <MudText Typo="Typo.body2">@exercise.ExerciseName</MudText>
+                                        <div class="history-exercise-name">
+                                            <MudText Typo="Typo.body2">@exercise.ExerciseName</MudText>
+                                            @if (!string.IsNullOrWhiteSpace(exercise.Notes))
+                                            {
+                                                @* The note opens in a popup so the card keeps its height. *@
+                                                <MudMenu Icon="@Icons.Material.Outlined.StickyNote2" Size="Size.Small" Dense="true"
+                                                         Class="history-note-button" PopoverClass="history-note-popover"
+                                                         AriaLabel="@($"Show note for {exercise.ExerciseName}")"
+                                                         AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+                                                    <p class="history-note-text">@exercise.Notes</p>
+                                                </MudMenu>
+                                            }
+                                        </div>
                                         <div class="history-exercise-left-sets">
                                             @foreach (var set in exercise.Sets)
                                             {
                                                 <MudText Typo="Typo.caption">
-                                                    @($"{HandleDecimalInWeight(set.Weight)}x{@set.Reps}")</MudText>
+                                                    @(set.Weight == 0 ? $"{set.Reps} reps" : $"{HandleDecimalInWeight(set.Weight)}×{set.Reps}")</MudText>
                                             }
                                         </div>
-
                                     </div>
                                     <div class="history-exercise-right">
                                         <MudText Typo="Typo.caption">@($"{exercise.Sets.Count} sets")</MudText>
@@ -151,4 +162,43 @@
                 display: inline-block;
                 line-height: .9rem;
             }
+
+            .history-wrapper .history-exercises-wrapper .history-exercise .history-exercise-left {
+                min-width: 0;
+            }
+
+            .history-wrapper .history-exercises-wrapper .history-exercise .history-exercise-right {
+                flex-shrink: 0;
+                padding-left: 8px;
+            }
+
+            .history-wrapper .history-exercises-wrapper .history-exercise .history-exercise-name {
+                display: flex;
+                align-items: center;
+                gap: 2px;
+                min-height: 32px;
+            }
+
+            .history-wrapper .history-exercise-name .history-note-button .mud-icon-button {
+                color: var(--color-secondary-text);
+                padding: 4px;
+            }
+
+    /* Rendered in the popover layer, outside .history-wrapper. */
+    .history-note-popover {
+        max-width: min(320px, calc(100vw - 32px));
+        background-color: var(--color-secondary-background) !important;
+        border: 1px solid var(--color-primary-border);
+        border-radius: 12px !important;
+    }
+
+        .history-note-popover .history-note-text {
+            margin: 0;
+            padding: 10px 14px;
+            color: var(--color-primary-text);
+            font-size: .875rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
 </style>

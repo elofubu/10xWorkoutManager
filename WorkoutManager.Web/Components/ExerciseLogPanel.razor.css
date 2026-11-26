@@ -1,0 +1,281 @@
+.log-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ---------- head: name, last time ---------- */
+.log-panel-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.log-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+    .log-panel-title ::deep .mud-typography-h5 {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1.9rem;
+        line-height: 1.05;
+        color: var(--color-primary-text);
+    }
+
+    .log-panel-title ::deep .mud-icon-button {
+        flex-shrink: 0;
+        color: var(--color-fourth-text);
+    }
+
+/* Last time's sets in one swipeable row instead of wrapping boxes. */
+.log-prev {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Bleed to the screen edge on phones (matches the 12px .mud-container gutter in app.css). */
+    margin: 0 -12px;
+    padding: 2px 12px;
+}
+
+    .log-prev::-webkit-scrollbar {
+        display: none;
+    }
+
+.log-prev-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    color: var(--color-tertiary-text);
+    font-size: .8rem;
+    margin-right: 2px;
+}
+
+.log-prev-set {
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1;
+    color: var(--color-secondary-text);
+    background: transparent;
+    border: 1px solid rgb(132 204 22 / .45);
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+}
+
+    .log-prev-set:active {
+        background: rgb(132 204 22 / .15);
+    }
+
+    .log-prev-set:focus-visible {
+        outline: 2px solid var(--color-secondary-text);
+        outline-offset: 2px;
+    }
+
+.log-prev-note {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    margin: 0;
+    color: var(--color-fourth-text);
+    font-size: .875rem;
+    line-height: 1.35;
+}
+
+    .log-prev-note ::deep .mud-icon-root {
+        flex-shrink: 0;
+        margin-top: 1px;
+        color: var(--color-tertiary-text);
+    }
+
+/* ---------- card: inputs, add, sets, note ---------- */
+.log-card {
+    background: var(--color-tertiary-background);
+    border: 1px solid var(--color-secondary-background);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.log-field {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.log-field-label {
+    color: var(--color-fourth-text);
+    font-size: .875rem;
+    font-weight: 500;
+}
+
+    .log-field-label span {
+        display: block;
+        color: var(--color-tertiary-text);
+        font-size: .75rem;
+        font-weight: 400;
+    }
+
+/* [-] [value] [+]: big thumb-friendly steppers instead of the tiny native spinners. */
+.session-stepper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .session-stepper ::deep .mud-input-control {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .session-stepper ::deep .mud-icon-button {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        background-color: var(--color-secondary-background);
+        color: var(--color-secondary-text);
+    }
+
+        .session-stepper ::deep .mud-icon-button:active {
+            background-color: var(--color-secondary-background-hover);
+        }
+
+    .session-stepper ::deep .mud-input-outlined {
+        background-color: var(--color-primary-background);
+        border-radius: 12px;
+    }
+
+        .session-stepper ::deep .mud-input-outlined .mud-input-outlined-border {
+            border: 1px solid var(--color-secondary-background);
+            border-radius: 12px;
+        }
+
+        .session-stepper ::deep .mud-input-outlined:focus-within .mud-input-outlined-border {
+            border-color: var(--color-secondary-text);
+        }
+
+    .session-stepper ::deep input {
+        height: 52px;
+        padding: 0 4px;
+        box-sizing: border-box;
+        text-align: center;
+        font-family: var(--font-display);
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: var(--color-primary-text);
+    }
+
+::deep .log-add {
+    min-height: 52px;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: none;
+    font-size: 1rem;
+}
+
+/* Logged sets */
+.log-sets {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.set-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0 4px 2px;
+    border-top: 1px solid var(--color-secondary-background);
+}
+
+.set-item-number {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background-color: var(--color-secondary-background);
+    color: var(--color-secondary-text);
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.set-item-main {
+    flex-grow: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+}
+
+    .set-item-main strong {
+        font-family: var(--font-display);
+        font-size: 1.45rem;
+        font-weight: 600;
+        color: var(--color-primary-text);
+    }
+
+    .set-item-main small {
+        color: var(--color-tertiary-text);
+        font-size: .75rem;
+    }
+
+.set-item-times {
+    color: var(--color-tertiary-text);
+    margin: 0 6px;
+}
+
+.set-item ::deep .mud-icon-button {
+    color: var(--color-tertiary-text);
+}
+
+/* Note */
+::deep .log-note-toggle {
+    align-self: flex-start;
+    color: var(--color-fourth-text);
+    text-transform: none;
+    margin: -4px 0 -6px -6px;
+}
+
+::deep .log-note {
+    margin: 0;
+}
+
+    ::deep .log-note .mud-input-outlined-border {
+        border-radius: 12px;
+    }
+
+/* The pinned exercise is visually tied to the current one: lime rail on the left. */
+.log-panel-pinned {
+    margin-top: 8px;
+    padding-left: 12px;
+    border-left: 3px solid var(--color-secondary-text);
+}
+
+    .log-panel-pinned .log-panel-title ::deep .mud-typography-h5 {
+        font-size: 1.5rem;
+    }
+
+.pinned-label {
+    color: var(--color-secondary-text);
+    font-size: .8rem;
+    font-weight: 600;
+}
