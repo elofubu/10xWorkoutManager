@@ -1,7 +1,26 @@
-﻿<div class="nav-wrapper">
-    <MudNavMenu>
-        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="material-symbols-outlined/exercise">Home</MudNavLink>
-        <MudNavLink Href="history" Icon="material-symbols-outlined/history">History</MudNavLink>
-        <MudNavLink Href="settings" Icon="material-symbols-outlined/settings">Settings</MudNavLink>
-    </MudNavMenu>
-</div>
+﻿@implements IDisposable
+@inject NavigationManager NavigationManager
+
+@* Hidden during a workout: the session page docks its own Back / Next bar in this spot. *@
+@if (!IsWorkoutPage)
+{
+    <div class="nav-wrapper">
+        <MudNavMenu>
+            <MudNavLink Href="" Match="NavLinkMatch.All" Icon="material-symbols-outlined/exercise">Home</MudNavLink>
+            <MudNavLink Href="history" Icon="material-symbols-outlined/history">History</MudNavLink>
+            <MudNavLink Href="settings" Icon="material-symbols-outlined/settings">Settings</MudNavLink>
+        </MudNavMenu>
+    </div>
+}
+
+@code {
+    private bool IsWorkoutPage => NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
+        .StartsWith("session/workout", StringComparison.OrdinalIgnoreCase);
+
+    protected override void OnInitialized() => NavigationManager.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) =>
+        InvokeAsync(StateHasChanged);
+
+    public void Dispose() => NavigationManager.LocationChanged -= OnLocationChanged;
+}

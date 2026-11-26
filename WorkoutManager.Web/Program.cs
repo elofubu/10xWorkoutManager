@@ -47,6 +47,7 @@ builder.Services.AddScoped<WorkoutManager.Web.Services.ISessionService, WorkoutM
 builder.Services.AddScoped<WorkoutManager.Web.Services.IExerciseService, WorkoutManager.Web.Services.ExerciseService>();
 builder.Services.AddScoped<WorkoutManager.Web.Services.IMuscleGroupService, WorkoutManager.Web.Services.MuscleGroupService>();
 builder.Services.AddScoped<IWorkoutSessionStateService, WorkoutSessionStateService>();
+builder.Services.AddScoped<IWorkoutStarter, WorkoutStarter>();
 
 // MudBlazor
 builder.Services.AddMudServices();

@@ -26,10 +26,7 @@ public partial class Home
     private ILocalStorageService LocalStorage { get; set; } = default!;
 
     [Inject]
-    private ISnackbar Snackbar { get; set; } = default!;
-
-    [Inject]
-    private ISessionService SessionService { get; set; } = default!;
+    private IWorkoutStarter WorkoutStarter { get; set; } = default!;
 
 
     private IEnumerable<WorkoutPlanDto>? _plans = null;
@@ -106,39 +103,10 @@ public partial class Home
         }
     }
 
-    private async Task StartWorkout(long trainingDayId)
-    {
-        try
-        {
-            var activeSession = await SessionService.GetActiveSessionAsync();
-            if (activeSession != null)
-            {
-                var dialog = await DialogService.ShowAsync<ActiveSessionDialog>("Active Session Found");
-                var result = await dialog.Result;
+    private Task StartWorkout(long trainingDayId) => WorkoutStarter.StartWorkoutAsync(trainingDayId);
 
-                if (result is not null && !result.Canceled && result.Data is string choice)
-                {
-                    if (choice == "continue")
-                    {
-                        NavigationManager.NavigateTo($"/session/workout/{activeSession.Id}");
-                    }
-                    else if (choice == "finish_and_start_new")
-                    {
-                        await SessionService.FinishSessionAsync(activeSession.Id, activeSession.Notes);
-                        var newSession = await SessionService.StartSessionAsync(trainingDayId);
-                        NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
-                    }
-                }
-            }
-            else
-            {
-                var newSession = await SessionService.StartSessionAsync(trainingDayId);
-                NavigationManager.NavigateTo($"/session/workout/{newSession.Id}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error starting workout: {ex.Message}", Severity.Error);
-        }
+    private void OpenTrainingDay(long planId, long trainingDayId)
+    {
+        NavigationManager.NavigateTo($"/plans/{planId}/days/{trainingDayId}/preview");
     }
 }

@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using WorkoutManager.Web.Services
 
-<MudThemeProvider />
+<MudThemeProvider Theme="WorkoutManager.Web.Helpers.AppTheme.Theme" IsDarkMode="true" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
@@ -16,11 +16,12 @@
                 <MudIcon Icon="material-symbols-outlined/exercise" />
                 <span class="page-title">WorkoutManager</span>
                 <MudSpacer />
-                <MudText Class="app-user-name">@context.User.Identity?.Name</MudText>
+                @* First name only: the full name was cut off next to the title on phones. *@
+                <MudText Class="app-user-name" title="@context.User.Identity?.Name">@context.User.Identity?.Name?.Split(' ')[0]</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Logout" aria-label="Logout" Color="Color.Inherit" OnClick="Logout" />
             </MudAppBar>
             <MudMainContent Class="app-main">
-                <MudContainer MaxWidth="MaxWidth.Large" Class="my-4 pt-4">
+                <MudContainer MaxWidth="MaxWidth.Large" Class="app-container">
                     <WorkoutManager.Web.Helpers.GLobalErrorBoundary>
                         @Body
                     </WorkoutManager.Web.Helpers.GLobalErrorBoundary>
@@ -52,6 +53,17 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         font-size: .85rem;
+    }
+
+    .app-container {
+        padding-top: 24px;
+        padding-bottom: 16px;
+    }
+
+    @@media (max-width: 600px) {
+        .app-container {
+            padding-top: 12px;
+        }
     }
 
     .page-title{

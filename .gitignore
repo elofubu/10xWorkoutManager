@@ -161,3 +161,6 @@ jspm_packages/
 # DynamoDB Local files
 .dynamodb/
 DataProtectionKeys/
+
+# Local web app settings (real Entra / API values for running against the deployed API)
+WorkoutManager.Web/wwwroot/appsettings.Development.json

@@ -88,3 +88,15 @@ body {
         padding-right: 12px;
     }
 }
+
+/* Condensed display face for numbers and exercise names (weights, reps, set chips). */
+:root {
+    --font-display: 'Barlow Condensed', 'Roboto', sans-serif;
+}
+
+/* Page titles ("Your plans", "Workout History") in the display face. */
+.mud-typography-h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: .01em;
+}

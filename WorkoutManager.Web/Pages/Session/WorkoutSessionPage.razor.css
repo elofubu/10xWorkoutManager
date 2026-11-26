@@ -1,0 +1,141 @@
+.session-wrapper {
+    margin: 0 auto;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ---------- one-line progress header ---------- */
+.session-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.session-progress-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 32px;
+}
+
+.session-step {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1;
+    color: var(--color-secondary-text);
+}
+
+    .session-step small {
+        font-size: .95rem;
+        color: var(--color-tertiary-text);
+    }
+
+.session-next {
+    flex: 1;
+    min-width: 0;
+    color: var(--color-fourth-text);
+    font-size: .85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.session-progress-title ::deep .session-discard {
+    flex-shrink: 0;
+    color: rgb(248 113 113);
+    text-transform: none;
+    margin-right: -8px;
+}
+
+/* One segment per exercise of the workout. */
+.session-segments {
+    display: flex;
+    gap: 4px;
+}
+
+    .session-segments span {
+        flex: 1;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--color-secondary-background);
+    }
+
+        .session-segments span.done {
+            background: rgb(132 204 22 / .5);
+        }
+
+        .session-segments span.current {
+            background: var(--color-secondary-text);
+        }
+
+/* ---------- superset picker ---------- */
+.session-pin-bar {
+    display: flex;
+    margin-top: -4px;
+}
+
+    .session-pin-bar ::deep .mud-button-root {
+        color: var(--color-fourth-text);
+        text-transform: none;
+    }
+
+/* ---------- Back / Next / Complete, docked at the bottom of the screen ---------- */
+.session-navigation {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    padding: 10px 16px calc(10px + var(--safe-bottom));
+    background-color: var(--color-tertiary-background);
+    border-top: 1px solid var(--color-secondary-background);
+}
+
+    .session-navigation ::deep .mud-button-root {
+        min-height: 50px;
+        border-radius: 12px;
+        text-transform: none;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .session-navigation ::deep .session-back {
+        flex: 0 0 auto;
+        padding-left: 18px;
+        padding-right: 18px;
+        border-color: var(--color-primary-border);
+        color: var(--color-primary-text);
+    }
+
+    /* Secondary to "Add set": it's tapped once per exercise, not once per set. */
+    .session-navigation ::deep .session-forward {
+        flex: 1;
+        background-color: var(--color-secondary-background);
+        color: var(--color-primary-text);
+    }
+
+        .session-navigation ::deep .session-forward .mud-icon-root {
+            color: var(--color-secondary-text);
+        }
+
+    .session-navigation ::deep .session-complete {
+        background-color: var(--color-primary-text);
+        color: var(--color-primary-background);
+    }
+
+        .session-navigation ::deep .session-complete .mud-icon-root {
+            color: inherit;
+        }
+
+/* Center the bar with the content on wide screens. */
+@media (min-width: 600px) {
+    .session-navigation {
+        padding-left: max(16px, calc((100% - 560px) / 2));
+        padding-right: max(16px, calc((100% - 560px) / 2));
+    }
+}

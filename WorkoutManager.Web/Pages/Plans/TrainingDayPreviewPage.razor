@@ -1,0 +1,134 @@
+@page "/plans/{PlanId:long}/days/{DayId:long}/preview"
+@using WorkoutManager.BusinessLogic.DTOs
+@using WorkoutManager.Web.Services
+@inject IWorkoutPlanService WorkoutPlanService
+@inject IWorkoutStarter WorkoutStarter
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>@(_day?.Name ?? "Training")</PageTitle>
+
+<div class="day-preview-wrapper">
+
+    <MudOverlay Visible="_isLoading" LightBackground="true">
+        <MudProgressCircular Style="color: var(--color-secondary-text)" Indeterminate="true" />
+    </MudOverlay>
+
+    @if (!_isLoading)
+    {
+        <div class="day-preview-header">
+            <MudIconButton Icon="@Icons.Material.Outlined.ArrowBack" aria-label="Back"
+                           OnClick="@(() => NavigationManager.NavigateTo("/"))" />
+            <div class="day-preview-title">
+                @if (_day is null)
+                {
+                    <MudText Typo="Typo.h6">Training not found</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Class="plan-name">@_planName</MudText>
+                    <MudText Typo="Typo.h5" Class="day-name">@_day.Name</MudText>
+                }
+            </div>
+            @if (_day is not null)
+            {
+                <MudIconButton Icon="@Icons.Material.Outlined.Edit" aria-label="Edit exercises"
+                               OnClick="@(() => NavigationManager.NavigateTo($"/plans/{PlanId}/days/{DayId}"))" />
+            }
+        </div>
+
+        @if (_day is not null)
+        {
+            <MudText Typo="Typo.subtitle2" Class="section-label">EXERCISES (@_exercises.Count)</MudText>
+
+            @if (_exercises.Count == 0)
+            {
+                <div class="no-data">
+                    <MudText>No exercises yet ;)</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Secondary"
+                               OnClick="@(() => NavigationManager.NavigateTo($"/plans/{PlanId}/days/{DayId}"))">Add exercises</MudButton>
+                </div>
+            }
+            else
+            {
+                <div class="exercise-list">
+                    @for (var i = 0; i < _exercises.Count; i++)
+                    {
+                        <div class="exercise-item">
+                            <span class="exercise-number">@(i + 1)</span>
+                            <span class="exercise-name">@_exercises[i].Name</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="day-preview-actions">
+                <MudButton Variant="Variant.Filled" Size="Size.Large" FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.PlayArrow"
+                           OnClick="Start" Disabled="@(_exercises.Count == 0 || _isStarting)">Start workout</MudButton>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public long PlanId { get; set; }
+
+    [Parameter]
+    public long DayId { get; set; }
+
+    private bool _isLoading = true;
+    private bool _isStarting;
+    private string _planName = string.Empty;
+    private TrainingDayDto? _day;
+    private List<PlanDayExerciseDto> _exercises = new();
+    private (long PlanId, long DayId)? _loadedFor;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // The same page instance is reused when navigating between two days, so reload on parameter change.
+        if (_loadedFor == (PlanId, DayId))
+        {
+            return;
+        }
+
+        _loadedFor = (PlanId, DayId);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var plan = await WorkoutPlanService.GetWorkoutPlanByIdAsync(PlanId);
+            _planName = plan?.Name ?? string.Empty;
+            _day = plan?.TrainingDays.FirstOrDefault(d => d.Id == DayId);
+            _exercises = _day?.Exercises.OrderBy(e => e.Order).ToList() ?? new List<PlanDayExerciseDto>();
+        }
+        catch
+        {
+            _day = null;
+            _exercises = new List<PlanDayExerciseDto>();
+            Snackbar.Add("Failed to load the training", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task Start()
+    {
+        _isStarting = true;
+        try
+        {
+            await WorkoutStarter.StartWorkoutAsync(DayId);
+        }
+        finally
+        {
+            _isStarting = false;
+        }
+    }
+}

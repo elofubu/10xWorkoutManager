@@ -36,6 +36,11 @@ namespace WorkoutManager.Web.Pages.Session
         private int? _reps;
         private decimal? _weight;
 
+        // Exercise pinned next to the current one (superset) with its own weight/reps inputs.
+        private SessionExerciseDetailsDto? _pinnedExercise;
+        private int? _pinnedReps;
+        private decimal? _pinnedWeight;
+
         private Dictionary<long, PreviousExercisePerformanceDto> _previousSessionData = new();
         private Dictionary<long, string> _exerciseNames = new();
         private string? _sessionNotes;
@@ -92,33 +97,90 @@ namespace WorkoutManager.Web.Pages.Session
 
         private string GetExerciseName(long exerciseId) => _exerciseNames.GetValueOrDefault(exerciseId, $"Exercise {exerciseId}");
 
-        // Numeric keyboards on phones: decimal pad for weight, plain number pad for reps.
-        private readonly InputMode _weightInputMode = InputMode.@decimal;
-        private readonly InputMode _repsInputMode = InputMode.numeric;
+        private List<SessionExerciseDetailsDto> OrderedExercises => _session!.Exercises.OrderBy(e => e.Order).ToList();
 
-        private void AdjustWeight(decimal delta) => _weight = Math.Max(0, (_weight ?? 0) + delta);
+        // Any other exercise of this workout can be pinned next to the current one (not only the next one).
+        private IEnumerable<SessionExerciseDetailsDto> PinnableExercises =>
+            OrderedExercises.Where(e => e.Id != _currentExercise?.Id);
 
-        private void AdjustReps(int delta) => _reps = Math.Max(0, (_reps ?? 0) + delta);
-
-        private async Task AddSet()
+        private async Task AddSetAsync(SessionExerciseDetailsDto exercise, decimal? weight, int? reps)
         {
-            if (!_reps.HasValue) return;
+            // A set needs at least one rep; 0 kg is fine (bodyweight exercises).
+            if (reps is not > 0) return;
 
-            _currentExercise.Sets.Add(new ExerciseSetDto { Reps = _reps.Value, Weight = _weight.HasValue ? _weight.Value : 0 });
+            exercise.Sets.Add(new ExerciseSetDto { Reps = reps.Value, Weight = weight ?? 0 });
 
-            // Save state to localStorage after adding a set
+            // Save state to storage after adding a set
             await SaveStateToLocalStorageAsync();
         }
 
-        private async Task RemoveSet(long setIndex)
+        private async Task RemoveSetAsync(SessionExerciseDetailsDto exercise, ExerciseSetDto set)
         {
-            if (!_currentExercise.Sets.Any(s => s.Id == setIndex)) return;
+            // Remove the exact set that was clicked (new, unsaved sets all have Id 0).
+            exercise.Sets.Remove(set);
 
-            var setToRemove = _currentExercise.Sets.First(s => s.Id == setIndex);
-            _currentExercise.Sets.Remove(setToRemove);
-
-            // Save state to localStorage after removing a set
+            // Save state to storage after removing a set
             await SaveStateToLocalStorageAsync();
+        }
+
+        private async Task SetNotesAsync(SessionExerciseDetailsDto exercise, string? notes)
+        {
+            // Saved with the exercise on Next / Complete / Unpin; kept in storage until then.
+            exercise.Notes = notes;
+            await SaveStateToLocalStorageAsync();
+        }
+
+        private async Task PinExerciseAsync(SessionExerciseDetailsDto exercise)
+        {
+            _pinnedExercise = exercise;
+            _pinnedWeight = 0;
+            _pinnedReps = 0;
+
+            await SaveStateToLocalStorageAsync();
+        }
+
+        private async Task UnpinExerciseAsync()
+        {
+            if (_pinnedExercise is null) return;
+
+            // Save what was logged on the pinned exercise before it leaves the screen.
+            _isLoading = true;
+            try
+            {
+                await PersistExerciseAsync(_pinnedExercise);
+            }
+            catch
+            {
+                Snackbar.Add("Failed to save the pinned exercise", Severity.Error);
+                _isLoading = false;
+                return;
+            }
+
+            _pinnedExercise = null;
+            _isLoading = false;
+
+            await SaveStateToLocalStorageAsync();
+        }
+
+        private async Task PersistExerciseAsync(SessionExerciseDetailsDto exercise)
+        {
+            var payload = new UpdateSessionExerciseDto
+            {
+                Notes = exercise.Notes,
+                Skipped = exercise.Skipped,
+                Sets = exercise.Skipped ? new List<ExerciseSetDto>() : exercise.Sets.Where(s => s.Reps != 0).ToList()
+            };
+
+            await SessionService.UpdateSessionExerciseAsync(_session!.Id, exercise.Id, payload);
+        }
+
+        // Moving to the pinned exercise itself ends the pin: it is the current exercise now.
+        private void ReleasePinIfCurrent()
+        {
+            if (_pinnedExercise is not null && _pinnedExercise.Id == _currentExercise?.Id)
+            {
+                _pinnedExercise = null;
+            }
         }
 
         private async Task NextStep()
@@ -126,14 +188,13 @@ namespace WorkoutManager.Web.Pages.Session
             _isLoading = true;
             try
             {
-                var payload = new UpdateSessionExerciseDto
-                {
-                    Notes = _currentExercise.Notes,
-                    Skipped = _currentExercise.Skipped,
-                    Sets = _currentExercise.Skipped ? new List<ExerciseSetDto>() : _currentExercise.Sets.Where(s => s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
-                };
+                await PersistExerciseAsync(_currentExercise!);
 
-                await SessionService.UpdateSessionExerciseAsync(_session.Id, _currentExercise.Id, payload);
+                // A pinned exercise stays on screen, so its sets are saved too.
+                if (_pinnedExercise is not null)
+                {
+                    await PersistExerciseAsync(_pinnedExercise);
+                }
 
                 // Clear localStorage after successfully saving to database
                 await StateService.ClearStateAsync();
@@ -145,10 +206,17 @@ namespace WorkoutManager.Web.Pages.Session
                 _currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
                 _weight = 0;
                 _reps = 0;
+                ReleasePinIfCurrent();
+            }
+
+            // Keep the pin across a page refresh.
+            if (_pinnedExercise is not null)
+            {
+                await SaveStateToLocalStorageAsync();
             }
         }
 
-        private void PreviousStep()
+        private async Task PreviousStep()
         {
             if (_index <= 0) return;
 
@@ -156,6 +224,12 @@ namespace WorkoutManager.Web.Pages.Session
             _currentExercise = _session!.Exercises.OrderBy(e => e.Order).ElementAt(_index);
             _weight = 0;
             _reps = 0;
+            ReleasePinIfCurrent();
+
+            if (_pinnedExercise is not null)
+            {
+                await SaveStateToLocalStorageAsync();
+            }
         }
 
         private async Task CompleteSession()
@@ -164,16 +238,14 @@ namespace WorkoutManager.Web.Pages.Session
 
             try
             {
-                var payload = new UpdateSessionExerciseDto
+                await PersistExerciseAsync(_currentExercise!);
+
+                if (_pinnedExercise is not null)
                 {
-                    Notes = _currentExercise.Notes,
-                    Skipped = _currentExercise.Skipped,
-                    Sets = _currentExercise.Skipped ? new List<ExerciseSetDto>() : _currentExercise.Sets.Where(s => s.Reps != 0)?.ToList() ?? new List<ExerciseSetDto>()
-                };
+                    await PersistExerciseAsync(_pinnedExercise);
+                }
 
-                await SessionService.UpdateSessionExerciseAsync(_session.Id, _currentExercise.Id, payload);
-
-                await SessionService.FinishSessionAsync(_session.Id, _sessionNotes);
+                await SessionService.FinishSessionAsync(_session!.Id, _sessionNotes);
 
                 // Clear localStorage after successfully completing the session
                 await StateService.ClearStateAsync();
@@ -257,8 +329,14 @@ namespace WorkoutManager.Web.Pages.Session
             // If it does, it means the data was saved elsewhere - ignore localStorage
             if (savedExercise.Sets?.Any() == true)
             {
-                // Data already saved to backend, localStorage is stale
-                await StateService.ClearStateAsync();
+                // Data already saved to backend, localStorage is stale — except for a pinned exercise,
+                // which keeps unsaved sets of its own.
+                RestorePinnedExercise(savedState);
+                if (_pinnedExercise is null)
+                {
+                    await StateService.ClearStateAsync();
+                }
+
                 return;
             }
 
@@ -269,9 +347,39 @@ namespace WorkoutManager.Web.Pages.Session
             {
                 _currentExercise = exercises[_index];
                 _currentExercise.Sets = savedState.UnsavedSets ?? new List<ExerciseSetDto>();
+                _currentExercise.Notes = savedState.UnsavedNotes ?? _currentExercise.Notes;
                 _reps = savedState.InputReps;
                 _weight = savedState.InputWeight;
             }
+
+            RestorePinnedExercise(savedState);
+        }
+
+        private void RestorePinnedExercise(WorkoutSessionState savedState)
+        {
+            if (savedState.PinnedExerciseId is not long pinnedId || _session?.Exercises == null)
+            {
+                return;
+            }
+
+            var pinned = _session.Exercises.FirstOrDefault(e => e.Id == pinnedId);
+
+            // Unknown exercise, or the same one that is current now: nothing to pin.
+            if (pinned == null || pinned.Id == _currentExercise?.Id)
+            {
+                return;
+            }
+
+            if (savedState.PinnedSets != null)
+            {
+                pinned.Sets = savedState.PinnedSets;
+            }
+
+            pinned.Notes = savedState.PinnedNotes ?? pinned.Notes;
+
+            _pinnedExercise = pinned;
+            _pinnedReps = savedState.PinnedInputReps;
+            _pinnedWeight = savedState.PinnedInputWeight;
         }
 
         private async Task SaveStateToLocalStorageAsync()
@@ -286,7 +394,13 @@ namespace WorkoutManager.Web.Pages.Session
                 CurrentIndex = _index,
                 UnsavedSets = _currentExercise.Sets.ToList(),
                 InputReps = _reps,
-                InputWeight = _weight
+                InputWeight = _weight,
+                UnsavedNotes = _currentExercise.Notes,
+                PinnedExerciseId = _pinnedExercise?.Id,
+                PinnedSets = _pinnedExercise?.Sets.ToList(),
+                PinnedNotes = _pinnedExercise?.Notes,
+                PinnedInputReps = _pinnedReps,
+                PinnedInputWeight = _pinnedWeight
             };
 
             await StateService.SaveStateAsync(state);
