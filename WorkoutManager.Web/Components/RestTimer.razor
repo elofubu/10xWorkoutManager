@@ -1,0 +1,121 @@
+@implements IDisposable
+@inject IJSRuntime JS
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+@* Rest countdown between sets. The session page calls Start() after "Add set"; past zero it counts
+   the overtime up in red. The rest length is picked here and remembered on this device. *@
+<div class="rest-timer @(IsRunning ? (SecondsLeft > 0 ? "rest-timer-running" : "rest-timer-over") : "")">
+    <MudIcon Icon="@Icons.Material.Outlined.Timer" Size="Size.Small" />
+    @if (!IsRunning)
+    {
+        <span class="rest-timer-label">Rest</span>
+        <MudMenu Class="rest-timer-length" Label="@Format(_seconds)" EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                 Variant="Variant.Text" Size="Size.Small" AriaLabel="Rest length"
+                 AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.BottomRight">
+            @foreach (var length in Lengths)
+            {
+                <MudMenuItem OnClick="@(() => SetLengthAsync(length))">@Format(length)</MudMenuItem>
+            }
+        </MudMenu>
+        <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Size="Size.Small" aria-label="Start rest timer" OnClick="Start" />
+    }
+    else
+    {
+        var left = SecondsLeft;
+        <span class="rest-timer-time" role="timer">@(left > 0 ? Format(left) : "+" + Format(-left))</span>
+        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => Adjust(-15))">−15s</MudButton>
+        <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="@(() => Adjust(15))">+15s</MudButton>
+        <MudIconButton Icon="@Icons.Material.Filled.Stop" Size="Size.Small" aria-label="Stop rest timer" OnClick="Stop" />
+    }
+</div>
+
+@code {
+    private const string StorageKey = "restTimerSeconds";
+    private static readonly int[] Lengths = [60, 90, 120, 180, 300];
+
+    private int _seconds = 120;
+    // An end time instead of a tick count: phones pause timers in the background, the clock keeps going.
+    private DateTimeOffset? _endsAt;
+    private bool _alerted;
+    private System.Threading.Timer? _tick;
+
+    private bool IsRunning => _endsAt is not null;
+
+    private int SecondsLeft => (int)Math.Ceiling((_endsAt!.Value - DateTimeOffset.UtcNow).TotalSeconds);
+
+    private static string Format(int seconds) => $"{seconds / 60}:{seconds % 60:00}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (await LocalStorage.GetItemAsync<int?>(StorageKey) is int saved && saved > 0)
+            {
+                _seconds = saved;
+            }
+        }
+        catch
+        {
+            // No storage (private mode etc.): keep the default length.
+        }
+    }
+
+    /// <summary>Starts (or restarts) the rest countdown.</summary>
+    public void Start()
+    {
+        _endsAt = DateTimeOffset.UtcNow.AddSeconds(_seconds);
+        _alerted = false;
+        // Runs inside the tap that started the timer, so phones allow the sound later.
+        _ = JS.InvokeVoidAsync("restTimer.unlock").AsTask().ContinueWith(_ => { });
+        _tick ??= new System.Threading.Timer(_ => InvokeAsync(Tick), null, 250, 250);
+        StateHasChanged();
+    }
+
+    private void Stop()
+    {
+        _endsAt = null;
+        _tick?.Dispose();
+        _tick = null;
+    }
+
+    private void Adjust(int seconds)
+    {
+        _endsAt = _endsAt!.Value.AddSeconds(seconds);
+        if (SecondsLeft > 0) _alerted = false;
+    }
+
+    private async Task Tick()
+    {
+        if (!IsRunning) return;
+
+        if (SecondsLeft <= 0 && !_alerted)
+        {
+            _alerted = true;
+            try
+            {
+                await JS.InvokeVoidAsync("restTimer.alert");
+            }
+            catch (JSException)
+            {
+                // Sound/vibration is a bonus; the red overtime is still shown.
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task SetLengthAsync(int seconds)
+    {
+        _seconds = seconds;
+        try
+        {
+            await LocalStorage.SetItemAsync(StorageKey, seconds);
+        }
+        catch
+        {
+            // Not remembered on this device; it still applies to this workout.
+        }
+    }
+
+    public void Dispose() => _tick?.Dispose();
+}

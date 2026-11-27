@@ -46,6 +46,7 @@ namespace WorkoutManager.Web.Pages.Session
         private string? _sessionNotes;
         private int _index;
         private bool _isLoading = true;
+        private RestTimer? _restTimer;
 
         protected override async Task OnInitializedAsync()
         {
@@ -109,6 +110,12 @@ namespace WorkoutManager.Web.Pages.Session
             if (reps is not > 0) return;
 
             exercise.Sets.Add(new ExerciseSetDto { Reps = reps.Value, Weight = weight ?? 0 });
+
+            // In a superset the rest comes after the round: the pinned exercise (shown second) ends it.
+            if (_pinnedExercise is null || exercise == _pinnedExercise)
+            {
+                _restTimer?.Start();
+            }
 
             // Save state to storage after adding a set
             await SaveStateToLocalStorageAsync();

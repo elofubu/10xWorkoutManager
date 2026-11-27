@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Bunit;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,7 @@ public class WorkoutSessionPageSupersetTests : TestContext
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
         Services.AddMudServices();
+        Services.AddBlazoredLocalStorage();
         Services.AddSingleton<ISessionService>(_sessions);
         Services.AddSingleton<IExerciseService, FakeExerciseService>();
         Services.AddSingleton<IWorkoutSessionStateService>(_state);
@@ -81,6 +83,47 @@ public class WorkoutSessionPageSupersetTests : TestContext
 
         page.FindAll(".log-panel-pinned .set-item").Should().HaveCount(1);
         page.FindAll(".log-panel:not(.log-panel-pinned) .set-item").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Add_set_starts_the_rest_timer()
+    {
+        var page = RenderPage();
+        page.FindAll(".rest-timer-time").Should().BeEmpty();
+
+        page.FindAll("[aria-label='Increase reps']")[0].Click();
+        ClickButton(page, "Add set");
+
+        page.Find(".rest-timer-time").TextContent.Should().Be("2:00");
+    }
+
+    [Fact]
+    public async Task In_a_superset_the_rest_timer_starts_after_the_pinned_exercise_set()
+    {
+        var page = RenderPage();
+        await PinAsync(page, "Squats");
+
+        page.FindAll("[aria-label='Increase reps']")[0].Click();
+        ClickButton(page, "Add set", index: 0);
+        page.FindAll(".rest-timer-time").Should().BeEmpty("the pinned exercise of this round is still to do");
+
+        page.FindAll("[aria-label='Increase reps']")[1].Click();
+        ClickButton(page, "Add set", index: 1);
+        page.FindAll(".rest-timer-time").Should().HaveCount(1);
+
+        // Next keeps the pin: on the new exercise the round again ends with the pinned one.
+        page.Find("[aria-label='Stop rest timer']").Click();
+        ClickButton(page, "Next");
+        page.WaitForAssertion(() =>
+            page.Find(".log-panel:not(.log-panel-pinned) .mud-typography-h5").TextContent.Should().Contain("Pull-ups"));
+
+        page.FindAll("[aria-label='Increase reps']")[0].Click();
+        ClickButton(page, "Add set", index: 0);
+        page.FindAll(".rest-timer-time").Should().BeEmpty();
+
+        page.FindAll("[aria-label='Increase reps']")[1].Click();
+        ClickButton(page, "Add set", index: 1);
+        page.FindAll(".rest-timer-time").Should().HaveCount(1);
     }
 
     [Fact]

@@ -1,0 +1,39 @@
+.rest-timer {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 40px;
+    color: var(--color-fourth-text);
+}
+
+.rest-timer-label {
+    flex: 1;
+    font-size: .9rem;
+}
+
+.rest-timer-time {
+    flex: 1;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.rest-timer-running {
+    color: var(--color-secondary-text);
+}
+
+.rest-timer-over {
+    color: rgb(248 113 113);
+}
+
+.rest-timer ::deep .mud-button-root:not(.mud-icon-button) {
+    color: inherit;
+    text-transform: none;
+    min-width: 0;
+}
+
+.rest-timer ::deep .mud-icon-button {
+    color: inherit;
+}

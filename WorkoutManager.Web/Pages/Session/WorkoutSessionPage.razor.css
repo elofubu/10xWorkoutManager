@@ -82,18 +82,29 @@
         text-transform: none;
     }
 
-/* ---------- Back / Next / Complete, docked at the bottom of the screen ---------- */
-.session-navigation {
+/* ---------- Rest timer + Back / Next / Complete, docked at the bottom of the screen ---------- */
+.session-dock {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 1000;
     display: flex;
-    gap: 10px;
-    padding: 10px 16px calc(10px + var(--safe-bottom));
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 16px calc(10px + var(--safe-bottom));
     background-color: var(--color-tertiary-background);
     border-top: 1px solid var(--color-secondary-background);
+}
+
+/* The page layout only reserves room for the bottom nav; the rest timer row needs a bit more. */
+.session-wrapper {
+    padding-bottom: 44px;
+}
+
+.session-navigation {
+    display: flex;
+    gap: 10px;
 }
 
     .session-navigation ::deep .mud-button-root {
@@ -134,7 +145,7 @@
 
 /* Center the bar with the content on wide screens. */
 @media (min-width: 600px) {
-    .session-navigation {
+    .session-dock {
         padding-left: max(16px, calc((100% - 560px) / 2));
         padding-right: max(16px, calc((100% - 560px) / 2));
     }

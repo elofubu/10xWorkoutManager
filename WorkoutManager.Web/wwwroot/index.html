@@ -34,6 +34,30 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script>
+      // Rest timer alert (Components/RestTimer.razor): a double beep plus vibration where supported (not iOS).
+      window.restTimer = {
+        ctx: null,
+        unlock: function () {
+          try {
+            this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+            this.ctx.resume();
+          } catch (e) { /* no audio */ }
+        },
+        alert: function () {
+          if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+          var ctx = this.ctx;
+          if (!ctx) return;
+          [0, 0.4].forEach(function (t) {
+            var start = ctx.currentTime + t, osc = ctx.createOscillator(), gain = ctx.createGain();
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.3, start);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + 0.3);
+          });
+        }
+      };
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').catch(function () { /* install prompt is optional */ });
       }
