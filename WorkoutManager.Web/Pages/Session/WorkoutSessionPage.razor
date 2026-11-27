@@ -74,19 +74,22 @@
         }
 
         @* Docked where the bottom navigation normally is (it is hidden on this page). *@
-        <nav class="session-navigation" aria-label="Exercise navigation">
-            @if (_index > 0)
-            {
-                <MudButton Class="session-back" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.ArrowBackIos" Disabled="_isLoading" OnClick="PreviousStep">Back</MudButton>
-            }
-            @if (count == _index + 1)
-            {
-                <MudButton Class="session-forward session-complete" Variant="Variant.Filled" EndIcon="@Icons.Material.Outlined.Check" Disabled="_isLoading" OnClick="CompleteSession">Complete</MudButton>
-            }
-            else
-            {
-                <MudButton Class="session-forward" Variant="Variant.Filled" EndIcon="@Icons.Material.Outlined.ArrowForwardIos" Disabled="_isLoading" OnClick="NextStep">Next</MudButton>
-            }
-        </nav>
+        <div class="session-dock">
+            <RestTimer @ref="_restTimer" />
+            <nav class="session-navigation" aria-label="Exercise navigation">
+                @if (_index > 0)
+                {
+                    <MudButton Class="session-back" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.ArrowBackIos" Disabled="_isLoading" OnClick="PreviousStep">Back</MudButton>
+                }
+                @if (count == _index + 1)
+                {
+                    <MudButton Class="session-forward session-complete" Variant="Variant.Filled" EndIcon="@Icons.Material.Outlined.Check" Disabled="_isLoading" OnClick="CompleteSession">Complete</MudButton>
+                }
+                else
+                {
+                    <MudButton Class="session-forward" Variant="Variant.Filled" EndIcon="@Icons.Material.Outlined.ArrowForwardIos" Disabled="_isLoading" OnClick="NextStep">Next</MudButton>
+                }
+            </nav>
+        </div>
     </div>
 }
